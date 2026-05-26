@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-orora-black: #000000;
+    --color-orora-teal: #ffffff;
+    --color-orora-sidebar: #002b2b;
+    --color-orora-accent: #ffffff;
+    --color-orora-button: #a4d400;
+    --color-orora-gray: #808080;
+    --color-orora-gray-light: #cccccc;
+}
