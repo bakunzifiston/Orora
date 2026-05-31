@@ -8,30 +8,31 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MilkRecord extends Model
 {
     protected $fillable = [
-        'farm_id',
+        'milk_session_id',
         'animal_id',
-        'livestock_id',
-        'recorded_on',
-        'session',
-        'quantity',
-        'unit',
-        'fat_percentage',
-        'quality_grade',
+        'record_code',
+        'yield_liters',
+        'milking_duration_minutes',
+        'lactation_stage',
+        'lactation_number',
+        'udder_condition',
+        'abnormal_milk',
+        'abnormal_notes',
         'notes',
+        'created_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'recorded_on' => 'date',
-            'quantity' => 'decimal:2',
-            'fat_percentage' => 'decimal:2',
+            'yield_liters' => 'decimal:2',
+            'abnormal_milk' => 'boolean',
         ];
     }
 
-    public function farm(): BelongsTo
+    public function session(): BelongsTo
     {
-        return $this->belongsTo(Farm::class);
+        return $this->belongsTo(MilkSession::class, 'milk_session_id');
     }
 
     public function animal(): BelongsTo
@@ -39,8 +40,8 @@ class MilkRecord extends Model
         return $this->belongsTo(Animal::class);
     }
 
-    public function livestock(): BelongsTo
+    public function creator(): BelongsTo
     {
-        return $this->belongsTo(Livestock::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Animal;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,46 +14,42 @@ class MilkRecordRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->input('livestock_id') === '') {
-            $this->merge(['livestock_id' => null]);
-        }
-
-        if ($this->input('session') === '') {
-            $this->merge(['session' => null]);
-        }
+        $this->merge([
+            'abnormal_milk' => $this->boolean('abnormal_milk'),
+        ]);
     }
 
     public function rules(): array
     {
         return [
             'animal_id' => ['required', 'exists:animals,id'],
-            'livestock_id' => ['nullable', 'exists:livestock,id'],
-            'recorded_on' => ['required', 'date'],
-            'session' => ['nullable', Rule::in(config('modules.milk_sessions'))],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
-            'unit' => ['required', 'string', 'max:10'],
-            'fat_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'quality_grade' => ['nullable', Rule::in(config('modules.milk_quality_grades'))],
+            'yield_liters' => ['required', 'numeric', 'min:0.01'],
+            'milking_duration_minutes' => ['nullable', 'integer', 'min:1'],
+            'lactation_stage' => ['nullable', Rule::in(config('modules.lactation_stages'))],
+            'lactation_number' => ['nullable', 'integer', 'min:1'],
+            'udder_condition' => ['nullable', Rule::in(config('modules.udder_conditions'))],
+            'abnormal_milk' => ['boolean'],
+            'abnormal_notes' => [
+                Rule::requiredIf(fn () => $this->boolean('abnormal_milk')),
+                'nullable',
+                'string',
+            ],
             'notes' => ['nullable', 'string'],
         ];
     }
 
-    public function milkRecordAttributes(): array
+    public function recordAttributes(): array
     {
-        $animal = Animal::query()->findOrFail($this->input('animal_id'));
-
-        return array_merge($this->safe()->only([
+        return $this->safe()->only([
             'animal_id',
-            'livestock_id',
-            'recorded_on',
-            'session',
-            'quantity',
-            'unit',
-            'fat_percentage',
-            'quality_grade',
+            'yield_liters',
+            'milking_duration_minutes',
+            'lactation_stage',
+            'lactation_number',
+            'udder_condition',
+            'abnormal_milk',
+            'abnormal_notes',
             'notes',
-        ]), [
-            'farm_id' => $animal->farm_id,
         ]);
     }
 }

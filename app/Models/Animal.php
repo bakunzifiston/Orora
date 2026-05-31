@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,6 +52,45 @@ class Animal extends Model
     public function livestock(): BelongsTo
     {
         return $this->belongsTo(Livestock::class);
+    }
+
+    public function isMilkingEligible(): bool
+    {
+        if (strcasecmp((string) $this->production_status, 'Lactating') === 0) {
+            return true;
+        }
+
+        if (filled($this->production_status)) {
+            return false;
+        }
+
+        $this->loadMissing('livestock');
+        $herdGroups = $this->livestock?->herd_groups ?? [];
+
+        return (bool) array_intersect(config('modules.milking_herd_groups', []), $herdGroups);
+    }
+
+    public function scopeMilkingEligible(Builder $query): void
+    {
+        $milkingHerdGroups = config('modules.milking_herd_groups', []);
+
+        $query->where(function (Builder $q) use ($milkingHerdGroups) {
+            $q->where('production_status', 'Lactating');
+
+            if ($milkingHerdGroups !== []) {
+                $q->orWhere(function (Builder $q2) use ($milkingHerdGroups) {
+                    $q2->where(function (Builder $q3) {
+                        $q3->whereNull('production_status')->orWhere('production_status', '');
+                    })->whereHas('livestock', function (Builder $lq) use ($milkingHerdGroups) {
+                        $lq->where(function (Builder $inner) use ($milkingHerdGroups) {
+                            foreach ($milkingHerdGroups as $group) {
+                                $inner->orWhereJsonContains('herd_groups', $group);
+                            }
+                        });
+                    });
+                });
+            }
+        });
     }
 
     public function feedings(): HasMany

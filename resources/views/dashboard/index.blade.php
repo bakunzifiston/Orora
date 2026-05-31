@@ -5,17 +5,6 @@
 @section('content')
     <h1 class="dash-welcome">Welcome, {{ auth()->user()->name }}</h1>
 
-    <div class="dash-module-grid" style="margin-bottom: 1.5rem;">
-        @foreach (config('modules.navigation') as $item)
-            @if ($item['route'] && $item['route'] !== 'dashboard' && $item['route'] !== 'profile.edit' && Route::has($item['route']))
-                <a href="{{ route($item['route']) }}" class="dash-module-card">
-                    @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
-                    <span>{{ $item['label'] }}</span>
-                </a>
-            @endif
-        @endforeach
-    </div>
-
     <div class="dash-stats">
         @foreach ($stats as $stat)
             <div class="dash-stat-card">
@@ -28,9 +17,7 @@
                         @endif
                     </div>
                 </div>
-                <div class="dash-stat-icon">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m0 0H21m-1.5 0H3.375m0 0h-.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75a9 9 0 00-9-9z"/></svg>
-                </div>
+                @include('modules.partials.stat-icon', ['icon' => $stat['icon'] ?? 'grid'])
             </div>
         @endforeach
     </div>

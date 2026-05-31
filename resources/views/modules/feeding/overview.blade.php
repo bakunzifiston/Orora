@@ -11,30 +11,48 @@
     ])
     @include('modules.partials.flash')
 
-    <div class="dash-health-stats">
+    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Suppliers</div>
-            <div class="dash-stat-value">{{ number_format($stats['suppliers']) }}</div>
+            <div>
+                <div class="dash-stat-label">Suppliers</div>
+                <div class="dash-stat-value">{{ number_format($stats['suppliers']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'farm'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Feed types</div>
-            <div class="dash-stat-value accent">{{ number_format($stats['feed_types']) }}</div>
+            <div>
+                <div class="dash-stat-label">Feed types</div>
+                <div class="dash-stat-value accent">{{ number_format($stats['feed_types']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'feeding'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Inventory items</div>
-            <div class="dash-stat-value">{{ number_format($stats['inventory_items']) }}</div>
+            <div>
+                <div class="dash-stat-label">Inventory items</div>
+                <div class="dash-stat-value">{{ number_format($stats['inventory_items']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'box'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Low stock</div>
-            <div class="dash-stat-value">{{ number_format($stats['low_stock']) }}</div>
+            <div>
+                <div class="dash-stat-label">Low stock</div>
+                <div class="dash-stat-value">{{ number_format($stats['low_stock']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'movement'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Active schedules</div>
-            <div class="dash-stat-value">{{ number_format($stats['active_schedules']) }}</div>
+            <div>
+                <div class="dash-stat-label">Active schedules</div>
+                <div class="dash-stat-value">{{ number_format($stats['active_schedules']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'certificate'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Records this month</div>
-            <div class="dash-stat-value">{{ number_format($stats['records_this_month']) }}</div>
+            <div>
+                <div class="dash-stat-label">Records this month</div>
+                <div class="dash-stat-value">{{ number_format($stats['records_this_month']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'chart'])
         </div>
     </div>
 

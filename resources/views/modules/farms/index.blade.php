@@ -7,48 +7,55 @@
         'title' => 'Farms',
         'subtitle' => 'Registered farms with Rwanda location and owner details.',
         'createRoute' => 'farms.create',
+        'createLabel' => '+ Register farm',
     ])
     @include('modules.partials.flash')
 
-    <div class="dash-panel">
-        @if ($farms->isEmpty())
-            <p class="dash-empty">No farms registered yet. <a href="{{ route('farms.create') }}">Register your first farm</a>.</p>
-        @else
-            <div class="dash-table-wrap">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Farm</th>
-                            <th>Reg. number</th>
-                            <th>Location</th>
-                            <th>Size (ha)</th>
-                            <th>Owner</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($farms as $farm)
-                            <tr>
-                                <td><strong>{{ $farm->name }}</strong></td>
-                                <td>{{ $farm->registration_number ?? '—' }}</td>
-                                <td>{{ $farm->location_label ?: '—' }}</td>
-                                <td>{{ $farm->farm_size_hectares !== null ? number_format($farm->farm_size_hectares, 2) : '—' }}</td>
-                                <td>{{ $farm->owner_full_name ?: '—' }}</td>
-                                <td><span class="dash-badge">{{ ucfirst($farm->status) }}</span></td>
-                                <td>
-                                    @include('modules.partials.row-actions', [
-                                        'model' => $farm,
-                                        'editRoute' => 'farms.edit',
-                                        'destroyRoute' => 'farms.destroy',
-                                    ])
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
+        <div class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Total farms</div>
+                <div class="dash-stat-value">{{ number_format($stats['total']) }}</div>
             </div>
-            <div class="dash-pagination">{{ $farms->links() }}</div>
-        @endif
+            @include('modules.partials.stat-icon', ['icon' => 'farm'])
+        </div>
+        <div class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Active</div>
+                <div class="dash-stat-value accent">{{ number_format($stats['active']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'health'])
+        </div>
+        <div class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Total area</div>
+                <div class="dash-stat-value">{{ number_format($stats['total_hectares'], 1) }} ha</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'movement'])
+        </div>
+        <div class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Livestock groups</div>
+                <div class="dash-stat-value">{{ number_format($stats['livestock_groups']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'livestock'])
+        </div>
     </div>
+
+    @if ($farms->isEmpty())
+        <div class="dash-panel dash-entity-empty">
+            <div class="dash-entity-empty__icon" aria-hidden="true">
+                @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
+            </div>
+            <p class="dash-empty">No farms registered yet.</p>
+            <a href="{{ route('farms.create') }}" class="dash-btn-save">Register your first farm</a>
+        </div>
+    @else
+        <div class="dash-entity-grid">
+            @foreach ($farms as $farm)
+                @include('modules.farms._farm-card', ['farm' => $farm])
+            @endforeach
+        </div>
+        <div class="dash-pagination">{{ $farms->links() }}</div>
+    @endif
 @endsection

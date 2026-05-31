@@ -11,6 +11,7 @@ return [
         ['key' => 'feeding', 'label' => 'Feeding', 'route' => 'feeding.overview', 'icon' => 'feeding'],
         ['key' => 'expenses', 'label' => 'Expenses', 'route' => 'expenses.overview', 'icon' => 'expense'],
         ['key' => 'milk', 'label' => 'Milk', 'route' => 'milk.overview', 'icon' => 'milk'],
+        ['key' => 'breeding', 'label' => 'Breeding', 'route' => 'breeding.overview', 'icon' => 'breeding'],
         ['key' => 'certificates', 'label' => 'Certificates', 'route' => 'certificates.index', 'icon' => 'certificate'],
         ['key' => 'movement', 'label' => 'Movement', 'route' => 'movements.index', 'icon' => 'movement'],
         ['key' => 'sales', 'label' => 'Sales', 'route' => 'sales.index', 'icon' => 'sale'],
@@ -28,6 +29,11 @@ return [
         'Bulls',
         'Steer (castrated male)',
         'Other',
+    ],
+
+    /** Herd group labels that imply milking eligibility when an animal has no production status set. */
+    'milking_herd_groups' => [
+        'Cows (lactating)',
     ],
 
     'livestock_types' => [
@@ -115,6 +121,7 @@ return [
 
     'health_statuses' => [
         'Healthy',
+        'Pregnant',
         'Sick',
         'Under treatment',
         'Quarantined',
@@ -138,14 +145,151 @@ return [
 
     'milk_sections' => [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'milk.overview'],
-        ['key' => 'records', 'label' => 'Milk records', 'route' => 'milk.records'],
+        ['key' => 'sessions', 'label' => 'Milking sessions', 'route' => 'milk.sessions'],
+        ['key' => 'storage', 'label' => 'Storage', 'route' => 'milk.storage'],
+        ['key' => 'sales', 'label' => 'Milk sales', 'route' => 'milk.sales'],
     ],
 
-    'milk_sessions' => ['Morning', 'Afternoon', 'Evening'],
+    'breeding_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'breeding.overview'],
+        ['key' => 'records', 'label' => 'Breeding records', 'route' => 'breeding.records'],
+        ['key' => 'checks', 'label' => 'Pregnancy checks', 'route' => 'breeding.checks'],
+        ['key' => 'births', 'label' => 'Birth records', 'route' => 'breeding.births'],
+    ],
 
-    'milk_units' => ['L', 'ml'],
+    'breeding_animal_types' => ['cattle', 'goat', 'pig', 'poultry'],
 
-    'milk_quality_grades' => ['A', 'B', 'C', 'Rejected'],
+    'breeding_gestation_days' => [
+        'cattle' => 283,
+        'goat' => 150,
+        'pig' => 114,
+        'poultry' => 21,
+    ],
+
+    'breeding_types' => ['natural_mating', 'artificial_insemination'],
+
+    'breeding_type_labels' => [
+        'natural_mating' => 'Natural mating',
+        'artificial_insemination' => 'Artificial insemination (AI)',
+    ],
+
+    'heat_detection_methods' => ['visual', 'tail_paint', 'detector', 'hormone'],
+
+    'heat_detection_method_labels' => [
+        'visual' => 'Visual',
+        'tail_paint' => 'Tail paint',
+        'detector' => 'Heat detector',
+        'hormone' => 'Hormone / progesterone test',
+    ],
+
+    'breeding_statuses' => ['pending', 'confirmed_pregnant', 'failed', 'aborted', 'calved'],
+
+    'breeding_status_labels' => [
+        'pending' => 'Pending',
+        'confirmed_pregnant' => 'Confirmed pregnant',
+        'failed' => 'Failed',
+        'aborted' => 'Aborted',
+        'calved' => 'Calved',
+    ],
+
+    'pregnancy_check_methods' => ['rectal_palpation', 'ultrasound', 'blood_test', 'visual_observation'],
+
+    'pregnancy_check_method_labels' => [
+        'rectal_palpation' => 'Rectal palpation',
+        'ultrasound' => 'Ultrasound',
+        'blood_test' => 'Blood test',
+        'visual_observation' => 'Visual observation',
+    ],
+
+    'pregnancy_check_results' => ['confirmed_pregnant', 'not_pregnant', 'inconclusive'],
+
+    'pregnancy_check_result_labels' => [
+        'confirmed_pregnant' => 'Confirmed pregnant',
+        'not_pregnant' => 'Not pregnant',
+        'inconclusive' => 'Inconclusive',
+    ],
+
+    'birth_types' => ['single', 'twins', 'triplets', 'multiple'],
+
+    'birth_difficulties' => ['easy', 'assisted', 'difficult', 'caesarean'],
+
+    'birth_difficulty_labels' => [
+        'easy' => 'Easy',
+        'assisted' => 'Assisted',
+        'difficult' => 'Difficult',
+        'caesarean' => 'Caesarean',
+    ],
+
+    'mother_conditions_after_birth' => ['good', 'weak', 'critical', 'died'],
+
+    'mother_condition_after_labels' => [
+        'good' => 'Good',
+        'weak' => 'Weak',
+        'critical' => 'Critical',
+        'died' => 'Died',
+    ],
+
+    'offspring_health_at_birth' => ['healthy', 'weak', 'sick', 'stillborn'],
+
+    'breeding_log_actions' => [
+        'created',
+        'pregnancy_checked',
+        'confirmed_pregnant',
+        'failed',
+        'aborted',
+        'calved',
+        'offspring_registered',
+    ],
+
+    'breeding_log_action_labels' => [
+        'created' => 'Breeding recorded',
+        'pregnancy_checked' => 'Pregnancy check',
+        'confirmed_pregnant' => 'Confirmed pregnant',
+        'failed' => 'Not pregnant',
+        'aborted' => 'Aborted',
+        'calved' => 'Calved',
+        'offspring_registered' => 'Offspring registered',
+    ],
+
+    'lactating_after_birth_types' => ['cattle', 'goat'],
+
+    'milk_session_shifts' => ['morning', 'afternoon', 'evening'],
+
+    'milk_session_shift_labels' => [
+        'morning' => 'Morning',
+        'afternoon' => 'Afternoon',
+        'evening' => 'Evening',
+    ],
+
+    'milking_methods' => ['manual', 'machine', 'semi_automated'],
+
+    'milking_method_labels' => [
+        'manual' => 'Manual',
+        'machine' => 'Machine',
+        'semi_automated' => 'Semi-automated',
+    ],
+
+    'milk_session_statuses' => ['open', 'completed', 'cancelled'],
+
+    'lactation_stages' => ['early', 'mid', 'late', 'dry'],
+
+    'udder_conditions' => ['normal', 'inflamed', 'mastitis_suspected'],
+
+    'milk_storage_container_types' => ['bulk_tank', 'chiller', 'can', 'bucket', 'other'],
+
+    'milk_storage_statuses' => ['available', 'in_use', 'full', 'maintenance'],
+
+    'milk_storage_movement_types' => ['intake', 'sale', 'adjustment_in', 'adjustment_out', 'spoilage'],
+
+    'milk_storage_movement_labels' => [
+        'intake' => 'Intake (milking)',
+        'sale' => 'Sale',
+        'adjustment_in' => 'Adjustment in',
+        'adjustment_out' => 'Adjustment out',
+        'spoilage' => 'Spoilage / loss',
+    ],
+
+    'milk_sale_statuses' => ['draft', 'confirmed', 'cancelled'],
 
     'expense_payment_methods' => ['Cash', 'Mobile money', 'Bank transfer', 'Cheque', 'Other'],
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\FarmRequest;
 use App\Models\Farm;
+use App\Models\Livestock;
 use App\Services\RwandaLocationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -17,9 +18,26 @@ class FarmController extends Controller
 
     public function index(): View
     {
-        $farms = Farm::query()->orderBy('name')->paginate(15);
+        $farms = Farm::query()
+            ->withCount(['livestock', 'animals'])
+            ->orderBy('name')
+            ->paginate(12);
 
-        return view('modules.farms.index', $this->moduleViewData('farms', compact('farms')));
+        $stats = [
+            'total' => Farm::query()->count(),
+            'active' => Farm::query()->where('status', 'active')->count(),
+            'total_hectares' => (float) Farm::query()->sum('farm_size_hectares'),
+            'livestock_groups' => Livestock::query()->count(),
+        ];
+
+        return view('modules.farms.index', $this->moduleViewData('farms', compact('farms', 'stats')));
+    }
+
+    public function show(Farm $farm): View
+    {
+        $farm->load('members')->loadCount(['livestock', 'animals']);
+
+        return view('modules.farms.show', $this->moduleViewData('farms', compact('farm')));
     }
 
     public function create(): View

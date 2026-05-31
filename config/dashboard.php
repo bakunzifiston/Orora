@@ -12,10 +12,10 @@ return [
     ],
 
     'stats' => [
-        ['label' => 'Total Shipments', 'value' => '2,485', 'change' => '+12%', 'icon' => 'truck'],
-        ['label' => 'Inventory Value', 'value' => '95.7M', 'suffix' => 'RWF', 'icon' => 'wallet'],
+        ['label' => 'Total Shipments', 'value' => '2,485', 'change' => '+12%', 'icon' => 'route'],
+        ['label' => 'Inventory Value', 'value' => '95.7M', 'suffix' => 'RWF', 'icon' => 'box'],
         ['label' => 'Compliance Score', 'value' => 'A+', 'highlight' => true, 'icon' => 'shield'],
-        ['label' => 'Incidents', 'value' => '21', 'alert' => true, 'icon' => 'alert'],
+        ['label' => 'Incidents', 'value' => '21', 'alert' => true, 'icon' => 'health'],
     ],
 
     'modules' => [

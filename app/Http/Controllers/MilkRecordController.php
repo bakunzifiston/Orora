@@ -2,70 +2,84 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\MilkSectionViews;
-use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Requests\MilkBulkRecordRequest;
 use App\Http\Requests\MilkRecordRequest;
-use App\Models\Animal;
-use App\Models\Livestock;
 use App\Models\MilkRecord;
+use App\Models\MilkSession;
+use App\Services\MilkSessionService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 
 class MilkRecordController extends Controller
 {
-    use MilkSectionViews;
-    use ProvidesModuleNavigation;
+    public function __construct(
+        private readonly MilkSessionService $sessionService,
+    ) {}
 
-    public function index(): View
+    public function store(MilkRecordRequest $request, MilkSession $milkSession): RedirectResponse
     {
-        $milkRecords = MilkRecord::query()
-            ->with(['farm', 'animal', 'livestock'])
-            ->orderByDesc('recorded_on')
-            ->orderByDesc('id')
-            ->paginate(15);
+        try {
+            $this->sessionService->addRecord($milkSession, $request->recordAttributes());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['record' => $e->getMessage()]);
+        }
 
-        return view('modules.milk.records.index', $this->milkSectionData('records', compact('milkRecords')));
+        return redirect()
+            ->route('milk.sessions.edit', $milkSession)
+            ->with('success', 'Animal yield recorded.');
     }
 
-    public function create(): View
+    public function bulkStore(MilkBulkRecordRequest $request, MilkSession $milkSession): RedirectResponse
     {
-        return view('modules.milk.records.create', $this->milkSectionData('records', $this->formOptions()));
-    }
+        try {
+            $result = $this->sessionService->addRecordsBulk(
+                $milkSession,
+                $request->input('yields', []),
+                $request->input('bulk_lines'),
+            );
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['bulk' => $e->getMessage()]);
+        }
 
-    public function store(MilkRecordRequest $request): RedirectResponse
-    {
-        MilkRecord::create($request->milkRecordAttributes());
+        $message = "{$result['added']} yield(s) saved.";
 
-        return redirect()->route('milk.records')->with('success', 'Milk record saved successfully.');
-    }
+        if ($result['skipped'] > 0) {
+            $message .= " {$result['skipped']} skipped.";
+        }
 
-    public function edit(MilkRecord $milkRecord): View
-    {
-        return view('modules.milk.records.edit', $this->milkSectionData('records', array_merge(
-            $this->formOptions(),
-            ['milkRecord' => $milkRecord],
-        )));
+        $redirect = redirect()->route('milk.sessions.edit', $milkSession)->with('success', $message);
+
+        if ($result['errors'] !== []) {
+            $redirect->with('bulk_warnings', $result['errors']);
+        }
+
+        return $redirect;
     }
 
     public function update(MilkRecordRequest $request, MilkRecord $milkRecord): RedirectResponse
     {
-        $milkRecord->update($request->milkRecordAttributes());
+        try {
+            $this->sessionService->updateRecord($milkRecord, $request->recordAttributes());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['record' => $e->getMessage()]);
+        }
 
-        return redirect()->route('milk.records')->with('success', 'Milk record updated successfully.');
+        return redirect()
+            ->route('milk.sessions.edit', $milkRecord->session)
+            ->with('success', 'Record updated.');
     }
 
     public function destroy(MilkRecord $milkRecord): RedirectResponse
     {
-        $milkRecord->delete();
+        $session = $milkRecord->session;
 
-        return redirect()->route('milk.records')->with('success', 'Milk record removed successfully.');
-    }
+        try {
+            $this->sessionService->removeRecord($milkRecord);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['record' => $e->getMessage()]);
+        }
 
-    private function formOptions(): array
-    {
-        return [
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
-            'livestockGroups' => Livestock::query()->orderBy('name')->get(),
-        ];
+        return redirect()
+            ->route('milk.sessions.edit', $session)
+            ->with('success', 'Record removed.');
     }
 }

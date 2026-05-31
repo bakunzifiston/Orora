@@ -11,30 +11,48 @@
     ])
     @include('modules.partials.flash')
 
-    <div class="dash-health-stats">
+    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Total this month</div>
-            <div class="dash-stat-value">{{ number_format($stats['month_total'], 0) }} RWF</div>
+            <div>
+                <div class="dash-stat-label">Total this month</div>
+                <div class="dash-stat-value">{{ number_format($stats['month_total'], 0) }} RWF</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'expense'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Records</div>
-            <div class="dash-stat-value accent">{{ number_format($stats['record_count']) }}</div>
+            <div>
+                <div class="dash-stat-label">Records</div>
+                <div class="dash-stat-value accent">{{ number_format($stats['record_count']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'chart'])
         </div>
-        <a href="{{ route('expenses.records', ['group' => 'feed']) }}" class="dash-stat-card" style="text-decoration: none; color: inherit;">
-            <div class="dash-stat-label">Feed expenses</div>
-            <div class="dash-stat-value">{{ number_format($stats['feed'], 0) }} RWF</div>
+        <a href="{{ route('expenses.records', ['group' => 'feed']) }}" class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Feed expenses</div>
+                <div class="dash-stat-value">{{ number_format($stats['feed'], 0) }} RWF</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'feeding'])
         </a>
-        <a href="{{ route('expenses.records', ['group' => 'health']) }}" class="dash-stat-card" style="text-decoration: none; color: inherit;">
-            <div class="dash-stat-label">Health expenses</div>
-            <div class="dash-stat-value">{{ number_format($stats['health'], 0) }} RWF</div>
+        <a href="{{ route('expenses.records', ['group' => 'health']) }}" class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Health expenses</div>
+                <div class="dash-stat-value">{{ number_format($stats['health'], 0) }} RWF</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'health'])
         </a>
-        <a href="{{ route('expenses.records', ['group' => 'farm_operations']) }}" class="dash-stat-card" style="text-decoration: none; color: inherit;">
-            <div class="dash-stat-label">Farm operations</div>
-            <div class="dash-stat-value">{{ number_format($stats['farm_operations'], 0) }} RWF</div>
+        <a href="{{ route('expenses.records', ['group' => 'farm_operations']) }}" class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">Farm operations</div>
+                <div class="dash-stat-value">{{ number_format($stats['farm_operations'], 0) }} RWF</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'farm'])
         </a>
-        <a href="{{ route('expenses.records', ['group' => 'general']) }}" class="dash-stat-card" style="text-decoration: none; color: inherit;">
-            <div class="dash-stat-label">General / other</div>
-            <div class="dash-stat-value">{{ number_format($stats['general'], 0) }} RWF</div>
+        <a href="{{ route('expenses.records', ['group' => 'general']) }}" class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">General / other</div>
+                <div class="dash-stat-value">{{ number_format($stats['general'], 0) }} RWF</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'sale'])
         </a>
     </div>
 

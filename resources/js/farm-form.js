@@ -148,6 +148,7 @@ function initOwnershipToggle(root) {
 
         root.querySelectorAll('[data-member-required]').forEach((input) => {
             input.required = needsOrg;
+            input.disabled = !needsOrg;
         });
     }
 
@@ -188,6 +189,7 @@ function initMembers(root) {
         const needsOrg = ownership?.value === 'cooperative' || ownership?.value === 'company';
         wrapper.querySelectorAll('[data-member-required]').forEach((input) => {
             input.required = needsOrg;
+            input.disabled = !needsOrg;
         });
     });
 

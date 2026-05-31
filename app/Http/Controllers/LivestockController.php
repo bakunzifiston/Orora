@@ -4,20 +4,45 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\LivestockRequest;
+use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Livestock;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LivestockController extends Controller
 {
     use ProvidesModuleNavigation;
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $livestock = Livestock::query()->with('farm')->orderByDesc('created_at')->paginate(15);
+        $livestock = Livestock::query()
+            ->with('farm')
+            ->withCount('animals')
+            ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->orderByDesc('created_at')
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('modules.livestock.index', $this->moduleViewData('livestock', compact('livestock')));
+        $farms = Farm::query()->orderBy('name')->get();
+
+        $stats = [
+            'total' => Livestock::query()->count(),
+            'active' => Livestock::query()->where('status', 'active')->count(),
+            'head_count' => (int) Livestock::query()->sum('head_count'),
+            'animals' => Animal::query()->count(),
+        ];
+
+        return view('modules.livestock.index', $this->moduleViewData('livestock', compact('livestock', 'farms', 'stats')));
+    }
+
+    public function show(Livestock $livestock): View
+    {
+        $livestock->load('farm')->loadCount('animals');
+
+        return view('modules.livestock.show', $this->moduleViewData('livestock', compact('livestock')));
     }
 
     public function create(): View
@@ -29,9 +54,11 @@ class LivestockController extends Controller
 
     public function store(LivestockRequest $request): RedirectResponse
     {
-        Livestock::create($request->livestockAttributes());
+        $group = Livestock::create($request->livestockAttributes());
 
-        return redirect()->route('livestock.index')->with('success', 'Livestock group created successfully.');
+        return redirect()
+            ->route('livestock.show', $group)
+            ->with('success', 'Livestock group created successfully.');
     }
 
     public function edit(Livestock $livestock): View
@@ -45,7 +72,9 @@ class LivestockController extends Controller
     {
         $livestock->update($request->livestockAttributes());
 
-        return redirect()->route('livestock.index')->with('success', 'Livestock group updated successfully.');
+        return redirect()
+            ->route('livestock.show', $livestock)
+            ->with('success', 'Livestock group updated successfully.');
     }
 
     public function destroy(Livestock $livestock): RedirectResponse

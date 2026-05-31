@@ -11,22 +11,34 @@
     ])
     @include('modules.partials.flash')
 
-    <div class="dash-health-stats">
+    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Total animals</div>
-            <div class="dash-stat-value">{{ number_format($stats['total_animals']) }}</div>
+            <div>
+                <div class="dash-stat-label">Total animals</div>
+                <div class="dash-stat-value">{{ number_format($stats['total_animals']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'animal'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Healthy</div>
-            <div class="dash-stat-value accent">{{ number_format($stats['healthy']) }}</div>
+            <div>
+                <div class="dash-stat-label">Healthy</div>
+                <div class="dash-stat-value accent">{{ number_format($stats['healthy']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'health'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Needs attention</div>
-            <div class="dash-stat-value">{{ number_format($stats['needs_attention']) }}</div>
+            <div>
+                <div class="dash-stat-label">Needs attention</div>
+                <div class="dash-stat-value">{{ number_format($stats['needs_attention']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'shield'])
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">Follow-ups (30 days)</div>
-            <div class="dash-stat-value">{{ number_format($stats['upcoming_followups']) }}</div>
+            <div>
+                <div class="dash-stat-label">Follow-ups (30 days)</div>
+                <div class="dash-stat-value">{{ number_format($stats['upcoming_followups']) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'certificate'])
         </div>
     </div>
 

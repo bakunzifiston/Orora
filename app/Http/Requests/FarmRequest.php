@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Farm;
 use App\Services\RwandaLocationService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -70,15 +69,16 @@ class FarmRequest extends FormRequest
             'owner_gender' => ['required', Rule::in(config('modules.genders'))],
             'notes' => ['nullable', 'string'],
             'members' => [
-                Rule::requiredIf(fn () => $this->requiresOrganization()),
+                Rule::excludeIf(fn () => ! $this->requiresOrganization()),
+                'required',
                 'array',
                 'min:1',
             ],
-            'members.*.first_name' => ['required_with:members', 'string', 'max:255'],
-            'members.*.last_name' => ['required_with:members', 'string', 'max:255'],
-            'members.*.date_of_birth' => ['required_with:members', 'date', 'before:today'],
-            'members.*.phone' => ['required_with:members', 'string', 'max:30'],
-            'members.*.gender' => ['required_with:members', Rule::in(config('modules.genders'))],
+            'members.*.first_name' => ['required', 'string', 'max:255'],
+            'members.*.last_name' => ['required', 'string', 'max:255'],
+            'members.*.date_of_birth' => ['required', 'date', 'before:today'],
+            'members.*.phone' => ['required', 'string', 'max:30'],
+            'members.*.gender' => ['required', Rule::in(config('modules.genders'))],
         ];
     }
 
@@ -101,7 +101,7 @@ class FarmRequest extends FormRequest
                 $validator->errors()->add('village_code', 'The selected Rwanda location is invalid.');
             }
 
-            if ($this->requiresOrganization() && empty($this->input('members'))) {
+            if ($this->requiresOrganization() && $this->memberRows() === []) {
                 $validator->errors()->add('members', 'At least one member is required for cooperatives and companies.');
             }
         });

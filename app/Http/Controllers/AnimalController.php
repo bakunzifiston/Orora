@@ -8,6 +8,7 @@ use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Livestock;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -15,14 +16,42 @@ class AnimalController extends Controller
 {
     use ProvidesModuleNavigation;
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $animals = Animal::query()
             ->with(['farm', 'livestock'])
+            ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
+            ->when($request->filled('livestock_id'), fn ($q) => $q->where('livestock_id', $request->integer('livestock_id')))
+            ->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->string('gender')))
+            ->when($request->filled('lifecycle_status'), fn ($q) => $q->where('lifecycle_status', $request->string('lifecycle_status')))
+            ->when($request->filled('health_status'), fn ($q) => $q->where('health_status', $request->string('health_status')))
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('modules.animals.index', $this->moduleViewData('animals', compact('animals')));
+        $farms = Farm::query()->orderBy('name')->get();
+        $livestockGroups = Livestock::query()->with('farm')->orderBy('name')->get();
+
+        $stats = [
+            'total' => Animal::query()->count(),
+            'active' => Animal::query()->where('lifecycle_status', 'Active')->count(),
+            'female' => Animal::query()->where('gender', 'female')->count(),
+            'lactating' => Animal::query()->where('production_status', 'Lactating')->count(),
+        ];
+
+        return view('modules.animals.index', $this->moduleViewData('animals', compact(
+            'animals',
+            'farms',
+            'livestockGroups',
+            'stats',
+        )));
+    }
+
+    public function show(Animal $animal): View
+    {
+        $animal->load(['farm', 'livestock']);
+
+        return view('modules.animals.show', $this->moduleViewData('animals', compact('animal')));
     }
 
     public function create(): View
@@ -35,7 +64,9 @@ class AnimalController extends Controller
         $animal = Animal::create($request->animalAttributes());
         $this->storePhoto($request, $animal);
 
-        return redirect()->route('animals.index')->with('success', 'Animal registered successfully.');
+        return redirect()
+            ->route('animals.show', $animal)
+            ->with('success', 'Animal registered successfully.');
     }
 
     public function edit(Animal $animal): View
@@ -48,7 +79,9 @@ class AnimalController extends Controller
         $animal->update($request->animalAttributes());
         $this->storePhoto($request, $animal);
 
-        return redirect()->route('animals.index')->with('success', 'Animal updated successfully.');
+        return redirect()
+            ->route('animals.show', $animal)
+            ->with('success', 'Animal updated successfully.');
     }
 
     public function destroy(Animal $animal): RedirectResponse

@@ -10,7 +10,7 @@
             <a href="{{ route($createRoute, $createRouteParams ?? []) }}" class="dash-btn-save">{{ $createLabel ?? '+ Add new' }}</a>
         @endif
         @if (! empty($backRoute))
-            <a href="{{ route($backRoute) }}" class="dash-back-link">← Back</a>
+            <a href="{{ route($backRoute, $backRouteParams ?? []) }}" class="dash-back-link">← Back</a>
         @endif
     </div>
 </div>

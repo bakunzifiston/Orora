@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AnimalController;
+use App\Http\Controllers\BirthRecordController;
+use App\Http\Controllers\BreedingModuleController;
+use App\Http\Controllers\BreedingRecordController;
+use App\Http\Controllers\PregnancyCheckController;
 use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -19,6 +23,9 @@ use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MilkModuleController;
 use App\Http\Controllers\MilkRecordController;
+use App\Http\Controllers\MilkSaleController;
+use App\Http\Controllers\MilkSessionController;
+use App\Http\Controllers\MilkStorageController;
 use App\Http\Controllers\MortalityController;
 use App\Http\Controllers\MovementController;
 use App\Http\Controllers\SaleController;
@@ -36,9 +43,9 @@ Route::middleware('auth')->group(function () {
         Route::get('villages', [RwandaLocationController::class, 'villages'])->name('villages');
     });
 
-    Route::resource('farms', FarmController::class)->except(['show']);
-    Route::resource('livestock', LivestockController::class)->except(['show']);
-    Route::resource('animals', AnimalController::class)->except(['show']);
+    Route::resource('farms', FarmController::class);
+    Route::resource('livestock', LivestockController::class);
+    Route::resource('animals', AnimalController::class);
     Route::prefix('health')->name('health.')->group(function () {
         Route::get('/', [HealthController::class, 'overview'])->name('overview');
         Route::redirect('/index', '/health');
@@ -86,8 +93,36 @@ Route::middleware('auth')->group(function () {
     Route::prefix('milk')->name('milk.')->group(function () {
         Route::get('/', [MilkModuleController::class, 'overview'])->name('overview');
         Route::redirect('/index', '/milk');
-        Route::get('/records', [MilkRecordController::class, 'index'])->name('records');
-        Route::resource('records', MilkRecordController::class)->except(['show', 'index'])->parameters(['records' => 'milkRecord']);
+        Route::get('/sessions', [MilkSessionController::class, 'index'])->name('sessions');
+        Route::resource('sessions', MilkSessionController::class)->except(['show', 'index'])->parameters(['sessions' => 'milkSession']);
+        Route::post('/sessions/{milkSession}/complete', [MilkSessionController::class, 'complete'])->name('sessions.complete');
+        Route::post('/sessions/{milkSession}/cancel', [MilkSessionController::class, 'cancel'])->name('sessions.cancel');
+        Route::post('/sessions/{milkSession}/records', [MilkRecordController::class, 'store'])->name('sessions.records.store');
+        Route::post('/sessions/{milkSession}/records/bulk', [MilkRecordController::class, 'bulkStore'])->name('sessions.records.bulk');
+        Route::put('/records/{milkRecord}', [MilkRecordController::class, 'update'])->name('records.update');
+        Route::delete('/records/{milkRecord}', [MilkRecordController::class, 'destroy'])->name('records.destroy');
+        Route::get('/storage', [MilkStorageController::class, 'index'])->name('storage');
+        Route::resource('storage', MilkStorageController::class)->except(['show', 'index'])->parameters(['storage' => 'milkStorage']);
+        Route::get('/sales', [MilkSaleController::class, 'index'])->name('sales');
+        Route::resource('sales', MilkSaleController::class)->except(['show', 'index'])->parameters(['sales' => 'milkSale']);
+        Route::post('/sales/{milkSale}/confirm', [MilkSaleController::class, 'confirm'])->name('sales.confirm');
+        Route::post('/sales/{milkSale}/items', [MilkSaleController::class, 'storeItem'])->name('sales.items.store');
+        Route::post('/sales/{milkSale}/payments', [MilkSaleController::class, 'storePayment'])->name('sales.payments.store');
+    });
+    Route::prefix('breeding')->name('breeding.')->group(function () {
+        Route::get('/', [BreedingModuleController::class, 'overview'])->name('overview');
+        Route::redirect('/index', '/breeding');
+        Route::get('/records', [BreedingRecordController::class, 'index'])->name('records');
+        Route::resource('records', BreedingRecordController::class)->except(['show', 'index'])->parameters(['records' => 'breedingRecord']);
+        Route::get('/checks', [PregnancyCheckController::class, 'index'])->name('checks');
+        Route::get('/checks/create', [PregnancyCheckController::class, 'create'])->name('checks.create');
+        Route::post('/checks', [PregnancyCheckController::class, 'store'])->name('checks.store');
+        Route::get('/births', [BirthRecordController::class, 'index'])->name('births');
+        Route::get('/births/create', [BirthRecordController::class, 'create'])->name('births.create');
+        Route::post('/births', [BirthRecordController::class, 'store'])->name('births.store');
+        Route::get('/births/{birthRecord}/edit', [BirthRecordController::class, 'edit'])->name('births.edit');
+        Route::put('/births/{birthRecord}/offspring/{offspring}', [BirthRecordController::class, 'updateOffspring'])->name('births.offspring.update');
+        Route::post('/births/{birthRecord}/offspring/{offspring}/register', [BirthRecordController::class, 'registerOffspring'])->name('births.offspring.register');
     });
     Route::resource('certificates', CertificateController::class)->except(['show']);
     Route::resource('movements', MovementController::class)->except(['show']);
