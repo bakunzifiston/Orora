@@ -9,6 +9,8 @@ return [
         ['key' => 'animals', 'label' => 'Animals', 'route' => 'animals.index', 'icon' => 'animal'],
         ['key' => 'health', 'label' => 'Health', 'route' => 'health.overview', 'icon' => 'health'],
         ['key' => 'feeding', 'label' => 'Feeding', 'route' => 'feeding.overview', 'icon' => 'feeding'],
+        ['key' => 'expenses', 'label' => 'Expenses', 'route' => 'expenses.overview', 'icon' => 'expense'],
+        ['key' => 'milk', 'label' => 'Milk', 'route' => 'milk.overview', 'icon' => 'milk'],
         ['key' => 'certificates', 'label' => 'Certificates', 'route' => 'certificates.index', 'icon' => 'certificate'],
         ['key' => 'movement', 'label' => 'Movement', 'route' => 'movements.index', 'icon' => 'movement'],
         ['key' => 'sales', 'label' => 'Sales', 'route' => 'sales.index', 'icon' => 'sale'],
@@ -19,7 +21,6 @@ return [
 
     'herd_groups' => [
         'Calves Group',
-        'Calf',
         'Heifer',
         'Cows (lactating)',
         'Pregnant Cows',
@@ -120,6 +121,35 @@ return [
         'Recovering',
         'Deceased',
     ],
+
+    'expense_groups' => [
+        'feed' => ['label' => 'Feed expenses', 'module' => 'feeding'],
+        'health' => ['label' => 'Health expenses', 'module' => 'health'],
+        'farm_operations' => ['label' => 'Farm operations', 'module' => 'farms'],
+        'general' => ['label' => 'General / other', 'module' => null],
+    ],
+
+    'expense_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'expenses.overview'],
+        ['key' => 'categories', 'label' => 'Categories', 'route' => 'expenses.categories'],
+        ['key' => 'vendors', 'label' => 'Vendors', 'route' => 'expenses.vendors'],
+        ['key' => 'records', 'label' => 'Expense records', 'route' => 'expenses.records'],
+    ],
+
+    'milk_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'milk.overview'],
+        ['key' => 'records', 'label' => 'Milk records', 'route' => 'milk.records'],
+    ],
+
+    'milk_sessions' => ['Morning', 'Afternoon', 'Evening'],
+
+    'milk_units' => ['L', 'ml'],
+
+    'milk_quality_grades' => ['A', 'B', 'C', 'Rejected'],
+
+    'expense_payment_methods' => ['Cash', 'Mobile money', 'Bank transfer', 'Cheque', 'Other'],
+
+    'expense_statuses' => ['paid', 'draft', 'void'],
 
     'feeding_sections' => [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'feeding.overview'],

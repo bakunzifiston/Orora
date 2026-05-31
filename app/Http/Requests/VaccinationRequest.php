@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\LinkedExpenseRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class VaccinationRequest extends FormRequest
 {
+    use LinkedExpenseRules;
+
     public function authorize(): bool
     {
         return true;
@@ -24,6 +27,8 @@ class VaccinationRequest extends FormRequest
             $merge['administration_method'] = null;
         }
 
+        $this->prepareLinkedExpenseValidation();
+
         if ($merge !== []) {
             $this->merge($merge);
         }
@@ -31,7 +36,7 @@ class VaccinationRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return array_merge([
             'animal_id' => ['required', 'exists:animals,id'],
             'vaccine_name' => ['required', 'string', 'max:255'],
             'vaccine_type' => ['nullable', Rule::in(config('modules.vaccine_types'))],
@@ -61,7 +66,7 @@ class VaccinationRequest extends FormRequest
             'reaction_notes' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,doc,docx'],
-        ];
+        ], $this->linkedExpenseRules());
     }
 
     public function attributes(): array
@@ -74,7 +79,12 @@ class VaccinationRequest extends FormRequest
 
     public function vaccinationAttributes(): array
     {
-        $attributes = $this->safe()->except(['attachment', 'vaccine_type_other', 'administration_method_other']);
+        $attributes = $this->safe()->except([
+            'attachment', 'vaccine_type_other', 'administration_method_other',
+            'log_expense', 'expense_amount', 'expense_currency', 'expense_vendor_id',
+            'expense_vendor_name', 'expense_payment_method', 'expense_paid_by',
+            'expense_notes', 'expense_attachment',
+        ]);
 
         if (($attributes['vaccine_type'] ?? null) === 'Other') {
             $attributes['vaccine_type'] = $this->input('vaccine_type_other');

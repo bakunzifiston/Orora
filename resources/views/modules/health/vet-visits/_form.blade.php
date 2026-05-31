@@ -107,4 +107,11 @@
             </div>
         </div>
     @endcomponent
+
+    @include('modules.expenses.partials.linked-expense-fields', [
+        'expense' => $vetVisit?->expense,
+        'defaultVendorName' => $vetVisit?->veterinarian_name,
+        'vendors' => $vendors ?? [],
+        'sectionNumber' => '4',
+    ])
 </div>

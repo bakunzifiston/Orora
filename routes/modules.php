@@ -1,24 +1,30 @@
 <?php
 
-use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\AnimalController;
+use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseModuleController;
+use App\Http\Controllers\ExpenseVendorController;
 use App\Http\Controllers\FarmController;
-use App\Http\Controllers\FeedInventoryController;
 use App\Http\Controllers\FeedingController;
 use App\Http\Controllers\FeedingModuleController;
 use App\Http\Controllers\FeedingScheduleController;
+use App\Http\Controllers\FeedInventoryController;
 use App\Http\Controllers\FeedSupplierController;
 use App\Http\Controllers\FeedTypeController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
+use App\Http\Controllers\MilkModuleController;
+use App\Http\Controllers\MilkRecordController;
 use App\Http\Controllers\MortalityController;
 use App\Http\Controllers\MovementController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TreatmentController;
-use App\Http\Controllers\VetVisitController;
 use App\Http\Controllers\VaccinationController;
+use App\Http\Controllers\VetVisitController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -67,6 +73,22 @@ Route::middleware('auth')->group(function () {
     });
     Route::redirect('/feedings', '/feeding/records');
     Route::redirect('/feedings/create', '/feeding/records/create');
+    Route::prefix('expenses')->name('expenses.')->group(function () {
+        Route::get('/', [ExpenseModuleController::class, 'overview'])->name('overview');
+        Route::redirect('/index', '/expenses');
+        Route::get('/categories', [ExpenseCategoryController::class, 'index'])->name('categories');
+        Route::resource('categories', ExpenseCategoryController::class)->except(['show', 'index'])->parameters(['categories' => 'category']);
+        Route::get('/vendors', [ExpenseVendorController::class, 'index'])->name('vendors');
+        Route::resource('vendors', ExpenseVendorController::class)->except(['show', 'index']);
+        Route::get('/records', [ExpenseController::class, 'index'])->name('records');
+        Route::resource('records', ExpenseController::class)->except(['show', 'index'])->parameters(['records' => 'expense']);
+    });
+    Route::prefix('milk')->name('milk.')->group(function () {
+        Route::get('/', [MilkModuleController::class, 'overview'])->name('overview');
+        Route::redirect('/index', '/milk');
+        Route::get('/records', [MilkRecordController::class, 'index'])->name('records');
+        Route::resource('records', MilkRecordController::class)->except(['show', 'index'])->parameters(['records' => 'milkRecord']);
+    });
     Route::resource('certificates', CertificateController::class)->except(['show']);
     Route::resource('movements', MovementController::class)->except(['show']);
     Route::resource('sales', SaleController::class)->except(['show']);

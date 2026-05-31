@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Storage;
 
 class Vaccination extends Model
@@ -51,6 +52,11 @@ class Vaccination extends Model
     public function healthRecord(): BelongsTo
     {
         return $this->belongsTo(HealthRecord::class);
+    }
+
+    public function expense(): MorphOne
+    {
+        return $this->morphOne(Expense::class, 'source');
     }
 
     public function attachmentUrl(): ?string

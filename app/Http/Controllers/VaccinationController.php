@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\VaccinationRequest;
 use App\Models\Animal;
+use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\Vaccination;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -15,10 +17,13 @@ class VaccinationController extends Controller
 {
     use ProvidesModuleNavigation;
 
+    public function __construct(private ExpenseService $expenseService) {}
+
     public function create(): View
     {
         return view('modules.health.vaccinations.create', $this->healthViewData([
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -32,6 +37,7 @@ class VaccinationController extends Controller
 
         $this->storeAttachment($request, $vaccination);
         $this->syncHealthRecord($vaccination);
+        $this->expenseService->syncFromRequest($request, $vaccination, 'health.vaccination', ExpenseService::vaccinationContext($vaccination));
 
         return redirect()
             ->route('health.vaccinations')
@@ -40,11 +46,12 @@ class VaccinationController extends Controller
 
     public function edit(Vaccination $vaccination): View
     {
-        $vaccination->load(['animal', 'farm']);
+        $vaccination->load(['animal', 'farm', 'expense.vendor']);
 
         return view('modules.health.vaccinations.edit', $this->healthViewData([
             'vaccination' => $vaccination,
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -57,7 +64,9 @@ class VaccinationController extends Controller
         ]));
 
         $this->storeAttachment($request, $vaccination);
-        $this->syncHealthRecord($vaccination->fresh());
+        $vaccination = $vaccination->fresh();
+        $this->syncHealthRecord($vaccination);
+        $this->expenseService->syncFromRequest($request, $vaccination, 'health.vaccination', ExpenseService::vaccinationContext($vaccination));
 
         return redirect()
             ->route('health.vaccinations')
@@ -70,6 +79,7 @@ class VaccinationController extends Controller
             Storage::disk('public')->delete($vaccination->attachment_path);
         }
 
+        $this->expenseService->deleteForSource($vaccination);
         $vaccination->healthRecord?->delete();
         $vaccination->delete();
 

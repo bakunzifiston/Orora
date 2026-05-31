@@ -72,6 +72,7 @@ class SaleController extends Controller
     {
         return [
             'farm_id' => ['required', 'exists:farms,id'],
+            'product_type' => ['nullable', 'string', 'max:50'],
             'animal_id' => ['nullable', 'exists:animals,id'],
             'livestock_id' => ['nullable', 'exists:livestock,id'],
             'buyer_name' => ['required', 'string', 'max:255'],

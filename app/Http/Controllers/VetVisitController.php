@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\VetVisitRequest;
 use App\Models\Animal;
+use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\VetVisit;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -15,10 +17,13 @@ class VetVisitController extends Controller
 {
     use ProvidesModuleNavigation;
 
+    public function __construct(private ExpenseService $expenseService) {}
+
     public function create(): View
     {
         return view('modules.health.vet-visits.create', $this->healthViewData([
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -32,6 +37,7 @@ class VetVisitController extends Controller
 
         $this->storeAttachment($request, $vetVisit);
         $this->syncHealthRecord($vetVisit);
+        $this->expenseService->syncFromRequest($request, $vetVisit, 'health.vet_visit', ExpenseService::vetVisitContext($vetVisit));
 
         return redirect()
             ->route('health.vet-visits')
@@ -40,11 +46,12 @@ class VetVisitController extends Controller
 
     public function edit(VetVisit $vetVisit): View
     {
-        $vetVisit->load(['animal', 'farm']);
+        $vetVisit->load(['animal', 'farm', 'expense.vendor']);
 
         return view('modules.health.vet-visits.edit', $this->healthViewData([
             'vetVisit' => $vetVisit,
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -57,7 +64,9 @@ class VetVisitController extends Controller
         ]));
 
         $this->storeAttachment($request, $vetVisit);
-        $this->syncHealthRecord($vetVisit->fresh());
+        $vetVisit = $vetVisit->fresh();
+        $this->syncHealthRecord($vetVisit);
+        $this->expenseService->syncFromRequest($request, $vetVisit, 'health.vet_visit', ExpenseService::vetVisitContext($vetVisit));
 
         return redirect()
             ->route('health.vet-visits')
@@ -70,6 +79,7 @@ class VetVisitController extends Controller
             Storage::disk('public')->delete($vetVisit->attachment_path);
         }
 
+        $this->expenseService->deleteForSource($vetVisit);
         $vetVisit->healthRecord?->delete();
         $vetVisit->delete();
 

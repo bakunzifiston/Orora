@@ -11,6 +11,13 @@
         </select>
     </div>
     <div class="dash-form-field">
+        <label for="product_type">Product type</label>
+        <select name="product_type" id="product_type">
+            <option value="">Livestock / animal</option>
+            <option value="milk" @selected(old('product_type', $sale?->product_type) === 'milk')>Milk / dairy</option>
+        </select>
+    </div>
+    <div class="dash-form-field">
         <label for="sold_on">Sold on</label>
         <input type="date" name="sold_on" id="sold_on" value="{{ old('sold_on', $sale?->sold_on?->format('Y-m-d') ?? now()->format('Y-m-d')) }}" required>
     </div>

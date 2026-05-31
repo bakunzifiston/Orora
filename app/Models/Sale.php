@@ -9,6 +9,7 @@ class Sale extends Model
 {
     protected $fillable = [
         'farm_id',
+        'product_type',
         'animal_id',
         'livestock_id',
         'buyer_name',

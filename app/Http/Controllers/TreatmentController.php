@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\TreatmentRequest;
 use App\Models\Animal;
+use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\Treatment;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -15,10 +17,13 @@ class TreatmentController extends Controller
 {
     use ProvidesModuleNavigation;
 
+    public function __construct(private ExpenseService $expenseService) {}
+
     public function create(): View
     {
         return view('modules.health.treatments.create', $this->healthViewData([
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -32,6 +37,7 @@ class TreatmentController extends Controller
 
         $this->storeAttachment($request, $treatment);
         $this->syncHealthRecord($treatment);
+        $this->expenseService->syncFromRequest($request, $treatment, 'health.treatment', ExpenseService::treatmentContext($treatment));
 
         return redirect()
             ->route('health.treatments')
@@ -40,11 +46,12 @@ class TreatmentController extends Controller
 
     public function edit(Treatment $treatment): View
     {
-        $treatment->load(['animal', 'farm']);
+        $treatment->load(['animal', 'farm', 'expense.vendor']);
 
         return view('modules.health.treatments.edit', $this->healthViewData([
             'treatment' => $treatment,
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -57,7 +64,9 @@ class TreatmentController extends Controller
         ]));
 
         $this->storeAttachment($request, $treatment);
-        $this->syncHealthRecord($treatment->fresh());
+        $treatment = $treatment->fresh();
+        $this->syncHealthRecord($treatment);
+        $this->expenseService->syncFromRequest($request, $treatment, 'health.treatment', ExpenseService::treatmentContext($treatment));
 
         return redirect()
             ->route('health.treatments')
@@ -70,6 +79,7 @@ class TreatmentController extends Controller
             Storage::disk('public')->delete($treatment->attachment_path);
         }
 
+        $this->expenseService->deleteForSource($treatment);
         $treatment->healthRecord?->delete();
         $treatment->delete();
 

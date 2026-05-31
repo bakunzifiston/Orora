@@ -12,6 +12,7 @@ class FeedInventory extends Model
         'farm_id',
         'feed_type_id',
         'quantity_on_hand',
+        'storage_capacity_kg',
         'unit',
         'reorder_level',
         'notes',

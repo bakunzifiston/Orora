@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\LinkedExpenseRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class TreatmentRequest extends FormRequest
 {
+    use LinkedExpenseRules;
+
     public function authorize(): bool
     {
         return true;
@@ -17,11 +20,13 @@ class TreatmentRequest extends FormRequest
         if ($this->input('treatment_method') === '') {
             $this->merge(['treatment_method' => null]);
         }
+
+        $this->prepareLinkedExpenseValidation();
     }
 
     public function rules(): array
     {
-        return [
+        return array_merge([
             'animal_id' => ['required', 'exists:animals,id'],
             'disease_name' => ['required', 'string', 'max:255'],
             'medicine_name' => ['required', 'string', 'max:255'],
@@ -42,7 +47,7 @@ class TreatmentRequest extends FormRequest
             'diagnosis' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,doc,docx'],
-        ];
+        ], $this->linkedExpenseRules());
     }
 
     public function attributes(): array
@@ -54,7 +59,12 @@ class TreatmentRequest extends FormRequest
 
     public function treatmentAttributes(): array
     {
-        $attributes = $this->safe()->except(['attachment', 'treatment_method_other']);
+        $attributes = $this->safe()->except([
+            'attachment', 'treatment_method_other',
+            'log_expense', 'expense_amount', 'expense_currency', 'expense_vendor_id',
+            'expense_vendor_name', 'expense_payment_method', 'expense_paid_by',
+            'expense_notes', 'expense_attachment',
+        ]);
 
         if (($attributes['treatment_method'] ?? null) === 'Other') {
             $attributes['treatment_method'] = $this->input('treatment_method_other');

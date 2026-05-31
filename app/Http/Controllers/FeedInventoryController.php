@@ -6,9 +6,11 @@ use App\Http\Controllers\Concerns\FeedingSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\FeedInventoryMovementRequest;
 use App\Http\Requests\FeedInventoryRequest;
+use App\Models\ExpenseVendor;
 use App\Models\Farm;
 use App\Models\FeedInventory;
 use App\Models\FeedType;
+use App\Services\ExpenseService;
 use App\Services\FeedInventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -18,7 +20,10 @@ class FeedInventoryController extends Controller
     use FeedingSectionViews;
     use ProvidesModuleNavigation;
 
-    public function __construct(private FeedInventoryService $inventoryService) {}
+    public function __construct(
+        private FeedInventoryService $inventoryService,
+        private ExpenseService $expenseService,
+    ) {}
 
     public function index(): View
     {
@@ -61,6 +66,7 @@ class FeedInventoryController extends Controller
             'farms' => Farm::query()->orderBy('name')->get(),
             'feedTypes' => FeedType::query()->orderBy('name')->get(),
             'movementLabels' => config('modules.feed_movement_labels'),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
     }
 
@@ -86,7 +92,7 @@ class FeedInventoryController extends Controller
     public function storeMovement(FeedInventoryMovementRequest $request, FeedInventory $feedInventory): RedirectResponse
     {
         try {
-            $this->inventoryService->recordMovement(
+            $movement = $this->inventoryService->recordMovement(
                 $feedInventory,
                 $request->input('movement_type'),
                 (float) $request->input('quantity'),
@@ -97,6 +103,15 @@ class FeedInventoryController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['quantity' => $e->getMessage()]);
         }
+
+        $feedInventory->load(['farm', 'feedType.supplier']);
+
+        $this->expenseService->createForMovement($movement, $request, [
+            'farm_id' => $feedInventory->farm_id,
+            'expense_date' => $request->date('moved_at') ?? now(),
+            'title' => 'Feed purchase: '.$feedInventory->feedType->name,
+            'default_vendor_name' => $feedInventory->feedType->supplier?->name,
+        ]);
 
         return redirect()
             ->route('feeding.inventory.edit', $feedInventory)

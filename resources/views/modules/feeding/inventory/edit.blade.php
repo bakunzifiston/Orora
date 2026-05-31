@@ -45,10 +45,24 @@
                     <input type="text" name="notes" id="movement_notes" value="{{ old('notes') }}">
                 </div>
             </div>
+            <div id="purchase-expense-fields" @if(old('movement_type', 'purchase') !== 'purchase') hidden @endif style="margin-top: 1rem;">
+                @include('modules.expenses.partials.linked-expense-fields', [
+                    'expense' => null,
+                    'defaultVendorName' => $feedInventory->feedType->supplier?->name,
+                    'vendors' => $vendors ?? [],
+                    'sectionNumber' => '+',
+                ])
+            </div>
             <div class="dash-form-actions">
                 <button type="submit" class="dash-btn-save">Record movement</button>
             </div>
         </form>
+        <script>
+            document.getElementById('movement_type')?.addEventListener('change', function () {
+                const block = document.getElementById('purchase-expense-fields');
+                if (block) block.hidden = this.value !== 'purchase';
+            });
+        </script>
     </div>
 
     <div class="dash-panel">

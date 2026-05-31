@@ -58,6 +58,11 @@ class Animal extends Model
         return $this->hasMany(Feeding::class);
     }
 
+    public function milkRecords(): HasMany
+    {
+        return $this->hasMany(MilkRecord::class);
+    }
+
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
