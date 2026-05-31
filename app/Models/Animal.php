@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\TenantStorageUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 class Animal extends Model
 {
@@ -113,9 +113,9 @@ class Animal extends Model
         return $this->hasMany(Movement::class);
     }
 
-    public function sales(): HasMany
+    public function saleItems(): HasMany
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasMany(SaleItem::class);
     }
 
     public function healthRecords(): HasMany
@@ -130,13 +130,7 @@ class Animal extends Model
 
     protected function photoUrl(): Attribute
     {
-        return Attribute::get(function () {
-            if (! $this->photo_path) {
-                return null;
-            }
-
-            return Storage::disk('public')->url($this->photo_path);
-        });
+        return Attribute::get(fn () => TenantStorageUrl::forPublicDisk($this->photo_path));
     }
 
     protected function ageLabel(): Attribute

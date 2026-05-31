@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\InitializeTenancyForAssets;
 use Illuminate\Support\ServiceProvider;
+use Stancl\Tenancy\Controllers\TenantAssetsController;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        TenantAssetsController::$tenancyMiddleware = InitializeTenancyForAssets::class;
     }
 }

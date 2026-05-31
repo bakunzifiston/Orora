@@ -540,6 +540,33 @@
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1rem;
     }
+    .dash-health-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .dash-health-charts .dash-panel--wide {
+        grid-column: 1 / -1;
+    }
+    @media (min-width: 1100px) {
+        .dash-health-charts {
+            grid-template-columns: 1.4fr 1fr;
+        }
+        .dash-health-charts .dash-panel--wide {
+            grid-column: auto;
+        }
+    }
+    .dash-chart-wrap {
+        position: relative;
+        height: 260px;
+    }
+    .dash-chart-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 260px;
+    }
     .dash-health-activity,
     .dash-health-breakdown {
         list-style: none;

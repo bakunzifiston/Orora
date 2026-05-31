@@ -104,6 +104,25 @@ class MilkStorageService
         );
     }
 
+    public function deductForUnifiedSaleItem(\App\Models\SaleItem $item): MilkStorageMovement
+    {
+        if (! $item->milk_storage_id) {
+            throw new InvalidArgumentException('Sale item must specify a storage tank.');
+        }
+
+        $item->loadMissing('transaction', 'milkStorage');
+        $storage = $item->milkStorage ?? MilkStorage::query()->findOrFail($item->milk_storage_id);
+
+        return $this->recordMovement(
+            $storage,
+            'sale',
+            (float) $item->quantity,
+            "Sale {$item->transaction?->sale_number}",
+            $item,
+            $item->transaction?->sale_date,
+        );
+    }
+
     public function refreshStatus(MilkStorage $storage): void
     {
         if ($storage->status === 'maintenance') {

@@ -9,6 +9,7 @@ use App\Models\Mortality;
 use App\Models\Treatment;
 use App\Models\VetVisit;
 use App\Models\Vaccination;
+use App\Services\HealthOverviewAnalyticsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
@@ -16,7 +17,7 @@ class HealthController extends Controller
 {
     use ProvidesModuleNavigation;
 
-    public function overview(): View
+    public function overview(HealthOverviewAnalyticsService $analytics): View
     {
         $stats = [
             'total_animals' => Animal::query()->count(),
@@ -39,13 +40,9 @@ class HealthController extends Controller
             ->limit(8)
             ->get();
 
-        $recordsByType = HealthRecord::query()
-            ->selectRaw('record_type, count(*) as total')
-            ->groupBy('record_type')
-            ->orderByDesc('total')
-            ->pluck('total', 'record_type');
+        $charts = $analytics->chartPayload();
 
-        return view('modules.health.overview', $this->healthViewData('overview', compact('stats', 'recentRecords', 'recordsByType')));
+        return view('modules.health.overview', $this->healthViewData('overview', compact('stats', 'recentRecords', 'charts')));
     }
 
     public function vaccinations(): View

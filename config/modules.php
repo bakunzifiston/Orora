@@ -14,7 +14,10 @@ return [
         ['key' => 'breeding', 'label' => 'Breeding', 'route' => 'breeding.overview', 'icon' => 'breeding'],
         ['key' => 'certificates', 'label' => 'Certificates', 'route' => 'certificates.index', 'icon' => 'certificate'],
         ['key' => 'movement', 'label' => 'Movement', 'route' => 'movements.index', 'icon' => 'movement'],
-        ['key' => 'sales', 'label' => 'Sales', 'route' => 'sales.index', 'icon' => 'sale'],
+        ['key' => 'sales', 'label' => 'Sales', 'route' => 'sales.overview', 'icon' => 'sale'],
+        ['key' => 'customers', 'label' => 'Customers', 'route' => 'customers.overview', 'icon' => 'customer'],
+        ['key' => 'finance', 'label' => 'Finance', 'route' => 'finance.overview', 'icon' => 'finance'],
+        ['key' => 'employees', 'label' => 'Employees', 'route' => 'employees.overview', 'icon' => 'employee'],
         ['key' => 'settings', 'label' => 'Profile', 'route' => 'profile.edit', 'icon' => 'gear'],
     ],
 
@@ -143,11 +146,181 @@ return [
         ['key' => 'records', 'label' => 'Expense records', 'route' => 'expenses.records'],
     ],
 
+    'sale_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'sales.overview'],
+        ['key' => 'transactions', 'label' => 'Transactions', 'route' => 'sales.transactions'],
+        ['key' => 'abattoir', 'label' => 'Abattoir', 'route' => 'sales.abattoir'],
+    ],
+
+    'sale_types' => ['animal_sale', 'meat_sale', 'milk_sale'],
+
+    'sale_type_labels' => [
+        'animal_sale' => 'Animal sale',
+        'meat_sale' => 'Meat sale',
+        'milk_sale' => 'Milk sale',
+    ],
+
+    'sale_statuses' => ['draft', 'confirmed', 'completed', 'cancelled', 'refunded'],
+
+    'sale_status_labels' => [
+        'draft' => 'In progress',
+        'confirmed' => 'Confirmed',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'refunded' => 'Refunded',
+    ],
+
+    'sale_payment_statuses' => ['unpaid', 'partial', 'paid', 'overdue'],
+
+    'sale_pricing_methods' => [
+        'per_animal' => 'Per animal (head)',
+        'per_kg' => 'Per kg (live weight)',
+        'per_liter' => 'Per liter',
+    ],
+
+    'sale_item_types' => ['animal', 'meat_cut', 'milk'],
+
+    'sale_delivery_methods' => ['pickup', 'delivery', 'abattoir_transfer'],
+
+    'buyer_types' => ['individual', 'cooperative', 'company', 'abattoir', 'exporter'],
+
+    'customer_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'customers.overview'],
+        ['key' => 'directory', 'label' => 'Directory', 'route' => 'customers.directory'],
+        ['key' => 'communications', 'label' => 'Communications', 'route' => 'customers.communications'],
+    ],
+
+    'customer_types' => [
+        'individual' => 'Individual',
+        'company' => 'Company',
+        'cooperative' => 'Cooperative',
+        'abattoir' => 'Abattoir',
+        'exporter' => 'Exporter',
+    ],
+
+    'customer_statuses' => ['active', 'inactive', 'blacklisted'],
+
+    'customer_trust_levels' => [
+        'new' => 'New',
+        'regular' => 'Regular',
+        'trusted' => 'Trusted',
+        'vip' => 'VIP',
+    ],
+
+    'customer_address_types' => [
+        'billing' => 'Billing',
+        'delivery' => 'Delivery',
+        'physical' => 'Physical',
+        'other' => 'Other',
+    ],
+
+    'customer_communication_types' => [
+        'call' => 'Phone call',
+        'email' => 'Email',
+        'visit' => 'Visit',
+        'meeting' => 'Meeting',
+        'whatsapp' => 'WhatsApp',
+        'note' => 'Note',
+    ],
+
+    'customer_communication_directions' => [
+        'inbound' => 'Inbound',
+        'outbound' => 'Outbound',
+    ],
+
+    'customer_document_types' => [
+        'national_id' => 'National ID',
+        'contract' => 'Contract',
+        'license' => 'License',
+        'tax_certificate' => 'Tax certificate',
+        'registration' => 'Registration',
+        'other' => 'Other',
+    ],
+
+    'customer_genders' => [
+        'male' => 'Male',
+        'female' => 'Female',
+        'other' => 'Other',
+    ],
+
+    'employee_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'employees.overview'],
+        ['key' => 'directory', 'label' => 'Directory', 'route' => 'employees.directory'],
+    ],
+
+    'employee_statuses' => ['active', 'inactive', 'on_leave', 'terminated'],
+
+    'employee_employment_types' => [
+        'full_time' => 'Full time',
+        'part_time' => 'Part time',
+        'seasonal' => 'Seasonal',
+        'contractor' => 'Contractor',
+        'intern' => 'Intern',
+    ],
+
+    'employee_job_roles' => [
+        'farm_manager' => 'Farm manager',
+        'herd_manager' => 'Herd manager',
+        'milker' => 'Milker',
+        'feeder' => 'Feeder / stock handler',
+        'vet_assistant' => 'Vet assistant',
+        'driver' => 'Driver',
+        'security' => 'Security',
+        'admin' => 'Admin / office',
+        'farm_worker' => 'General farm worker',
+        'other' => 'Other',
+    ],
+
+    'employee_contract_types' => [
+        'permanent' => 'Permanent',
+        'fixed_term' => 'Fixed term',
+        'casual' => 'Casual / daily',
+    ],
+
+    'employee_pay_frequencies' => [
+        'monthly' => 'Monthly',
+        'weekly' => 'Weekly',
+        'biweekly' => 'Bi-weekly',
+        'daily' => 'Daily',
+    ],
+
+    'employee_address_types' => [
+        'physical' => 'Physical',
+        'mailing' => 'Mailing',
+        'other' => 'Other',
+    ],
+
+    'employee_document_types' => [
+        'national_id' => 'National ID',
+        'contract' => 'Employment contract',
+        'certificate' => 'Training certificate',
+        'medical' => 'Medical clearance',
+        'license' => 'License / permit',
+        'other' => 'Other',
+    ],
+
+    'employee_marital_statuses' => [
+        'single' => 'Single',
+        'married' => 'Married',
+        'divorced' => 'Divorced',
+        'widowed' => 'Widowed',
+        'other' => 'Other',
+    ],
+
+    'buyer_trust_levels' => ['new_buyer', 'regular', 'trusted'],
+
+    'buyer_statuses' => ['active', 'inactive'],
+
+    'abattoir_dispatch_statuses' => ['pending', 'dispatched', 'processing', 'returned'],
+
+    'abattoir_cut_types' => ['whole_carcass', 'hindquarter', 'forequarter', 'ribs', 'offal', 'mixed'],
+
+    'sale_document_types' => ['invoice', 'receipt', 'delivery_note', 'certificate', 'permit'],
+
     'milk_sections' => [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'milk.overview'],
         ['key' => 'sessions', 'label' => 'Milking sessions', 'route' => 'milk.sessions'],
         ['key' => 'storage', 'label' => 'Storage', 'route' => 'milk.storage'],
-        ['key' => 'sales', 'label' => 'Milk sales', 'route' => 'milk.sales'],
     ],
 
     'breeding_sections' => [

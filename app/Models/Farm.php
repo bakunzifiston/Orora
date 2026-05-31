@@ -72,9 +72,9 @@ class Farm extends Model
         return $this->hasMany(Certificate::class);
     }
 
-    public function sales(): HasMany
+    public function saleTransactions(): HasMany
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasMany(SaleTransaction::class);
     }
 
     public function getOwnerFullNameAttribute(): string
