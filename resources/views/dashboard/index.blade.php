@@ -195,8 +195,8 @@
                                     <td>{{ number_format($sale['amount'], 0) }} {{ $sale['currency'] }}</td>
                                     <td>
                                         @include('modules.sales.partials.sale-status-badge', [
-                                            'status' => $sale['sale_status'] ?? null,
-                                            'label' => $sale['status'],
+                                            'saleStatus' => $sale['sale_status'] ?? null,
+                                            'saleStatusLabel' => $sale['status'],
                                         ])
                                     </td>
                                 </tr>

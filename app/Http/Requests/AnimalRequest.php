@@ -2,12 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use App\Models\Animal;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class AnimalRequest extends FormRequest
 {
+    use ValidatesFarmRelations;
     public function authorize(): bool
     {
         return true;
@@ -28,7 +30,7 @@ class AnimalRequest extends FormRequest
 
         return [
             'farm_id' => ['required', 'exists:farms,id'],
-            'livestock_id' => ['required', 'exists:livestock,id'],
+            'livestock_id' => ['required', $this->livestockBelongsToFarm()],
             'tag_number' => [
                 'required',
                 'string',

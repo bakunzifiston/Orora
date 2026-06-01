@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\LinkedExpenseRules;
+use App\Models\BreedingRecord;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,7 +31,16 @@ class BirthRecordRequest extends FormRequest
     {
         return array_merge([
             'breeding_record_id' => ['required', 'exists:breeding_records,id'],
-            'mother_animal_id' => ['required', 'exists:animals,id'],
+            'mother_animal_id' => [
+                'required',
+                'exists:animals,id',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $breeding = BreedingRecord::query()->find($this->input('breeding_record_id'));
+                    if ($breeding && (int) $value !== (int) $breeding->female_animal_id) {
+                        $fail('The mother must match the female on the breeding record.');
+                    }
+                },
+            ],
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'birth_type' => ['required', Rule::in(config('modules.birth_types'))],
             'total_offspring' => ['required', 'integer', 'min:1'],

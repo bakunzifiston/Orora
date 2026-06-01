@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\LinkedExpenseRules;
+use App\Models\BreedingRecord;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,7 +29,16 @@ class PregnancyCheckRequest extends FormRequest
     {
         return array_merge([
             'breeding_record_id' => ['required', 'exists:breeding_records,id'],
-            'animal_id' => ['required', 'exists:animals,id'],
+            'animal_id' => [
+                'required',
+                'exists:animals,id',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $breeding = BreedingRecord::query()->find($this->input('breeding_record_id'));
+                    if ($breeding && (int) $value !== (int) $breeding->female_animal_id) {
+                        $fail('The animal must be the female from the selected breeding record.');
+                    }
+                },
+            ],
             'check_date' => ['required', 'date', 'before_or_equal:today'],
             'check_method' => ['required', Rule::in(config('modules.pregnancy_check_methods'))],
             'result' => ['required', Rule::in(config('modules.pregnancy_check_results'))],

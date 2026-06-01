@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class HealthRecordRequest extends FormRequest
 {
+    use ValidatesFarmRelations;
     public function authorize(): bool
     {
         return true;
@@ -16,7 +18,7 @@ class HealthRecordRequest extends FormRequest
     {
         return [
             'farm_id' => ['required', 'exists:farms,id'],
-            'animal_id' => ['required', 'exists:animals,id'],
+            'animal_id' => ['required', $this->animalBelongsToFarm()],
             'record_type' => ['required', Rule::in(config('modules.health_record_types'))],
             'recorded_on' => ['required', 'date'],
             'health_status' => ['required', Rule::in(config('modules.health_statuses'))],

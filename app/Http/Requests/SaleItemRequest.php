@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SaleItemRequest extends FormRequest
 {
+    use ValidatesFarmRelations;
     public function authorize(): bool
     {
         return true;
@@ -14,17 +17,27 @@ class SaleItemRequest extends FormRequest
     public function rules(): array
     {
         $itemType = $this->input('item_type');
+        $transaction = $this->route('transaction');
+        $farmId = $transaction?->farm_id;
+
+        $animalRule = $farmId
+            ? $this->animalBelongsToFarmId($farmId)
+            : Rule::exists('animals', 'id');
 
         return [
             'customer_id' => ['nullable', 'exists:customers,id'],
             'item_type' => ['required', 'in:animal,meat_cut,milk'],
             'animal_id' => [
                 $itemType === 'animal' ? 'required' : 'nullable',
-                'exists:animals,id',
+                $animalRule,
             ],
-            'livestock_id' => ['nullable', 'exists:livestock,id'],
+            'livestock_id' => $farmId
+                ? ['nullable', $this->livestockBelongsToFarmId($farmId)]
+                : ['nullable', 'exists:livestock,id'],
             'abattoir_return_id' => ['nullable', 'exists:abattoir_returns,id'],
-            'milk_storage_id' => ['nullable', 'exists:milk_storage,id'],
+            'milk_storage_id' => $farmId
+                ? ['nullable', Rule::exists('milk_storage', 'id')->where(fn ($q) => $q->where('farm_id', $farmId))]
+                : ['nullable', 'exists:milk_storage,id'],
             'description' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.001'],
             'unit' => ['required', 'string', 'max:20'],

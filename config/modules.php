@@ -215,6 +215,13 @@ return [
 
     'sale_payment_statuses' => ['unpaid', 'partial', 'paid', 'overdue'],
 
+    'sale_payment_status_labels' => [
+        'unpaid' => 'Unpaid',
+        'partial' => 'Partially paid',
+        'paid' => 'Paid',
+        'overdue' => 'Overdue',
+    ],
+
     'sale_payment_status_badge_classes' => [
         'unpaid' => 'dash-sale-payment--unpaid',
         'partial' => 'dash-sale-payment--partial',

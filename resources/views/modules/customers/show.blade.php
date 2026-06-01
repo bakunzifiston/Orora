@@ -76,9 +76,9 @@
         <div class="dash-panel">
             <div class="dash-panel-title">Purchases by type</div>
             <ul class="dash-health-activity">
-                @foreach (config('modules.sale_type_labels') as $type => $label)
+                @foreach (config('modules.sale_type_labels') as $type => $typeLabel)
                     <li>
-                        <div>{{ $label }}</div>
+                        <div>{{ $typeLabel }}</div>
                         <span>{{ number_format($purchaseStats['by_type'][$type] ?? 0, 0) }} {{ $customer->currency }}</span>
                     </li>
                 @endforeach
@@ -197,7 +197,7 @@
             <p class="dash-empty">No sales linked yet.</p>
         @else
             <table class="dash-table">
-                <thead><tr><th>Sale #</th><th>Type</th><th>Date</th><th>Farm</th><th>Total</th><th>Status</th></tr></thead>
+                <thead><tr><th>Sale #</th><th>Type</th><th>Date</th><th>Farm</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
                     @foreach ($customer->saleTransactions as $sale)
                         <tr>
@@ -207,6 +207,12 @@
                             <td>{{ $sale->farm?->name ?? '—' }}</td>
                             <td>{{ number_format($sale->total_amount, 0) }} {{ $sale->currency }}</td>
                             <td>@include('modules.sales.partials.sale-status-badge', ['sale' => $sale])</td>
+                            <td>
+                                @include('modules.partials.row-actions', [
+                                    'model' => $sale,
+                                    'showRoute' => 'sales.transactions.show',
+                                ])
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

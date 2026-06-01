@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class FeedingScheduleRequest extends FormRequest
 {
+    use ValidatesFarmRelations;
     public function authorize(): bool
     {
         return true;
@@ -17,9 +19,12 @@ class FeedingScheduleRequest extends FormRequest
         return [
             'farm_id' => ['required', 'exists:farms,id'],
             'feed_type_id' => ['required', 'exists:feed_types,id'],
-            'feed_inventory_id' => ['nullable', 'exists:feed_inventories,id'],
-            'livestock_id' => ['nullable', 'exists:livestock,id'],
-            'animal_id' => ['nullable', 'exists:animals,id'],
+            'feed_inventory_id' => [
+                'nullable',
+                Rule::exists('feed_inventories', 'id')->where(fn ($q) => $q->where('farm_id', $this->input('farm_id'))),
+            ],
+            'livestock_id' => $this->optionalLivestockBelongsToFarm(),
+            'animal_id' => $this->optionalAnimalBelongsToFarm(),
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit' => ['required', Rule::in(config('modules.feed_units'))],
             'frequency' => ['required', Rule::in(config('modules.schedule_frequencies'))],

@@ -129,16 +129,17 @@ class SaleTransactionController extends Controller
     public function confirm(SaleTransaction $transaction): RedirectResponse
     {
         try {
-            if ($transaction->sale_type === 'milk_sale') {
-                $this->saleService->confirm($transaction);
-            } else {
-                $this->saleService->complete($transaction);
-            }
+            // Milk: deduct stock (via confirm) then mark completed for finance & reporting.
+            $this->saleService->complete($transaction);
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['sale' => $e->getMessage()]);
         }
 
-        return redirect()->route('sales.transactions.show', $transaction)->with('success', 'Sale confirmed.');
+        $message = $transaction->sale_type === 'milk_sale'
+            ? 'Milk sale confirmed, stock deducted, and marked completed.'
+            : 'Sale completed.';
+
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', $message);
     }
 
     public function complete(SaleTransaction $transaction): RedirectResponse

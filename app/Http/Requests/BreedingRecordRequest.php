@@ -3,12 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\LinkedExpenseRules;
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class BreedingRecordRequest extends FormRequest
 {
     use LinkedExpenseRules;
+    use ValidatesFarmRelations;
 
     public function authorize(): bool
     {
@@ -30,8 +32,8 @@ class BreedingRecordRequest extends FormRequest
     {
         return array_merge([
             'farm_id' => ['required', 'exists:farms,id'],
-            'female_animal_id' => ['required', 'exists:animals,id'],
-            'male_animal_id' => ['nullable', 'exists:animals,id'],
+            'female_animal_id' => ['required', $this->animalBelongsToFarm('female_animal_id')],
+            'male_animal_id' => ['nullable', $this->animalBelongsToFarm('male_animal_id')],
             'external_sire_name' => ['nullable', 'string', 'max:255'],
             'external_sire_breed' => ['nullable', 'string', 'max:255'],
             'external_sire_code' => ['nullable', 'string', 'max:100'],
@@ -47,7 +49,7 @@ class BreedingRecordRequest extends FormRequest
             'gestation_period_days' => ['nullable', 'integer', 'min:1', 'max:400'],
             'notes' => ['nullable', 'string'],
         ], $this->linkedExpenseRules());
-    }
+      }
 
     public function recordAttributes(): array
     {

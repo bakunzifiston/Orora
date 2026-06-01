@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class MilkRecordRequest extends FormRequest
 {
+    use ValidatesFarmRelations;
     public function authorize(): bool
     {
         return true;
@@ -21,8 +23,14 @@ class MilkRecordRequest extends FormRequest
 
     public function rules(): array
     {
+        $session = $this->route('milkSession');
+        $farmId = $session?->farm_id;
+
         return [
-            'animal_id' => ['required', 'exists:animals,id'],
+            'animal_id' => [
+                'required',
+                $farmId ? $this->animalBelongsToFarmId($farmId) : 'exists:animals,id',
+            ],
             'yield_liters' => ['required', 'numeric', 'min:0.01'],
             'milking_duration_minutes' => ['nullable', 'integer', 'min:1'],
             'lactation_stage' => ['nullable', Rule::in(config('modules.lactation_stages'))],

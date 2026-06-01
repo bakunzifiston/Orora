@@ -17,8 +17,8 @@
                 <label for="filter_type">Type</label>
                 <select name="type" id="filter_type">
                     <option value="">All types</option>
-                    @foreach (config('modules.sale_type_labels') as $value => $label)
-                        <option value="{{ $value }}" @selected($filterType === $value)>{{ $label }}</option>
+                    @foreach (config('modules.sale_type_labels') as $value => $typeLabel)
+                        <option value="{{ $value }}" @selected($filterType === $value)>{{ $typeLabel }}</option>
                     @endforeach
                 </select>
             </div>
@@ -62,13 +62,15 @@
                             <th>Total</th>
                             <th>Payment</th>
                             <th>Status</th>
-                            <th></th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($transactions as $sale)
                             <tr>
-                                <td><strong>{{ $sale->sale_number }}</strong></td>
+                                <td>
+                                    <a href="{{ route('sales.transactions.show', $sale) }}"><strong>{{ $sale->sale_number }}</strong></a>
+                                </td>
                                 <td>{{ $sale->typeLabel() }}</td>
                                 <td>{{ $sale->sale_date->format('M j, Y') }}</td>
                                 <td>{{ $sale->farm?->name ?? '—' }}</td>
@@ -76,7 +78,15 @@
                                 <td>{{ number_format($sale->total_amount, 0) }} {{ $sale->currency }}</td>
                                 <td>@include('modules.sales.partials.payment-status-badge', ['sale' => $sale])</td>
                                 <td>@include('modules.sales.partials.sale-status-badge', ['sale' => $sale])</td>
-                                <td><a href="{{ route('sales.transactions.show', $sale) }}">Open</a></td>
+                                <td>
+                                    @include('modules.partials.row-actions', [
+                                        'model' => $sale,
+                                        'showRoute' => 'sales.transactions.show',
+                                        'destroyRoute' => 'sales.transactions.destroy',
+                                        'canDelete' => in_array($sale->sale_status, ['draft', 'cancelled'], true),
+                                        'deleteConfirm' => 'Delete this sale permanently?',
+                                    ])
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

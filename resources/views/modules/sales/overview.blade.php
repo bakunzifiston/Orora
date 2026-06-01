@@ -72,6 +72,7 @@
                             <th>Customer</th>
                             <th>Total</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,6 +87,12 @@
                                 <td>{{ $sale->customer?->display_name ?? '—' }}</td>
                                 <td>{{ number_format($sale->total_amount, 0) }} {{ $sale->currency }}</td>
                                 <td>@include('modules.sales.partials.sale-status-badge', ['sale' => $sale])</td>
+                                <td>
+                                    @include('modules.partials.row-actions', [
+                                        'model' => $sale,
+                                        'showRoute' => 'sales.transactions.show',
+                                    ])
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

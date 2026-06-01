@@ -13,8 +13,8 @@
     <div class="dash-panel" style="margin-bottom: 1rem;">
         <p style="margin: 0; color: #666;">Choose sale type:</p>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
-            @foreach (config('modules.sale_type_labels') as $value => $label)
-                <a href="{{ route('sales.transactions.create', ['type' => $value]) }}" class="dash-health-subnav__link {{ $saleType === $value ? 'is-active' : '' }}">{{ $label }}</a>
+            @foreach (config('modules.sale_type_labels') as $value => $typeLabel)
+                <a href="{{ route('sales.transactions.create', ['type' => $value]) }}" class="dash-health-subnav__link {{ $saleType === $value ? 'is-active' : '' }}">{{ $typeLabel }}</a>
             @endforeach
         </div>
     </div>

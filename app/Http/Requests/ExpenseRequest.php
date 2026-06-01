@@ -2,12 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
 use App\Models\ExpenseCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ExpenseRequest extends FormRequest
 {
+    use ValidatesFarmRelations;
     public function authorize(): bool
     {
         return true;
@@ -40,8 +42,8 @@ class ExpenseRequest extends FormRequest
                 'nullable',
                 'exists:farms,id',
             ],
-            'animal_id' => ['nullable', 'exists:animals,id'],
-            'livestock_id' => ['nullable', 'exists:livestock,id'],
+            'animal_id' => $this->optionalAnimalBelongsToFarm(),
+            'livestock_id' => $this->optionalLivestockBelongsToFarm(),
             'expense_vendor_id' => ['nullable', 'exists:expense_vendors,id'],
             'expense_date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],

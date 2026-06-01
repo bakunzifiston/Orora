@@ -15,8 +15,8 @@
     <div class="dash-form-field">
         <label for="sale_type">Sale type <span class="dash-required">*</span></label>
         <select name="sale_type" id="sale_type" required @disabled($transaction)>
-            @foreach (config('modules.sale_type_labels') as $value => $label)
-                <option value="{{ $value }}" @selected($saleType === $value)>{{ $label }}</option>
+            @foreach (config('modules.sale_type_labels') as $value => $typeLabel)
+                <option value="{{ $value }}" @selected($saleType === $value)>{{ $typeLabel }}</option>
             @endforeach
         </select>
     </div>
@@ -30,8 +30,8 @@
     <div class="dash-form-field">
         <label for="pricing_method">Pricing <span class="dash-required">*</span></label>
         <select name="pricing_method" id="pricing_method" required @disabled($transaction && $transaction->sale_status !== 'draft')>
-            @foreach (config('modules.sale_pricing_methods') as $value => $label)
-                <option value="{{ $value }}" @selected(old('pricing_method', $transaction?->pricing_method ?? 'per_animal') === $value)>{{ $label }}</option>
+            @foreach (config('modules.sale_pricing_methods') as $value => $pricingLabel)
+                <option value="{{ $value }}" @selected(old('pricing_method', $transaction?->pricing_method ?? 'per_animal') === $value)>{{ $pricingLabel }}</option>
             @endforeach
         </select>
     </div>

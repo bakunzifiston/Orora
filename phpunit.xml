@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="TENANCY_CENTRAL_CONNECTION" value="central"/>
+        <env name="TEST_DB_DATABASE" value="orora_test"/>
     </php>
 </phpunit>
