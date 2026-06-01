@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\LinkedExpenseRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class BreedingRecordRequest extends FormRequest
 {
+    use LinkedExpenseRules;
+
     public function authorize(): bool
     {
         return true;
@@ -14,6 +17,8 @@ class BreedingRecordRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->prepareLinkedExpenseValidation();
+
         foreach (['male_animal_id', 'heat_detection_method', 'technician_name', 'semen_batch_number', 'semen_straw_code', 'semen_source', 'external_sire_name', 'external_sire_breed', 'external_sire_code'] as $field) {
             if ($this->input($field) === '') {
                 $this->merge([$field => null]);
@@ -23,7 +28,7 @@ class BreedingRecordRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return array_merge([
             'farm_id' => ['required', 'exists:farms,id'],
             'female_animal_id' => ['required', 'exists:animals,id'],
             'male_animal_id' => ['nullable', 'exists:animals,id'],
@@ -41,7 +46,7 @@ class BreedingRecordRequest extends FormRequest
             'semen_source' => ['nullable', 'string', 'max:255'],
             'gestation_period_days' => ['nullable', 'integer', 'min:1', 'max:400'],
             'notes' => ['nullable', 'string'],
-        ];
+        ], $this->linkedExpenseRules());
     }
 
     public function recordAttributes(): array

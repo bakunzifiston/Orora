@@ -8,6 +8,7 @@ trait ProvidesModuleNavigation
     {
         return array_merge([
             'navigation' => config('modules.navigation'),
+            'navigationGroups' => config('modules.navigation_groups'),
             'activeNav' => $activeNav,
         ], $data);
     }

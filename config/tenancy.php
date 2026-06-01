@@ -26,8 +26,8 @@ return [
     | Default tenant (central domain)
     |--------------------------------------------------------------------------
     |
-    | When users visit the main URL (localhost), this tenant is initialized
-    | so login, register, and dashboard use the correct database.
+    | Legacy fallback when signing in with an email that has no tenant_accounts
+    | row (e.g. demo users). New registrations get their own tenant database.
     |
     */
 

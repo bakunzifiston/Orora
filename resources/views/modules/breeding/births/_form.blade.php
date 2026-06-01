@@ -79,6 +79,12 @@
     </div>
 </div>
 
+@include('modules.expenses.partials.linked-expense-fields', [
+    'defaultVendorName' => old('veterinarian_name') ?: old('assisted_by'),
+    'vendors' => $vendors ?? [],
+    'sectionNumber' => '2',
+])
+
 <script>
 document.getElementById('breeding_record_id')?.addEventListener('change', function () {
     const opt = this.selectedOptions[0];

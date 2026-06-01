@@ -9,8 +9,10 @@ use App\Http\Requests\OffspringRegisterRequest;
 use App\Http\Requests\OffspringUpdateRequest;
 use App\Models\BirthRecord;
 use App\Models\BreedingRecord;
+use App\Models\ExpenseVendor;
 use App\Models\Offspring;
 use App\Services\BreedingService;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,6 +24,7 @@ class BirthRecordController extends Controller
 
     public function __construct(
         private readonly BreedingService $breedingService,
+        private readonly ExpenseService $expenseService,
     ) {}
 
     public function index(): View
@@ -47,7 +50,9 @@ class BirthRecordController extends Controller
             ->orderByDesc('breeding_date')
             ->get();
 
-        return view('modules.breeding.births.create', $this->breedingSectionData('births', compact('breedingRecord', 'eligibleBreedings')));
+        $vendors = ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get();
+
+        return view('modules.breeding.births.create', $this->breedingSectionData('births', compact('breedingRecord', 'eligibleBreedings', 'vendors')));
     }
 
     public function store(BirthRecordRequest $request): RedirectResponse
@@ -60,6 +65,13 @@ class BirthRecordController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['birth' => $e->getMessage()]);
         }
+
+        $this->expenseService->syncFromRequest(
+            $request,
+            $birth,
+            'breeding.birth',
+            ExpenseService::birthRecordContext($birth->fresh()),
+        );
 
         return redirect()
             ->route('breeding.births.edit', $birth)

@@ -1,25 +1,59 @@
 <?php
 
+$navigationGroups = [
+    [
+        'key' => 'dashboard',
+        'label' => null,
+        'items' => [
+            ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'grid'],
+        ],
+    ],
+    [
+        'key' => 'farm_management',
+        'label' => 'Farm management',
+        'items' => [
+            ['key' => 'farms', 'label' => 'Farms', 'route' => 'farms.index', 'icon' => 'farm'],
+            ['key' => 'livestock', 'label' => 'Livestock', 'route' => 'livestock.index', 'icon' => 'livestock'],
+            ['key' => 'animals', 'label' => 'Animals', 'route' => 'animals.index', 'icon' => 'animal'],
+            ['key' => 'employees', 'label' => 'Employees', 'route' => 'employees.overview', 'icon' => 'employee'],
+        ],
+    ],
+    [
+        'key' => 'animal_operations',
+        'label' => 'Animal operations',
+        'items' => [
+            ['key' => 'health', 'label' => 'Health', 'route' => 'health.overview', 'icon' => 'health'],
+            ['key' => 'feeding', 'label' => 'Feeding', 'route' => 'feeding.overview', 'icon' => 'feeding'],
+            ['key' => 'milk', 'label' => 'Milk', 'route' => 'milk.overview', 'icon' => 'milk'],
+            ['key' => 'breeding', 'label' => 'Breeding', 'route' => 'breeding.overview', 'icon' => 'breeding'],
+        ],
+    ],
+    [
+        'key' => 'compliance',
+        'label' => 'Compliance & records',
+        'items' => [
+            ['key' => 'certificates', 'label' => 'Certificates', 'route' => 'certificates.index', 'icon' => 'certificate'],
+            ['key' => 'movement', 'label' => 'Movement', 'route' => 'movements.index', 'icon' => 'movement'],
+        ],
+    ],
+    [
+        'key' => 'business',
+        'label' => 'Business & finance',
+        'items' => [
+            ['key' => 'sales', 'label' => 'Sales', 'route' => 'sales.overview', 'icon' => 'sale'],
+            ['key' => 'customers', 'label' => 'Customers', 'route' => 'customers.overview', 'icon' => 'customer'],
+            ['key' => 'expenses', 'label' => 'Expenses', 'route' => 'expenses.overview', 'icon' => 'expense'],
+            ['key' => 'finance', 'label' => 'Finance', 'route' => 'finance.overview', 'icon' => 'finance'],
+        ],
+    ],
+];
+
 return [
 
-    'navigation' => [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'grid'],
-        ['key' => 'farms', 'label' => 'Farms', 'route' => 'farms.index', 'icon' => 'farm'],
-        ['key' => 'livestock', 'label' => 'Livestock', 'route' => 'livestock.index', 'icon' => 'livestock'],
-        ['key' => 'animals', 'label' => 'Animals', 'route' => 'animals.index', 'icon' => 'animal'],
-        ['key' => 'health', 'label' => 'Health', 'route' => 'health.overview', 'icon' => 'health'],
-        ['key' => 'feeding', 'label' => 'Feeding', 'route' => 'feeding.overview', 'icon' => 'feeding'],
-        ['key' => 'expenses', 'label' => 'Expenses', 'route' => 'expenses.overview', 'icon' => 'expense'],
-        ['key' => 'milk', 'label' => 'Milk', 'route' => 'milk.overview', 'icon' => 'milk'],
-        ['key' => 'breeding', 'label' => 'Breeding', 'route' => 'breeding.overview', 'icon' => 'breeding'],
-        ['key' => 'certificates', 'label' => 'Certificates', 'route' => 'certificates.index', 'icon' => 'certificate'],
-        ['key' => 'movement', 'label' => 'Movement', 'route' => 'movements.index', 'icon' => 'movement'],
-        ['key' => 'sales', 'label' => 'Sales', 'route' => 'sales.overview', 'icon' => 'sale'],
-        ['key' => 'customers', 'label' => 'Customers', 'route' => 'customers.overview', 'icon' => 'customer'],
-        ['key' => 'finance', 'label' => 'Finance', 'route' => 'finance.overview', 'icon' => 'finance'],
-        ['key' => 'employees', 'label' => 'Employees', 'route' => 'employees.overview', 'icon' => 'employee'],
-        ['key' => 'settings', 'label' => 'Profile', 'route' => 'profile.edit', 'icon' => 'gear'],
-    ],
+    'navigation_groups' => $navigationGroups,
+
+    /** Flat list for legacy callers */
+    'navigation' => collect($navigationGroups)->flatMap(fn (array $group) => $group['items'])->values()->all(),
 
     'species' => ['cattle', 'goat', 'sheep', 'pig', 'poultry', 'rabbit', 'fish', 'other'],
 
@@ -135,6 +169,7 @@ return [
     'expense_groups' => [
         'feed' => ['label' => 'Feed expenses', 'module' => 'feeding'],
         'health' => ['label' => 'Health expenses', 'module' => 'health'],
+        'breeding' => ['label' => 'Breeding expenses', 'module' => 'breeding'],
         'farm_operations' => ['label' => 'Farm operations', 'module' => 'farms'],
         'general' => ['label' => 'General / other', 'module' => null],
     ],

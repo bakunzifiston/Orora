@@ -17,11 +17,9 @@ class InitializeTenancyForAssets
         }
 
         if ($this->isCentralDomain($request)) {
-            $tenantId = config('tenancy.default_tenant_id');
-
-            if ($request->hasSession()) {
-                $tenantId = $request->session()->get('tenant_id', $tenantId);
-            }
+            $tenantId = $request->hasSession()
+                ? $request->session()->get('tenant_id')
+                : null;
 
             if ($tenantId && $tenant = Tenant::find($tenantId)) {
                 tenancy()->initialize($tenant);

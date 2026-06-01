@@ -1,5 +1,6 @@
 @php
     $activeNav = $activeNav ?? 'dashboard';
+    $navigationGroups = $navigationGroups ?? config('modules.navigation_groups', []);
     $user = auth()->user();
     $initials = collect(explode(' ', $user->name))->map(fn ($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
 @endphp
@@ -10,24 +11,31 @@
             @include('layouts.partials.dashboard-brand')
         </div>
 
-        <nav class="dash-nav">
-            @foreach ($navigation as $item)
-                @if ($item['route'] && Route::has($item['route']))
-                    <a href="{{ route($item['route']) }}" class="{{ $activeNav === $item['key'] ? 'active' : '' }}">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
-                        {{ $item['label'] }}
-                    </a>
-                @else
-                    <span class="disabled" title="Coming soon">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
-                        {{ $item['label'] }}
-                    </span>
-                @endif
+        <nav class="dash-nav" aria-label="Main navigation">
+            @foreach ($navigationGroups as $group)
+                <div class="dash-nav-group @if (empty($group['label'])) dash-nav-group--solo @endif">
+                    @if (! empty($group['label']))
+                        <div class="dash-nav-group__label">{{ $group['label'] }}</div>
+                    @endif
+                    @foreach ($group['items'] as $item)
+                        @if ($item['route'] && Route::has($item['route']))
+                            <a href="{{ route($item['route']) }}" class="{{ $activeNav === $item['key'] ? 'active' : '' }}">
+                                @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
+                                {{ $item['label'] }}
+                            </a>
+                        @else
+                            <span class="disabled" title="Coming soon">
+                                @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
+                                {{ $item['label'] }}
+                            </span>
+                        @endif
+                    @endforeach
+                </div>
             @endforeach
         </nav>
 
         <div class="dash-sidebar-footer">
-            <a href="{{ route('profile.edit') }}" class="dash-user" title="Edit profile">
+            <a href="{{ route('profile.edit') }}" class="dash-user {{ $activeNav === 'settings' ? 'is-active' : '' }}" title="Edit profile">
                 <div class="dash-user-avatar">{{ $initials }}</div>
                 <div class="dash-user-info">
                     <div class="dash-user-name">{{ $user->name }}</div>

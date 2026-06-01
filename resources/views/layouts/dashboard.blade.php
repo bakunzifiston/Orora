@@ -12,6 +12,7 @@
     <div class="dash-app">
         @include('layouts.partials.dashboard-sidebar', [
             'navigation' => $navigation ?? config('modules.navigation'),
+            'navigationGroups' => $navigationGroups ?? config('modules.navigation_groups'),
             'activeNav' => $activeNav ?? 'dashboard',
         ])
 

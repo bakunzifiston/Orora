@@ -27,6 +27,8 @@ class LoginController extends Controller
 
         if (tenancy()->initialized) {
             $request->session()->put('tenant_id', tenant('id'));
+        } else {
+            $request->session()->forget('tenant_id');
         }
 
         return redirect()->intended(route('dashboard'));
@@ -38,10 +40,6 @@ class LoginController extends Controller
 
         request()->session()->invalidate();
         request()->session()->regenerateToken();
-
-        if (tenancy()->initialized) {
-            tenancy()->end();
-        }
 
         return redirect()->route('login');
     }

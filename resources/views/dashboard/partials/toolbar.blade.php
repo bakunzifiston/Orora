@@ -1,11 +1,21 @@
 @php
     $filters = $dashboard['filters'] ?? [];
+    $user = auth()->user();
+    $welcomeName = $user?->name
+        ? strtok($user->name, ' ') ?: $user->name
+        : null;
 @endphp
 
 <form method="GET" action="{{ route('dashboard') }}" class="dash-ops-toolbar" id="dash-filters-form">
     <div class="dash-ops-toolbar__brand">
-        <h1 class="dash-welcome" style="margin: 0;">Dashboard</h1>
-        <p class="dash-home-subtitle" style="margin: 0.25rem 0 0;">{{ $filters['label'] ?? 'Operations overview' }}</p>
+        <h1 class="dash-welcome" style="margin: 0;">
+            @if ($welcomeName)
+                Welcome, {{ $welcomeName }}
+            @else
+                Welcome
+            @endif
+        </h1>
+        <p class="dash-home-subtitle" style="margin: 0.25rem 0 0;">Operations overview for your farm</p>
     </div>
     <div class="dash-ops-toolbar__controls">
         <div class="dash-ops-field">

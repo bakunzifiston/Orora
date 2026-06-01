@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Storage;
 
 class PregnancyCheck extends Model
@@ -41,6 +42,11 @@ class PregnancyCheck extends Model
     public function animal(): BelongsTo
     {
         return $this->belongsTo(Animal::class);
+    }
+
+    public function expense(): MorphOne
+    {
+        return $this->morphOne(Expense::class, 'source');
     }
 
     public function resultLabel(): string

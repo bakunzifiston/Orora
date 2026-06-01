@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Storage;
 
 class BirthRecord extends Model
@@ -48,6 +49,11 @@ class BirthRecord extends Model
     public function offspring(): HasMany
     {
         return $this->hasMany(Offspring::class);
+    }
+
+    public function expense(): MorphOne
+    {
+        return $this->morphOne(Expense::class, 'source');
     }
 
     public function attachmentUrl(): ?string

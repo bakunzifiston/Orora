@@ -4,6 +4,7 @@ return [
 
     'logo' => '/images/orora-logo.png',
     'logo_sidebar' => '/images/orora-logo-sidebar.svg',
+    'auth_background' => '/images/auth-cow.jpg',
 
     'colors' => [
         'black' => '#000000',

@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\BirthRecord;
+use App\Models\BreedingRecord;
 use App\Models\Expense;
+use App\Models\PregnancyCheck;
 use App\Models\ExpenseCategory;
 use App\Models\ExpenseVendor;
 use App\Models\FeedInventoryMovement;
@@ -144,6 +147,52 @@ class ExpenseService
             'expense_date' => $visit->start_date,
             'title' => 'Vet visit: '.$visit->disease_name,
             'default_vendor_name' => $visit->veterinarian_name,
+        ];
+    }
+
+    public static function breedingRecordContext(BreedingRecord $record): array
+    {
+        $record->loadMissing(['femaleAnimal']);
+
+        $label = $record->breeding_code ?: 'Breeding #'.$record->id;
+        $type = config('modules.breeding_type_labels.'.$record->breeding_type, $record->breeding_type);
+
+        return [
+            'farm_id' => $record->farm_id,
+            'animal_id' => $record->female_animal_id,
+            'expense_date' => $record->breeding_date,
+            'title' => "Breeding ({$type}): {$label}",
+            'default_vendor_name' => $record->technician_name ?: $record->semen_source,
+        ];
+    }
+
+    public static function pregnancyCheckContext(PregnancyCheck $check): array
+    {
+        $check->loadMissing(['breedingRecord', 'animal']);
+
+        $label = $check->check_code ?: 'Check #'.$check->id;
+
+        return [
+            'farm_id' => $check->breedingRecord->farm_id,
+            'animal_id' => $check->animal_id,
+            'expense_date' => $check->check_date,
+            'title' => "Pregnancy check ({$check->resultLabel()}): {$label}",
+            'default_vendor_name' => $check->clinic_name ?: $check->checked_by,
+        ];
+    }
+
+    public static function birthRecordContext(BirthRecord $birth): array
+    {
+        $birth->loadMissing(['breedingRecord', 'motherAnimal']);
+
+        $label = $birth->birth_code ?: 'Birth #'.$birth->id;
+
+        return [
+            'farm_id' => $birth->breedingRecord->farm_id,
+            'animal_id' => $birth->mother_animal_id,
+            'expense_date' => $birth->birth_date,
+            'title' => "Birth: {$label}",
+            'default_vendor_name' => $birth->veterinarian_name ?: $birth->assisted_by,
         ];
     }
 }

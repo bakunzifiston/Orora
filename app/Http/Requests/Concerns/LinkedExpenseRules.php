@@ -23,4 +23,20 @@ trait LinkedExpenseRules
     {
         $this->merge(['log_expense' => $this->boolean('log_expense')]);
     }
+
+    /** @return list<string> */
+    protected function linkedExpenseAttributeKeys(): array
+    {
+        return [
+            'log_expense',
+            'expense_amount',
+            'expense_currency',
+            'expense_vendor_id',
+            'expense_vendor_name',
+            'expense_payment_method',
+            'expense_paid_by',
+            'expense_notes',
+            'expense_attachment',
+        ];
+    }
 }

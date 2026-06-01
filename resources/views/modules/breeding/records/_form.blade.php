@@ -111,6 +111,13 @@
     </div>
 </div>
 
+@include('modules.expenses.partials.linked-expense-fields', [
+    'expense' => $breedingRecord?->expense,
+    'defaultVendorName' => old('technician_name', $breedingRecord?->technician_name ?: $breedingRecord?->semen_source),
+    'vendors' => $vendors ?? [],
+    'sectionNumber' => '2',
+])
+
 <script>
 document.querySelectorAll('[data-breeding-form]').forEach((root) => {
     const farmSelect = root.querySelector('[data-breeding-farm]');

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class BreedingRecord extends Model
 {
@@ -75,6 +76,11 @@ class BreedingRecord extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(BreedingLog::class)->orderByDesc('action_date');
+    }
+
+    public function expense(): MorphOne
+    {
+        return $this->morphOne(Expense::class, 'source');
     }
 
     public function statusLabel(): string

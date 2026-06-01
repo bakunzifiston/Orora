@@ -6,8 +6,10 @@ use App\Http\Controllers\Concerns\BreedingSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\PregnancyCheckRequest;
 use App\Models\BreedingRecord;
+use App\Models\ExpenseVendor;
 use App\Models\PregnancyCheck;
 use App\Services\BreedingService;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,6 +21,7 @@ class PregnancyCheckController extends Controller
 
     public function __construct(
         private readonly BreedingService $breedingService,
+        private readonly ExpenseService $expenseService,
     ) {}
 
     public function index(Request $request): View
@@ -46,7 +49,9 @@ class PregnancyCheckController extends Controller
             ->orderByDesc('breeding_date')
             ->get();
 
-        return view('modules.breeding.checks.create', $this->breedingSectionData('checks', compact('breedingRecord', 'eligibleBreedings')));
+        $vendors = ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get();
+
+        return view('modules.breeding.checks.create', $this->breedingSectionData('checks', compact('breedingRecord', 'eligibleBreedings', 'vendors')));
     }
 
     public function store(PregnancyCheckRequest $request): RedirectResponse
@@ -59,6 +64,13 @@ class PregnancyCheckController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['check' => $e->getMessage()]);
         }
+
+        $this->expenseService->syncFromRequest(
+            $request,
+            $check,
+            'breeding.pregnancy_check',
+            ExpenseService::pregnancyCheckContext($check->fresh()),
+        );
 
         return redirect()
             ->route('breeding.records.edit', $check->breeding_record_id)

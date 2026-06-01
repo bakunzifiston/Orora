@@ -2,13 +2,15 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Tenant;
+use App\Services\TenantAccountService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class InitializeDefaultTenant
 {
+    public function __construct(private readonly TenantAccountService $tenantAccounts) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! $this->isCentralDomain($request)) {
@@ -16,12 +18,9 @@ class InitializeDefaultTenant
         }
 
         if (! tenancy()->initialized) {
-            $tenantId = $request->session()->get('tenant_id')
-                ?? config('tenancy.default_tenant_id');
-
-            if ($tenantId && $tenant = Tenant::find($tenantId)) {
-                tenancy()->initialize($tenant);
-            }
+            $this->tenantAccounts->initializeForSession(
+                $request->session()->get('tenant_id'),
+            );
         }
 
         return $next($request);

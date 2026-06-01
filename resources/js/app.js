@@ -1,8 +1,8 @@
 document.querySelectorAll('[data-password-toggle]').forEach((button) => {
-    const wrapper = button.closest('.relative') ?? button.parentElement;
+    const wrapper = button.closest('.auth-control__wrap') ?? button.parentElement;
     const input = wrapper?.querySelector('[data-password-input]');
 
-    if (!input) {
+    if (! input) {
         return;
     }
 
@@ -13,7 +13,7 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
         const isPassword = input.type === 'password';
         input.type = isPassword ? 'text' : 'password';
         eyeOpen?.classList.toggle('hidden', isPassword);
-        eyeClosed?.classList.toggle('hidden', !isPassword);
+        eyeClosed?.classList.toggle('hidden', ! isPassword);
         button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
     });
 });

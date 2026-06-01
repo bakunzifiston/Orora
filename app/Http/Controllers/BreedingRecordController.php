@@ -7,8 +7,10 @@ use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\BreedingRecordRequest;
 use App\Models\Animal;
 use App\Models\BreedingRecord;
+use App\Models\ExpenseVendor;
 use App\Models\Farm;
 use App\Services\BreedingService;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,6 +22,7 @@ class BreedingRecordController extends Controller
 
     public function __construct(
         private readonly BreedingService $breedingService,
+        private readonly ExpenseService $expenseService,
     ) {}
 
     public function index(Request $request): View
@@ -50,6 +53,13 @@ class BreedingRecordController extends Controller
             return back()->withInput()->withErrors(['breeding' => $e->getMessage()]);
         }
 
+        $this->expenseService->syncFromRequest(
+            $request,
+            $record,
+            'breeding.insemination',
+            ExpenseService::breedingRecordContext($record->fresh()),
+        );
+
         return redirect()
             ->route('breeding.records.edit', $record)
             ->with('success', 'Breeding record created. Add a pregnancy check when ready.');
@@ -64,6 +74,7 @@ class BreedingRecordController extends Controller
             'pregnancyChecks',
             'birthRecord.offspring.animal',
             'logs.actor',
+            'expense.vendor',
         ]);
 
         return view('modules.breeding.records.edit', $this->breedingSectionData('records', array_merge(
@@ -80,6 +91,14 @@ class BreedingRecordController extends Controller
             return back()->withInput()->withErrors(['breeding' => $e->getMessage()]);
         }
 
+        $breedingRecord = $breedingRecord->fresh();
+        $this->expenseService->syncFromRequest(
+            $request,
+            $breedingRecord,
+            'breeding.insemination',
+            ExpenseService::breedingRecordContext($breedingRecord),
+        );
+
         return redirect()
             ->route('breeding.records.edit', $breedingRecord)
             ->with('success', 'Breeding record updated.');
@@ -91,6 +110,7 @@ class BreedingRecordController extends Controller
             return back()->withErrors(['breeding' => 'Cannot delete a breeding record that has a birth.']);
         }
 
+        $this->expenseService->deleteForSource($breedingRecord);
         $breedingRecord->delete();
 
         return redirect()->route('breeding.records')->with('success', 'Breeding record removed.');
@@ -113,6 +133,7 @@ class BreedingRecordController extends Controller
                 ->orderBy('tag_number')
                 ->get(),
             'gestationDefaults' => config('modules.breeding_gestation_days'),
+            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ];
     }
 }

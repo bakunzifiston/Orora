@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\LinkedExpenseRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class BirthRecordRequest extends FormRequest
 {
+    use LinkedExpenseRules;
+
     public function authorize(): bool
     {
         return true;
@@ -14,6 +17,8 @@ class BirthRecordRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->prepareLinkedExpenseValidation();
+
         foreach (['assisted_by', 'veterinarian_name'] as $field) {
             if ($this->input($field) === '') {
                 $this->merge([$field => null]);
@@ -23,7 +28,7 @@ class BirthRecordRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return array_merge([
             'breeding_record_id' => ['required', 'exists:breeding_records,id'],
             'mother_animal_id' => ['required', 'exists:animals,id'],
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
@@ -38,12 +43,12 @@ class BirthRecordRequest extends FormRequest
             'mother_condition_after' => ['required', Rule::in(config('modules.mother_conditions_after_birth'))],
             'notes' => ['nullable', 'string'],
             'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png'],
-        ];
+        ], $this->linkedExpenseRules());
     }
 
     public function birthAttributes(): array
     {
-        $attrs = $this->safe()->except(['attachment']);
+        $attrs = $this->safe()->except(array_merge(['attachment'], $this->linkedExpenseAttributeKeys()));
         $attrs['stillborn_offspring'] = $attrs['stillborn_offspring'] ?? 0;
 
         return $attrs;

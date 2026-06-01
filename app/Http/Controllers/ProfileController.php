@@ -13,6 +13,7 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => auth()->user(),
             'navigation' => config('modules.navigation'),
+            'navigationGroups' => config('modules.navigation_groups'),
             'activeNav' => 'settings',
         ]);
     }

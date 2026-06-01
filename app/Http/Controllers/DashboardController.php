@@ -15,6 +15,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', [
             'navigation' => config('modules.navigation'),
+            'navigationGroups' => config('modules.navigation_groups'),
             'activeNav' => 'dashboard',
             'dashboard' => $analytics->build($filters),
             'farms' => Farm::query()->orderBy('name')->get(),

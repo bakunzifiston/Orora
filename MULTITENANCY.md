@@ -67,13 +67,11 @@ The **login screen is the landing page** at `/`:
 | `/register` | Create account → dashboard |
 | `/dashboard` | Module hub (after login) |
 
-**Main URL** (`http://localhost:8000`) uses the default tenant from `.env`:
+**Main URL** (`http://localhost:8000`) — each **new registration** gets its own tenant database (`tenant{id}`). The signed-in session stores `tenant_id` so the dashboard only shows that account's data.
 
-```
-DEFAULT_TENANT_ID=demo
-```
+`DEFAULT_TENANT_ID=demo` is only a **legacy login fallback** for emails that are not in `tenant_accounts` (e.g. old demo users).
 
-Tenant domains (e.g. `http://demo.localhost:8000`) use the same layout; each domain has its own user database.
+Tenant domains (e.g. `http://demo.localhost:8000`) use domain-based tenancy; each domain has its own user database.
 
 **Admin** (manage tenants): `http://localhost:8000/admin/tenants`
 

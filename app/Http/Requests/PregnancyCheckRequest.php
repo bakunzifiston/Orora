@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\LinkedExpenseRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class PregnancyCheckRequest extends FormRequest
 {
+    use LinkedExpenseRules;
+
     public function authorize(): bool
     {
         return true;
@@ -14,6 +17,8 @@ class PregnancyCheckRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->prepareLinkedExpenseValidation();
+
         if ($this->input('clinic_name') === '') {
             $this->merge(['clinic_name' => null]);
         }
@@ -21,7 +26,7 @@ class PregnancyCheckRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return array_merge([
             'breeding_record_id' => ['required', 'exists:breeding_records,id'],
             'animal_id' => ['required', 'exists:animals,id'],
             'check_date' => ['required', 'date', 'before_or_equal:today'],
@@ -39,11 +44,11 @@ class PregnancyCheckRequest extends FormRequest
             ],
             'notes' => ['nullable', 'string'],
             'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png'],
-        ];
+        ], $this->linkedExpenseRules());
     }
 
     public function checkAttributes(): array
     {
-        return $this->safe()->except(['attachment']);
+        return $this->safe()->except(array_merge(['attachment'], $this->linkedExpenseAttributeKeys()));
     }
 }

@@ -87,6 +87,18 @@
         line-height: 1;
     }
     .dash-nav { flex: 1; min-height: 0; padding: 0 0.75rem; overflow-y: auto; }
+    .dash-nav-group { margin-bottom: 0.35rem; }
+    .dash-nav-group--solo { margin-bottom: 0.65rem; }
+    .dash-nav-group__label {
+        font-size: 0.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #7a9494;
+        padding: 0.85rem 1rem 0.35rem;
+        line-height: 1.2;
+    }
+    .dash-nav-group--solo .dash-nav-group__label { display: none; }
     .dash-nav a, .dash-nav span {
         display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1rem; border-radius: 0.5rem;
         font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: background 0.15s, color 0.15s;
@@ -106,6 +118,10 @@
     }
     .dash-user:hover {
         background: rgba(164, 212, 0, 0.1); border-color: rgba(164, 212, 0, 0.35);
+    }
+    .dash-user.is-active {
+        background: var(--orora-sidebar-active);
+        border-color: rgba(164, 212, 0, 0.2);
     }
     .dash-user-info { min-width: 0; flex: 1; }
     .dash-user-avatar {
