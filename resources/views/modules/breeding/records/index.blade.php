@@ -31,6 +31,12 @@
                     @endforeach
                 </select>
             </div>
+            <div class="dash-form-field" style="display: flex; align-items: flex-end;">
+                <label class="dash-checkbox">
+                    <input type="checkbox" name="pregnancy_check_due" value="1" @checked(request()->boolean('pregnancy_check_due')) onchange="this.form.submit()">
+                    Pregnancy check due only
+                </label>
+            </div>
         </form>
     </div>
 
@@ -48,6 +54,7 @@
                             <th>Sire</th>
                             <th>Type</th>
                             <th>Expected calving</th>
+                            <th>Check due</th>
                             <th>Status</th>
                             <th></th>
                         </tr>
@@ -61,6 +68,16 @@
                                 <td>{{ $record->sireLabel() }}</td>
                                 <td>{{ $record->breedingTypeLabel() }}</td>
                                 <td>{{ $record->expected_calving_date?->format('M j, Y') ?? '—' }}</td>
+                                <td>
+                                    @if ($record->breeding_status === 'pending' && $record->pregnancyChecks->isEmpty())
+                                        {{ $record->pregnancy_check_due_on?->format('M j, Y') ?? '—' }}
+                                        @if ($record->pregnancy_check_due_on && $record->pregnancy_check_due_on->lte(now()->startOfDay()))
+                                            <span class="dash-badge" style="background: #fff7ed; color: #c2410c; margin-left: 0.25rem;">Due</span>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td>{{ $record->statusLabel() }}</td>
                                 <td>
                                     @include('modules.partials.row-actions', [

@@ -85,7 +85,7 @@
                                 <td>{{ $sale->farm?->name ?? '—' }}</td>
                                 <td>{{ $sale->customer?->display_name ?? '—' }}</td>
                                 <td>{{ number_format($sale->total_amount, 0) }} {{ $sale->currency }}</td>
-                                <td>{{ $sale->statusLabel() }}</td>
+                                <td>@include('modules.sales.partials.sale-status-badge', ['sale' => $sale])</td>
                             </tr>
                         @endforeach
                     </tbody>

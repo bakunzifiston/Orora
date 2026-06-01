@@ -74,8 +74,8 @@
                                 <td>{{ $sale->farm?->name ?? '—' }}</td>
                                 <td>{{ $sale->customer?->display_name ?? '—' }}</td>
                                 <td>{{ number_format($sale->total_amount, 0) }} {{ $sale->currency }}</td>
-                                <td>{{ ucfirst($sale->payment_status) }}</td>
-                                <td>{{ $sale->statusLabel() }}</td>
+                                <td>@include('modules.sales.partials.payment-status-badge', ['sale' => $sale])</td>
+                                <td>@include('modules.sales.partials.sale-status-badge', ['sale' => $sale])</td>
                                 <td><a href="{{ route('sales.transactions.show', $sale) }}">Open</a></td>
                             </tr>
                         @endforeach

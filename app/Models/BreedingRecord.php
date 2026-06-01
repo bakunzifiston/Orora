@@ -19,6 +19,7 @@ class BreedingRecord extends Model
         'external_sire_code',
         'breeding_code',
         'breeding_date',
+        'pregnancy_check_due_on',
         'breeding_type',
         'animal_type',
         'heat_detection_method',
@@ -38,6 +39,7 @@ class BreedingRecord extends Model
     {
         return [
             'breeding_date' => 'date',
+            'pregnancy_check_due_on' => 'date',
             'heat_detected_date' => 'date',
             'expected_calving_date' => 'date',
         ];

@@ -34,7 +34,10 @@ class DashboardAnalyticsService
 
     private const CHART_COLORS = ['#A4D400', '#002B2B', '#4ade80', '#60a5fa', '#fb923c', '#fbbf24'];
 
-    public function __construct(private readonly FinanceReportService $financeReports) {}
+    public function __construct(
+        private readonly FinanceReportService $financeReports,
+        private readonly BreedingReminderService $breedingReminders,
+    ) {}
 
     /**
      * @param  array{period: string, farm_id: ?int, from: string, to: string}  $filters
@@ -259,6 +262,7 @@ class DashboardAnalyticsService
                 'amount' => (float) $sale->total_amount,
                 'currency' => $sale->currency,
                 'status' => $sale->statusLabel(),
+                'sale_status' => $sale->sale_status,
                 'date' => $sale->sale_date->format('M j, Y'),
                 'route' => 'sales.transactions.show',
                 'params' => [$sale],
@@ -572,6 +576,20 @@ class DashboardAnalyticsService
             $alerts->push($this->alert('info', 'Calvings approaching', "{$calvingSoon} expected in 14 days.", 'breeding.overview', 'breeding', 'Breeding'));
         }
 
+        $pregnancyChecksDue = $this->breedingReminders->dueCount($farmId);
+        if ($pregnancyChecksDue > 0) {
+            $days = $this->breedingReminders->dueAfterDays();
+            $alerts->push($this->alert(
+                'warning',
+                'Pregnancy checks due',
+                "{$pregnancyChecksDue} breeding(s) need a pregnancy check ({$days} days after breeding).",
+                'breeding.overview',
+                'breeding',
+                'Breeding',
+                'pregnancy-check-due',
+            ));
+        }
+
         $unpaidSales = $this->farmScope(SaleTransaction::query(), $farmId)
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->whereNotIn('sale_status', ['cancelled', 'draft'])
@@ -587,13 +605,21 @@ class DashboardAnalyticsService
     /**
      * @return array<string, mixed>
      */
-    private function alert(string $severity, string $title, string $message, ?string $route, string $icon, string $module): array
-    {
+    private function alert(
+        string $severity,
+        string $title,
+        string $message,
+        ?string $route,
+        string $icon,
+        string $module,
+        ?string $routeFragment = null,
+    ): array {
         return [
             'severity' => $severity,
             'title' => $title,
             'message' => $message,
             'route' => $route && Route::has($route) ? $route : null,
+            'route_fragment' => $routeFragment,
             'icon' => $icon,
             'module' => $module,
         ];

@@ -26,19 +26,25 @@
 
             <div class="auth-visual__quote-wrap">
                 <blockquote class="auth-visual__quote">
-                    @yield('hero-quote', '“Simply all the tools that my team and I need to run the farm.”')
+                    @yield('hero-quote', 'One platform for every part of your farm operation.')
                 </blockquote>
                 <cite class="auth-visual__cite">
-                    @yield('hero-cite-name', 'Orora herdsman')
-                    <span class="auth-visual__cite-role">@yield('hero-cite-role', 'Farm operations manager')</span>
+                    @yield('hero-cite-name', 'Orora Farm')
+                    <span class="auth-visual__cite-role">@yield('hero-cite-role', 'Smart farm management, simplified.')</span>
                 </cite>
             </div>
         </section>
 
         <main class="auth-main">
-            <div class="auth-main__inner">
-                @include('auth.partials.form-brand')
-                @yield('content')
+            <div class="auth-main__shell">
+                <div class="auth-main__content">
+                    @include('auth.partials.form-brand')
+                    @yield('content')
+                </div>
+
+                <footer class="auth-main__footer">
+                    @yield('footer')
+                </footer>
             </div>
         </main>
     </div>

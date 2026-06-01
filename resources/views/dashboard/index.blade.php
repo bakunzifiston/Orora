@@ -31,26 +31,26 @@
     @include('dashboard.partials.toolbar')
 
     {{-- Alert strip --}}
-    <div class="dash-ops-alert-strip" role="status">
-        <span class="dash-ops-alert-strip__item">
-            <span class="dash-ops-alert-strip__icon">⚠</span>
+    <nav class="dash-ops-alert-strip" aria-label="Alert summary">
+        <a href="#dashboard-alerts" class="dash-ops-alert-strip__item" data-alert-filter="all">
+            <span class="dash-ops-alert-strip__icon" aria-hidden="true">⚠</span>
             <strong>{{ $strip['total'] ?? 0 }}</strong> alerts
-        </span>
-        <span class="dash-ops-alert-strip__item dash-ops-alert-strip__item--critical">
-            <span class="dash-ops-alert-strip__dot"></span>
+        </a>
+        <a href="#dashboard-alerts-critical" class="dash-ops-alert-strip__item dash-ops-alert-strip__item--critical" data-alert-filter="critical">
+            <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
             <strong>{{ $strip['critical'] ?? 0 }}</strong> critical
-        </span>
-        <span class="dash-ops-alert-strip__item dash-ops-alert-strip__item--warning">
-            <span class="dash-ops-alert-strip__dot"></span>
+        </a>
+        <a href="#dashboard-alerts-warning" class="dash-ops-alert-strip__item dash-ops-alert-strip__item--warning" data-alert-filter="warning">
+            <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
             <strong>{{ $strip['warning'] ?? 0 }}</strong> warnings
-        </span>
+        </a>
         @if (($strip['info'] ?? 0) > 0)
-            <span class="dash-ops-alert-strip__item dash-ops-alert-strip__item--info">
-                <span class="dash-ops-alert-strip__dot"></span>
+            <a href="#dashboard-alerts-info" class="dash-ops-alert-strip__item dash-ops-alert-strip__item--info" data-alert-filter="info">
+                <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
                 <strong>{{ $strip['info'] }}</strong> info
-            </span>
+            </a>
         @endif
-    </div>
+    </nav>
 
     {{-- Row 1: Financial --}}
     <section class="dash-ops-row" aria-label="Financial summary">
@@ -193,7 +193,12 @@
                                     <td><a href="{{ route($sale['route'], $sale['params']) }}">{{ $sale['number'] }}</a></td>
                                     <td>{{ $sale['customer'] }}</td>
                                     <td>{{ number_format($sale['amount'], 0) }} {{ $sale['currency'] }}</td>
-                                    <td>{{ $sale['status'] }}</td>
+                                    <td>
+                                        @include('modules.sales.partials.sale-status-badge', [
+                                            'status' => $sale['sale_status'] ?? null,
+                                            'label' => $sale['status'],
+                                        ])
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -201,22 +206,36 @@
                 </div>
             @endif
         </div>
-        <div class="dash-panel">
+        <div class="dash-panel" id="dashboard-alerts" tabindex="-1">
             <div class="dash-panel-title">Pending alerts</div>
             @if (empty($alertGroups))
                 <p class="dash-empty">No pending alerts.</p>
             @else
-                <div class="dash-ops-alert-groups">
+                <p class="dash-ops-alerts-filter-empty dash-empty" hidden>No alerts match this filter.</p>
+                <div class="dash-ops-alert-groups" data-alert-list>
                     @foreach ($alertGroups as $module => $moduleAlerts)
-                        <div class="dash-ops-alert-group">
+                        <div class="dash-ops-alert-group" data-alert-group>
                             <div class="dash-ops-alert-group__title">{{ $module }}</div>
                             <ul>
                                 @foreach ($moduleAlerts as $alert)
-                                    <li class="dash-ops-alert-line dash-ops-alert-line--{{ $alert['severity'] }}">
-                                        <strong>{{ $alert['title'] }}</strong>
-                                        <span>{{ $alert['message'] }}</span>
+                                    <li data-alert-severity="{{ $alert['severity'] }}">
                                         @if ($alert['route'])
-                                            <a href="{{ route($alert['route']) }}">View</a>
+                                            @php
+                                                $alertUrl = route($alert['route']);
+                                                if (! empty($alert['route_fragment'])) {
+                                                    $alertUrl .= '#'.$alert['route_fragment'];
+                                                }
+                                            @endphp
+                                            <a href="{{ $alertUrl }}" class="dash-ops-alert-line dash-ops-alert-line--{{ $alert['severity'] }} dash-ops-alert-line--link">
+                                                <strong>{{ $alert['title'] }}</strong>
+                                                <span>{{ $alert['message'] }}</span>
+                                                <span class="dash-ops-alert-line__action">View →</span>
+                                            </a>
+                                        @else
+                                            <div class="dash-ops-alert-line dash-ops-alert-line--{{ $alert['severity'] }}">
+                                                <strong>{{ $alert['title'] }}</strong>
+                                                <span>{{ $alert['message'] }}</span>
+                                            </div>
                                         @endif
                                     </li>
                                 @endforeach
@@ -392,6 +411,60 @@
                 document.getElementById('dash-custom-dates')?.classList.toggle('dash-ops-field--muted', !custom);
                 if (!custom) document.getElementById('dash-filters-form')?.requestSubmit();
             });
+
+            const alertsPanel = document.getElementById('dashboard-alerts');
+            const stripLinks = document.querySelectorAll('[data-alert-filter]');
+            const filterEmpty = alertsPanel?.querySelector('.dash-ops-alerts-filter-empty');
+
+            function applyAlertFilter(filter) {
+                if (!alertsPanel) {
+                    return;
+                }
+
+                const severity = filter === 'all' ? null : filter;
+                let visibleCount = 0;
+
+                alertsPanel.querySelectorAll('[data-alert-severity]').forEach((item) => {
+                    const show = !severity || item.dataset.alertSeverity === severity;
+                    item.hidden = !show;
+                    if (show) {
+                        visibleCount++;
+                    }
+                });
+
+                alertsPanel.querySelectorAll('[data-alert-group]').forEach((group) => {
+                    const hasVisible = group.querySelector('[data-alert-severity]:not([hidden])');
+                    group.hidden = !hasVisible;
+                });
+
+                if (filterEmpty) {
+                    filterEmpty.hidden = visibleCount > 0;
+                }
+
+                stripLinks.forEach((link) => {
+                    link.classList.toggle('is-active', link.dataset.alertFilter === filter);
+                });
+            }
+
+            stripLinks.forEach((link) => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const filter = link.dataset.alertFilter || 'all';
+                    applyAlertFilter(filter);
+                    alertsPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const hash = filter === 'all' ? 'dashboard-alerts' : 'dashboard-alerts-' + filter;
+                    history.replaceState(null, '', '#' + hash);
+                });
+            });
+
+            const hashFilter = location.hash.match(/^#dashboard-alerts(?:-(critical|warning|info))?$/);
+            if (hashFilter) {
+                const filter = hashFilter[1] || 'all';
+                applyAlertFilter(filter);
+                if (location.hash) {
+                    alertsPanel?.scrollIntoView({ behavior: 'auto', block: 'start' });
+                }
+            }
         })();
     </script>
 @endpush

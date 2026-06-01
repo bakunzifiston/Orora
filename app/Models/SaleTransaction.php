@@ -103,6 +103,16 @@ class SaleTransaction extends Model
         return config('modules.sale_status_labels.'.$this->sale_status, ucfirst(str_replace('_', ' ', $this->sale_status)));
     }
 
+    public function statusBadgeClass(): string
+    {
+        return config('modules.sale_status_badge_classes.'.$this->sale_status, 'dash-sale-status--default');
+    }
+
+    public function paymentStatusBadgeClass(): string
+    {
+        return config('modules.sale_payment_status_badge_classes.'.$this->payment_status, 'dash-sale-payment--default');
+    }
+
     public function scopeAnimalSales(Builder $query): Builder
     {
         return $query->where('sale_type', 'animal_sale');

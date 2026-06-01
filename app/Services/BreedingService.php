@@ -15,6 +15,8 @@ use InvalidArgumentException;
 
 class BreedingService
 {
+    public function __construct(private readonly BreedingReminderService $reminders) {}
+
     public function createBreedingRecord(array $attributes): BreedingRecord
     {
         $female = Animal::query()->findOrFail($attributes['female_animal_id']);
@@ -40,16 +42,23 @@ class BreedingService
         $breedingDate = Carbon::parse($attributes['breeding_date']);
 
         return DB::transaction(function () use ($attributes, $gestationDays, $breedingDate) {
+            $pregnancyCheckDueOn = $this->reminders->pregnancyCheckDueOn($breedingDate);
+
             $record = BreedingRecord::create([
                 ...$attributes,
                 'breeding_code' => $this->generateCode('BR', 'breeding_code', BreedingRecord::class, $breedingDate),
                 'gestation_period_days' => $gestationDays,
                 'expected_calving_date' => $breedingDate->copy()->addDays($gestationDays)->toDateString(),
+                'pregnancy_check_due_on' => $pregnancyCheckDueOn->toDateString(),
                 'breeding_status' => $attributes['breeding_status'] ?? 'pending',
                 'created_by' => auth()->id(),
             ]);
 
-            $this->log($record, 'created', 'Breeding event recorded.');
+            $this->log(
+                $record,
+                'created',
+                "Breeding event recorded. Pregnancy check due on {$pregnancyCheckDueOn->format('M j, Y')} ({$this->reminders->dueAfterDays()} days)."
+            );
 
             return $record->fresh(['farm', 'femaleAnimal', 'maleAnimal']);
         });
@@ -72,6 +81,7 @@ class BreedingService
 
         $attributes['gestation_period_days'] = $gestationDays;
         $attributes['expected_calving_date'] = $breedingDate->copy()->addDays($gestationDays)->toDateString();
+        $attributes['pregnancy_check_due_on'] = $this->reminders->pregnancyCheckDueOn($breedingDate)->toDateString();
 
         $record->update($attributes);
 

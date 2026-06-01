@@ -3,20 +3,22 @@
 @section('title', 'Sign in')
 
 @section('hero-quote')
-    “Simply all the tools that my team and I need to run the farm.”
+    One platform for every part of your farm operation.
 @endsection
 
 @section('hero-cite-name')
-    Orora herdsman
+    Orora Farm
 @endsection
 
 @section('hero-cite-role')
-    Farm operations manager
+    Smart farm management, simplified.
 @endsection
 
 @section('content')
-    <h1 class="auth-form-title">Welcome back</h1>
-    <p class="auth-form-subtitle">Sign in to your farm workspace</p>
+    <header class="auth-form-header">
+        <h1 class="auth-form-title">Welcome back</h1>
+        <p class="auth-form-subtitle">Sign in to your farm workspace</p>
+    </header>
 
     @if ($errors->any())
         <div class="auth-alert" role="alert">
@@ -61,8 +63,8 @@
 
         <button type="submit" class="auth-btn-primary">Log in</button>
     </form>
+@endsection
 
-    <p class="auth-form-footer">
-        Don't have an account? <a href="{{ route('register') }}">Sign up</a>
-    </p>
+@section('footer')
+    <p>Don't have an account? <a href="{{ route('register') }}">Sign up</a></p>
 @endsection

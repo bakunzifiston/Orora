@@ -5,9 +5,13 @@
 @section('sales-content')
     @include('modules.partials.header', [
         'title' => $transaction->sale_number,
-        'subtitle' => $transaction->typeLabel().' · '.$transaction->statusLabel(),
+        'subtitle' => $transaction->typeLabel(),
         'backRoute' => 'sales.transactions',
     ])
+    <p class="dash-page-meta" style="margin: -0.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        @include('modules.sales.partials.sale-status-badge', ['sale' => $transaction])
+        @include('modules.sales.partials.payment-status-badge', ['sale' => $transaction])
+    </p>
     @include('modules.partials.flash')
 
     @if ($errors->has('sale') || $errors->has('item') || $errors->has('payment'))
@@ -61,7 +65,8 @@
                 <div><dt>Farm</dt><dd>{{ $transaction->farm?->name ?? '—' }}</dd></div>
                 <div><dt>Customer</dt><dd>@if($transaction->customer)<a href="{{ route('customers.show', $transaction->customer) }}">{{ $transaction->customer->display_name }}</a>@else—@endif</dd></div>
                 <div><dt>Date</dt><dd>{{ $transaction->sale_date->format('M j, Y') }}</dd></div>
-                <div><dt>Payment</dt><dd>{{ ucfirst($transaction->payment_status) }}</dd></div>
+                <div><dt>Payment</dt><dd>@include('modules.sales.partials.payment-status-badge', ['sale' => $transaction])</dd></div>
+                <div><dt>Status</dt><dd>@include('modules.sales.partials.sale-status-badge', ['sale' => $transaction])</dd></div>
             </dl>
         </div>
     @endif
@@ -209,6 +214,11 @@
             <form method="POST" action="{{ route('sales.transactions.cancel', $transaction) }}">
                 @csrf
                 <button type="submit" class="dash-btn-cancel" onclick="return confirm('Cancel this sale?');">Cancel sale</button>
+            </form>
+            <form method="POST" action="{{ route('sales.transactions.destroy', $transaction) }}" onsubmit="return confirm('Delete this draft sale permanently?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="dash-btn-cancel" style="color: #b91c1c;">Delete draft</button>
             </form>
         </div>
     @endif

@@ -205,7 +205,22 @@ return [
         'refunded' => 'Refunded',
     ],
 
+    'sale_status_badge_classes' => [
+        'draft' => 'dash-sale-status--draft',
+        'confirmed' => 'dash-sale-status--confirmed',
+        'completed' => 'dash-sale-status--completed',
+        'cancelled' => 'dash-sale-status--cancelled',
+        'refunded' => 'dash-sale-status--refunded',
+    ],
+
     'sale_payment_statuses' => ['unpaid', 'partial', 'paid', 'overdue'],
+
+    'sale_payment_status_badge_classes' => [
+        'unpaid' => 'dash-sale-payment--unpaid',
+        'partial' => 'dash-sale-payment--partial',
+        'paid' => 'dash-sale-payment--paid',
+        'overdue' => 'dash-sale-payment--overdue',
+    ],
 
     'sale_pricing_methods' => [
         'per_animal' => 'Per animal (head)',
@@ -366,6 +381,8 @@ return [
     ],
 
     'breeding_animal_types' => ['cattle', 'goat', 'pig', 'poultry'],
+
+    'breeding_pregnancy_check_due_days' => 35,
 
     'breeding_gestation_days' => [
         'cattle' => 283,

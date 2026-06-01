@@ -206,7 +206,7 @@
                             <td>{{ $sale->sale_date->format('M j, Y') }}</td>
                             <td>{{ $sale->farm?->name ?? '—' }}</td>
                             <td>{{ number_format($sale->total_amount, 0) }} {{ $sale->currency }}</td>
-                            <td>{{ ucfirst($sale->sale_status) }}</td>
+                            <td>@include('modules.sales.partials.sale-status-badge', ['sale' => $sale])</td>
                         </tr>
                     @endforeach
                 </tbody>

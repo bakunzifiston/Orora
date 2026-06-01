@@ -328,6 +328,50 @@
         display: inline-block; padding: 0.2rem 0.55rem; font-size: 0.75rem;
         font-weight: 600; border-radius: 9999px; background: #f3f4f6; color: #374151;
     }
+    .dash-sale-status--draft {
+        background: #fff7ed;
+        color: #c2410c;
+    }
+    .dash-sale-status--confirmed {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+    .dash-sale-status--completed {
+        background: rgba(164, 212, 0, 0.22);
+        color: #3d5a00;
+    }
+    .dash-sale-status--cancelled {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+    .dash-sale-status--refunded {
+        background: #f5f3ff;
+        color: #6d28d9;
+    }
+    .dash-sale-status--default {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    .dash-sale-payment--unpaid {
+        background: #fff7ed;
+        color: #c2410c;
+    }
+    .dash-sale-payment--partial {
+        background: #fef9c3;
+        color: #a16207;
+    }
+    .dash-sale-payment--paid {
+        background: rgba(164, 212, 0, 0.22);
+        color: #3d5a00;
+    }
+    .dash-sale-payment--overdue {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+    .dash-sale-payment--default {
+        background: #f3f4f6;
+        color: #374151;
+    }
     .dash-module-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -371,6 +415,9 @@
     }
     .dash-alert--error {
         background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+    }
+    .dash-alert--warning {
+        background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
     }
     .dash-profile-panel { max-width: 720px; }
     .dash-farm-form {
@@ -1306,6 +1353,19 @@
         align-items: center;
         gap: 0.4rem;
         color: #374151;
+        text-decoration: none;
+        padding: 0.2rem 0.45rem;
+        margin: -0.2rem -0.45rem;
+        border-radius: 0.35rem;
+        transition: background 0.15s, color 0.15s;
+    }
+    .dash-ops-alert-strip__item:hover {
+        background: #f3f4f6;
+        color: #111;
+    }
+    .dash-ops-alert-strip__item.is-active {
+        background: rgba(164, 212, 0, 0.18);
+        color: var(--orora-sidebar);
     }
     .dash-ops-alert-strip__item strong { font-weight: 700; }
     .dash-ops-alert-strip__dot {
@@ -1411,17 +1471,36 @@
         margin-bottom: 0.35rem;
     }
     .dash-ops-alert-group ul { list-style: none; margin: 0; padding: 0; }
+    .dash-ops-alert-group ul > li { border-bottom: 1px solid #f3f4f6; }
+    .dash-ops-alert-group ul > li:last-child { border-bottom: none; }
     .dash-ops-alert-line {
         font-size: 0.8125rem;
         padding: 0.5rem 0;
-        border-bottom: 1px solid #f3f4f6;
         display: grid;
         gap: 0.15rem;
     }
-    .dash-ops-alert-line:last-child { border-bottom: none; }
+    .dash-ops-alert-line--link {
+        text-decoration: none;
+        color: inherit;
+        border-radius: 0.35rem;
+        margin: 0 -0.35rem;
+        padding: 0.5rem 0.35rem;
+        transition: background 0.15s;
+    }
+    .dash-ops-alert-line--link:hover {
+        background: #f9fafb;
+    }
+    .dash-ops-alert-line--link:hover .dash-ops-alert-line__action {
+        color: var(--orora-button);
+    }
     .dash-ops-alert-line strong { color: #111; }
     .dash-ops-alert-line span { color: var(--orora-gray); font-size: 0.75rem; }
-    .dash-ops-alert-line a { font-size: 0.75rem; font-weight: 600; color: var(--orora-sidebar); }
+    .dash-ops-alert-line__action {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--orora-sidebar);
+    }
+    .dash-ops-alerts-filter-empty { margin-top: 0.5rem; }
     .dash-ops-alert-line--critical { border-left: 3px solid #dc2626; padding-left: 0.5rem; }
     .dash-ops-alert-line--warning { border-left: 3px solid #f59e0b; padding-left: 0.5rem; }
     .dash-ops-rank {

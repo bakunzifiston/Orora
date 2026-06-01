@@ -67,7 +67,13 @@
                                 <td>{{ ucfirst($customer->status) }}</td>
                                 <td>{{ number_format($customer->credit?->outstanding_balance ?? 0, 0) }} {{ $customer->currency }}</td>
                                 <td>{{ $customer->sale_transactions_count }}</td>
-                                <td><a href="{{ route('customers.edit', $customer) }}">Edit</a></td>
+                                <td>
+                                    @include('modules.partials.row-actions', [
+                                        'model' => $customer,
+                                        'editRoute' => 'customers.edit',
+                                        'destroyRoute' => 'customers.destroy',
+                                    ])
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

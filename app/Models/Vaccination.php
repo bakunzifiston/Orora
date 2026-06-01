@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Support\Facades\Storage;
+use App\Support\TenantStorageUrl;
 
 class Vaccination extends Model
 {
@@ -65,6 +65,6 @@ class Vaccination extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->attachment_path);
+        return TenantStorageUrl::forPublicDisk($this->attachment_path);
     }
 }

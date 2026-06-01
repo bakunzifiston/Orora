@@ -59,7 +59,7 @@ class ExpenseController extends Controller
         return redirect()->route('expenses.records')->with('success', 'Expense recorded successfully.');
     }
 
-    public function edit(Expense $expense): View
+    public function edit(Expense $expense): View|RedirectResponse
     {
         if ($expense->source_type) {
             return redirect()

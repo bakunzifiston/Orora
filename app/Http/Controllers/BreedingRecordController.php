@@ -9,6 +9,7 @@ use App\Models\Animal;
 use App\Models\BreedingRecord;
 use App\Models\ExpenseVendor;
 use App\Models\Farm;
+use App\Services\BreedingReminderService;
 use App\Services\BreedingService;
 use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
@@ -23,14 +24,22 @@ class BreedingRecordController extends Controller
     public function __construct(
         private readonly BreedingService $breedingService,
         private readonly ExpenseService $expenseService,
+        private readonly BreedingReminderService $breedingReminders,
     ) {}
 
     public function index(Request $request): View
     {
         $records = BreedingRecord::query()
-            ->with(['farm', 'femaleAnimal', 'maleAnimal'])
+            ->with(['farm', 'femaleAnimal', 'maleAnimal', 'pregnancyChecks'])
             ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('breeding_status', $request->string('status')))
+            ->when($request->boolean('pregnancy_check_due'), function ($q) use ($request) {
+                $farmId = $request->filled('farm_id') ? $request->integer('farm_id') : null;
+                $q->whereIn(
+                    'id',
+                    $this->breedingReminders->pregnancyCheckDueQuery($farmId)->select('breeding_records.id'),
+                );
+            })
             ->orderByDesc('breeding_date')
             ->paginate(15)
             ->withQueryString();
@@ -60,9 +69,13 @@ class BreedingRecordController extends Controller
             ExpenseService::breedingRecordContext($record->fresh()),
         );
 
+        $record = $record->fresh();
+        $dueOn = $record->pregnancy_check_due_on?->format('M j, Y')
+            ?? $this->breedingReminders->pregnancyCheckDueOn($record->breeding_date)->format('M j, Y');
+
         return redirect()
             ->route('breeding.records.edit', $record)
-            ->with('success', 'Breeding record created. Add a pregnancy check when ready.');
+            ->with('success', "Breeding recorded. You will be reminded to perform a pregnancy check on {$dueOn} ({$this->breedingReminders->dueAfterDays()} days after breeding).");
     }
 
     public function edit(BreedingRecord $breedingRecord): View
@@ -79,7 +92,11 @@ class BreedingRecordController extends Controller
 
         return view('modules.breeding.records.edit', $this->breedingSectionData('records', array_merge(
             $this->formOptions($breedingRecord),
-            ['breedingRecord' => $breedingRecord],
+            [
+                'breedingRecord' => $breedingRecord,
+                'pregnancyCheckDue' => $this->breedingReminders->isPregnancyCheckDue($breedingRecord),
+                'daysUntilPregnancyCheck' => $this->breedingReminders->daysUntilPregnancyCheck($breedingRecord),
+            ],
         )));
     }
 

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
+use App\Support\TenantStorageUrl;
 
 class Mortality extends Model
 {
@@ -51,6 +51,6 @@ class Mortality extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->attachment_path);
+        return TenantStorageUrl::forPublicDisk($this->attachment_path);
     }
 }

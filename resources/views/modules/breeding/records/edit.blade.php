@@ -10,6 +10,14 @@
     ])
     @include('modules.partials.flash')
 
+    @if ($breedingRecord->breeding_status === 'pending' && $breedingRecord->pregnancyChecks->isEmpty() && ($pregnancyCheckDue || ($daysUntilPregnancyCheck !== null && $daysUntilPregnancyCheck <= 7)))
+        @include('modules.breeding.partials.pregnancy-check-reminder', [
+            'breedingRecord' => $breedingRecord,
+            'pregnancyCheckDue' => $pregnancyCheckDue,
+            'daysUntilPregnancyCheck' => $daysUntilPregnancyCheck,
+        ])
+    @endif
+
     @if ($errors->has('breeding'))
         <div class="dash-flash dash-flash--error" style="margin-bottom: 1rem;">{{ $errors->first('breeding') }}</div>
     @endif

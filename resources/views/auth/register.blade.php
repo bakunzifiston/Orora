@@ -15,8 +15,10 @@
 @endsection
 
 @section('content')
-    <h1 class="auth-form-title">Create account</h1>
-    <p class="auth-form-subtitle">Set up your private farm workspace</p>
+    <header class="auth-form-header">
+        <h1 class="auth-form-title">Create account</h1>
+        <p class="auth-form-subtitle">Set up your private farm workspace</p>
+    </header>
 
     @if ($errors->any())
         <div class="auth-alert" role="alert">
@@ -77,8 +79,8 @@
 
         <button type="submit" class="auth-btn-primary">Create account</button>
     </form>
+@endsection
 
-    <p class="auth-form-footer">
-        Already have an account? <a href="{{ route('login') }}">Log in</a>
-    </p>
+@section('footer')
+    <p>Already have an account? <a href="{{ route('login') }}">Log in</a></p>
 @endsection

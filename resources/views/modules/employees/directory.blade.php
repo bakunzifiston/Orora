@@ -84,7 +84,13 @@
                                         —
                                     @endif
                                 </td>
-                                <td><a href="{{ route('employees.edit', $employee) }}">Edit</a></td>
+                                <td>
+                                    @include('modules.partials.row-actions', [
+                                        'model' => $employee,
+                                        'editRoute' => 'employees.edit',
+                                        'destroyRoute' => 'employees.destroy',
+                                    ])
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
