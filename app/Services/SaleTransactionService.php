@@ -268,7 +268,26 @@ class SaleTransactionService
         }
 
         if ($itemType === 'animal' && ! empty($attributes['animal_id'])) {
-            $animal = Animal::query()->findOrFail($attributes['animal_id']);
+            $animalId = (int) $attributes['animal_id'];
+
+            if ($transaction->items()->where('animal_id', $animalId)->exists()) {
+                throw new InvalidArgumentException('This animal is already on this sale.');
+            }
+
+            $onAnotherDraft = SaleItem::query()
+                ->where('animal_id', $animalId)
+                ->where('item_type', 'animal')
+                ->where('sale_transaction_id', '!=', $transaction->id)
+                ->whereHas('transaction', fn ($q) => $q
+                    ->where('sale_type', 'animal_sale')
+                    ->where('sale_status', 'draft'))
+                ->exists();
+
+            if ($onAnotherDraft) {
+                throw new InvalidArgumentException('This animal is already on another in-progress animal sale.');
+            }
+
+            $animal = Animal::query()->findOrFail($animalId);
             $this->assertAnimalSellable($animal);
 
             if ((int) $animal->farm_id !== (int) $transaction->farm_id) {
@@ -287,7 +306,15 @@ class SaleTransactionService
 
         if ($pricing === 'per_kg') {
             $weight = (float) ($attributes['live_weight_kg'] ?? $attributes['carcass_weight_kg'] ?? 0);
-            $pricePerKg = (float) ($attributes['price_per_kg'] ?? 0);
+            $pricePerKg = (float) ($attributes['price_per_kg'] ?? $attributes['unit_price'] ?? 0);
+
+            if ($weight <= 0) {
+                throw new InvalidArgumentException('Live weight is required for per-kg pricing.');
+            }
+
+            if ($pricePerKg <= 0) {
+                throw new InvalidArgumentException('Price per kg is required for per-kg pricing.');
+            }
 
             return round($weight * $pricePerKg, 2);
         }

@@ -13,10 +13,15 @@ class SaleItemRequest extends FormRequest
 
     public function rules(): array
     {
+        $itemType = $this->input('item_type');
+
         return [
             'customer_id' => ['nullable', 'exists:customers,id'],
             'item_type' => ['required', 'in:animal,meat_cut,milk'],
-            'animal_id' => ['nullable', 'exists:animals,id'],
+            'animal_id' => [
+                $itemType === 'animal' ? 'required' : 'nullable',
+                'exists:animals,id',
+            ],
             'livestock_id' => ['nullable', 'exists:livestock,id'],
             'abattoir_return_id' => ['nullable', 'exists:abattoir_returns,id'],
             'milk_storage_id' => ['nullable', 'exists:milk_storage,id'],

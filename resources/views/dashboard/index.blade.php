@@ -2,120 +2,396 @@
 
 @section('title', 'Dashboard')
 
-@section('content')
-    <h1 class="dash-welcome">Welcome, {{ auth()->user()->name }}</h1>
+@php
+    $f = $dashboard['filters'] ?? [];
+    $strip = $dashboard['alertStrip'] ?? [];
+    $fin = $dashboard['financial'] ?? [];
+    $live = $dashboard['livestock'] ?? [];
+    $charts = $dashboard['charts'] ?? [];
+    $strips = $dashboard['moduleStrips'] ?? [];
+    $sales = $dashboard['recentSales'] ?? [];
+    $alertGroups = $dashboard['pendingAlerts'] ?? [];
+    $topAnimals = $dashboard['topAnimals'] ?? [];
+    $topCustomers = $dashboard['topCustomers'] ?? [];
+    $activity = $dashboard['activity'] ?? [];
 
-    <div class="dash-stats">
-        @foreach ($stats as $stat)
-            <div class="dash-stat-card">
-                <div>
-                    <div class="dash-stat-label">{{ $stat['label'] }}</div>
-                    <div class="dash-stat-value @if (! empty($stat['highlight'])) accent @elseif (! empty($stat['alert'])) alert @endif">
-                        {{ $stat['value'] }}
-                        @if (! empty($stat['suffix']))
-                            <span style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">{{ $stat['suffix'] }}</span>
-                        @endif
-                    </div>
-                </div>
-                @include('modules.partials.stat-icon', ['icon' => $stat['icon'] ?? 'grid'])
-            </div>
-        @endforeach
+    $money = function (float $amount): string {
+        if ($amount >= 1_000_000) {
+            return number_format($amount / 1_000_000, 1).'M';
+        }
+        if ($amount >= 1_000) {
+            return number_format($amount / 1_000, 0).'K';
+        }
+
+        return number_format($amount, 0);
+    };
+@endphp
+
+@section('content')
+    @include('dashboard.partials.toolbar')
+
+    {{-- Alert strip --}}
+    <div class="dash-ops-alert-strip" role="status">
+        <span class="dash-ops-alert-strip__item">
+            <span class="dash-ops-alert-strip__icon">⚠</span>
+            <strong>{{ $strip['total'] ?? 0 }}</strong> alerts
+        </span>
+        <span class="dash-ops-alert-strip__item dash-ops-alert-strip__item--critical">
+            <span class="dash-ops-alert-strip__dot"></span>
+            <strong>{{ $strip['critical'] ?? 0 }}</strong> critical
+        </span>
+        <span class="dash-ops-alert-strip__item dash-ops-alert-strip__item--warning">
+            <span class="dash-ops-alert-strip__dot"></span>
+            <strong>{{ $strip['warning'] ?? 0 }}</strong> warnings
+        </span>
+        @if (($strip['info'] ?? 0) > 0)
+            <span class="dash-ops-alert-strip__item dash-ops-alert-strip__item--info">
+                <span class="dash-ops-alert-strip__dot"></span>
+                <strong>{{ $strip['info'] }}</strong> info
+            </span>
+        @endif
     </div>
 
-    <div class="dash-grid">
-        <div>
-            <div class="dash-panel" style="margin-bottom: 1.25rem;">
-                <div class="dash-panel-title">Overview Map</div>
-                <div class="dash-map" aria-hidden="true">
-                    <span class="dash-map-pin" style="top: 35%; left: 48%;"></span>
-                    <span class="dash-map-pin" style="top: 52%; left: 55%;"></span>
-                    <span class="dash-map-pin" style="top: 42%; left: 42%;"></span>
-                    <span class="dash-map-pin" style="top: 60%; left: 50%;"></span>
+    {{-- Row 1: Financial --}}
+    <section class="dash-ops-row" aria-label="Financial summary">
+        <div class="dash-stats dash-ops-stats-4">
+            <a href="{{ route('finance.overview', request()->only(['farm_id', 'from', 'to', 'period'])) }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">Revenue</div>
+                    <div class="dash-stat-value accent">{{ $money($fin['revenue'] ?? 0) }} <span class="dash-home-stat__suffix">RWF</span></div>
                 </div>
-            </div>
+                @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Revenue'])
+            </a>
+            <a href="{{ route('expenses.overview') }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">Expenses</div>
+                    <div class="dash-stat-value">{{ $money($fin['expenses'] ?? 0) }} <span class="dash-home-stat__suffix">RWF</span></div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'expense', 'label' => 'Expenses'])
+            </a>
+            <a href="{{ route('finance.reports.profit_loss', request()->only(['farm_id', 'from', 'to'])) }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">Net profit</div>
+                    <div class="dash-stat-value @if(($fin['net_profit'] ?? 0) < 0) alert @else accent @endif">{{ $money($fin['net_profit'] ?? 0) }} <span class="dash-home-stat__suffix">RWF</span></div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'finance', 'label' => 'Net profit'])
+            </a>
+            <a href="{{ route('customers.overview') }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">A/R</div>
+                    <div class="dash-stat-value">{{ $money($fin['accounts_receivable'] ?? 0) }} <span class="dash-home-stat__suffix">RWF</span></div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'customer', 'label' => 'Accounts receivable'])
+            </a>
+        </div>
+    </section>
 
-            <div class="dash-grid-2">
-                <div class="dash-panel">
-                    <div class="dash-panel-title">Traceability</div>
-                    <div class="dash-module-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <strong style="font-size: 0.875rem;">BP-4692</strong>
-                            <span class="dash-badge-green">In transit</span>
-                        </div>
-                        <p style="font-size: 0.75rem; color: #808080; margin-bottom: 0.75rem;">Origin → Transit → Delivery</p>
-                        <div style="height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden;">
-                            <div style="width: 65%; height: 100%; background: #A4D400; border-radius: 9999px;"></div>
-                        </div>
+    {{-- Row 2: Livestock --}}
+    <section class="dash-ops-row" aria-label="Livestock summary">
+        <div class="dash-stats dash-ops-stats-4">
+            <a href="{{ route('animals.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : []) }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">Total animals</div>
+                    <div class="dash-stat-value">{{ number_format($live['total_animals'] ?? 0) }}</div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Total animals'])
+            </a>
+            <a href="{{ route('farms.index') }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">Active farms</div>
+                    <div class="dash-stat-value">{{ number_format($live['active_farms'] ?? 0) }}</div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'farm', 'label' => 'Active farms'])
+            </a>
+            <a href="{{ route('milk.overview') }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">Lactating animals</div>
+                    <div class="dash-stat-value accent">{{ number_format($live['lactating'] ?? 0) }}</div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Lactating animals'])
+            </a>
+            <a href="{{ route('sales.overview') }}" class="dash-stat-card dash-ops-kpi">
+                <div>
+                    <div class="dash-stat-label">For sale</div>
+                    <div class="dash-stat-value">{{ number_format($live['for_sale'] ?? 0) }}</div>
+                </div>
+                @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'For sale'])
+            </a>
+        </div>
+    </section>
+
+    {{-- Row 3: Wide charts --}}
+    <section class="dash-ops-row dash-ops-charts-2" aria-label="Trend charts">
+        <div class="dash-panel">
+            <div class="dash-panel-title">Revenue vs expenses</div>
+            <div class="dash-home-chart-wrap"><canvas id="chart-revenue-expenses"></canvas></div>
+        </div>
+        <div class="dash-panel">
+            <div class="dash-panel-title">Milk production trend</div>
+            <div class="dash-home-chart-wrap"><canvas id="chart-milk-trend"></canvas></div>
+        </div>
+    </section>
+
+    {{-- Row 4: Medium charts --}}
+    <section class="dash-ops-row dash-ops-charts-3" aria-label="Breakdown charts">
+        <div class="dash-panel">
+            <div class="dash-panel-title">Sales by type</div>
+            <div class="dash-ops-chart-sm"><canvas id="chart-sales-type"></canvas></div>
+        </div>
+        <div class="dash-panel">
+            <div class="dash-panel-title">Expense breakdown</div>
+            <div class="dash-ops-chart-sm"><canvas id="chart-expenses"></canvas></div>
+        </div>
+        <div class="dash-panel">
+            <div class="dash-panel-title">Animal health status</div>
+            <div class="dash-ops-chart-sm"><canvas id="chart-health"></canvas></div>
+        </div>
+    </section>
+
+    {{-- Row 5: Module KPI strips --}}
+    <section class="dash-ops-row" aria-label="Module highlights">
+        <div class="dash-ops-strips">
+            @foreach ($strips as $strip)
+                <a href="{{ route($strip['route']) }}" class="dash-ops-strip">
+                    <div class="dash-ops-strip__head">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => $strip['icon']])
+                        <span>{{ $strip['label'] }}</span>
                     </div>
-                    @foreach ($modules as $module)
-                        <div class="dash-module-card">
-                            <strong style="font-size: 0.875rem;">{{ $module['title'] }}</strong>
-                            <p style="font-size: 0.75rem; color: #808080; margin-top: 0.25rem;">{{ $module['description'] }}</p>
-                            <span class="dash-badge-orange" style="margin-top: 0.5rem; display: inline-block;">Coming soon</span>
+                    <div class="dash-ops-strip__metrics">
+                        @foreach ($strip['metrics'] as $metric)
+                            <div>
+                                <span class="dash-ops-strip__label">{{ $metric['label'] }}</span>
+                                <span class="dash-ops-strip__value">{{ $metric['value'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </a>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- Row 6: Tables --}}
+    <section class="dash-ops-row dash-ops-charts-2" aria-label="Sales and alerts">
+        <div class="dash-panel">
+            <div class="dash-panel-title">Recent sales</div>
+            @if (empty($sales))
+                <p class="dash-empty">No sales in this period.</p>
+            @else
+                <div class="dash-table-wrap">
+                    <table class="dash-table dash-table--compact">
+                        <thead>
+                            <tr>
+                                <th>Sale #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($sales as $sale)
+                                <tr>
+                                    <td><a href="{{ route($sale['route'], $sale['params']) }}">{{ $sale['number'] }}</a></td>
+                                    <td>{{ $sale['customer'] }}</td>
+                                    <td>{{ number_format($sale['amount'], 0) }} {{ $sale['currency'] }}</td>
+                                    <td>{{ $sale['status'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+        <div class="dash-panel">
+            <div class="dash-panel-title">Pending alerts</div>
+            @if (empty($alertGroups))
+                <p class="dash-empty">No pending alerts.</p>
+            @else
+                <div class="dash-ops-alert-groups">
+                    @foreach ($alertGroups as $module => $moduleAlerts)
+                        <div class="dash-ops-alert-group">
+                            <div class="dash-ops-alert-group__title">{{ $module }}</div>
+                            <ul>
+                                @foreach ($moduleAlerts as $alert)
+                                    <li class="dash-ops-alert-line dash-ops-alert-line--{{ $alert['severity'] }}">
+                                        <strong>{{ $alert['title'] }}</strong>
+                                        <span>{{ $alert['message'] }}</span>
+                                        @if ($alert['route'])
+                                            <a href="{{ route($alert['route']) }}">View</a>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endforeach
                 </div>
-
-                <div class="dash-panel">
-                    <div class="dash-panel-title">Inventory Overview</div>
-                    <div class="dash-module-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="font-size: 0.8125rem;">Beef Tenderloin</strong>
-                                <p style="font-size: 0.75rem; color: #808080;">1,240 kg · -2°C</p>
-                            </div>
-                            <span class="dash-badge-green">In Compliance</span>
-                        </div>
-                    </div>
-                    <div class="dash-module-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="font-size: 0.8125rem;">Goat Ribs</strong>
-                                <p style="font-size: 0.75rem; color: #808080;">680 kg · +4°C</p>
-                            </div>
-                            <span class="dash-badge-orange">Near Threshold</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
+    </section>
 
-        <div>
-            <div class="dash-panel" style="margin-bottom: 1.25rem;">
-                <div class="dash-panel-title">Shipment Status</div>
-                <div class="dash-donut">
-                    <div class="dash-donut-chart" aria-hidden="true"></div>
-                    <div class="dash-legend">
-                        <span><i style="background: #A4D400;"></i> Delivered</span>
-                        <span><i style="background: #e5e7eb;"></i> Processing</span>
-                        <span><i style="background: #9ca3af;"></i> Delayed</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dash-panel" style="margin-bottom: 1.25rem;">
-                <div class="dash-panel-title">Compliance Score</div>
-                <div class="dash-gauge" aria-hidden="true"></div>
-                <p style="text-align: center; font-weight: 700; font-size: 1.125rem; color: #A4D400;">A+</p>
-            </div>
-
-            <div class="dash-panel">
-                <div class="dash-panel-title">Alerts</div>
-                <div class="dash-alert-item">
-                    <span style="color: #16a34a; font-weight: 600;">+6.5°C</span>
-                    <div>
-                        <strong>Temperature Alert</strong>
-                        <p style="color: #808080; font-size: 0.75rem;">Cold chain within range</p>
-                    </div>
-                </div>
-                <div class="dash-alert-item">
-                    <span style="color: #dc2626; font-weight: 600;">+4.3°C</span>
-                    <div>
-                        <strong>Labeling Issue</strong>
-                        <p style="color: #808080; font-size: 0.75rem;">Review required — Zone B</p>
-                    </div>
-                </div>
-            </div>
+    {{-- Row 7: Bottom widgets --}}
+    <section class="dash-ops-row dash-ops-charts-3" aria-label="Rankings and activity">
+        <div class="dash-panel">
+            <div class="dash-panel-title">Top animals (milk yield)</div>
+            @if (empty($topAnimals))
+                <p class="dash-empty">No milk records in this period.</p>
+            @else
+                <ol class="dash-ops-rank">
+                    @foreach ($topAnimals as $i => $animal)
+                        <li>
+                            <span class="dash-ops-rank__n">{{ $i + 1 }}</span>
+                            <span class="dash-ops-rank__label">{{ $animal['label'] }}</span>
+                            <span class="dash-ops-rank__value">{{ $animal['display'] }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
         </div>
-    </div>
+        <div class="dash-panel">
+            <div class="dash-panel-title">Top customers</div>
+            @if (empty($topCustomers))
+                <p class="dash-empty">No customer sales in this period.</p>
+            @else
+                <ol class="dash-ops-rank">
+                    @foreach ($topCustomers as $i => $customer)
+                        <li>
+                            <span class="dash-ops-rank__n">{{ $i + 1 }}</span>
+                            @if ($customer['route'])
+                                <a href="{{ route($customer['route'], $customer['params']) }}" class="dash-ops-rank__label">{{ $customer['label'] }}</a>
+                            @else
+                                <span class="dash-ops-rank__label">{{ $customer['label'] }}</span>
+                            @endif
+                            <span class="dash-ops-rank__value">{{ $customer['display'] }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+        </div>
+        <div class="dash-panel">
+            <div class="dash-panel-title">Activity feed</div>
+            @if (empty($activity))
+                <p class="dash-empty">No recent events.</p>
+            @else
+                <ul class="dash-home-activity">
+                    @foreach ($activity as $item)
+                        <li class="dash-home-activity__item">
+                            <div class="dash-home-activity__icon">
+                                @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
+                            </div>
+                            <div class="dash-home-activity__body">
+                                @if (! empty($item['route']) && Route::has($item['route']))
+                                    <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="dash-home-activity__title">{{ $item['title'] }}</a>
+                                @else
+                                    <span class="dash-home-activity__title">{{ $item['title'] }}</span>
+                                @endif
+                                <span class="dash-home-activity__meta">{{ $item['module'] }} · {{ $item['meta'] }}</span>
+                                <time class="dash-home-activity__time" datetime="{{ $item['at']->toIso8601String() }}">{{ $item['at']->diffForHumans() }}</time>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    </section>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            const charts = @json($charts);
+            const brand = { lime: '#A4D400', teal: '#002B2B', gray: '#9ca3af' };
+            const base = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } },
+            };
+            const yFmt = {
+                ticks: {
+                    font: { size: 10 },
+                    callback: (v) => v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(0) + 'k' : v,
+                },
+            };
+
+            const rev = charts.revenueExpenses || {};
+            if (rev.labels?.length) {
+                new Chart(document.getElementById('chart-revenue-expenses'), {
+                    type: 'bar',
+                    data: {
+                        labels: rev.labels,
+                        datasets: [
+                            { label: 'Revenue', data: rev.revenue, backgroundColor: brand.lime, borderRadius: 6, maxBarThickness: 40 },
+                            { label: 'Expenses', data: rev.expenses, backgroundColor: brand.teal, borderRadius: 6, maxBarThickness: 40 },
+                        ],
+                    },
+                    options: { ...base, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ...yFmt } } },
+                });
+            }
+
+            const milk = charts.milkTrend || {};
+            if (milk.labels?.length && milk.datasets?.length) {
+                new Chart(document.getElementById('chart-milk-trend'), {
+                    type: 'line',
+                    data: {
+                        labels: milk.labels,
+                        datasets: milk.datasets.map((ds) => ({
+                            label: ds.label,
+                            data: ds.data,
+                            borderColor: ds.color,
+                            backgroundColor: ds.color + '22',
+                            tension: 0.35,
+                            fill: false,
+                        })),
+                    },
+                    options: { ...base, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } },
+                });
+            }
+
+            const sales = charts.salesByType || {};
+            if (sales.labels?.length) {
+                new Chart(document.getElementById('chart-sales-type'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: sales.labels,
+                        datasets: [{ data: sales.values, backgroundColor: [brand.lime, brand.teal, '#4ade80', '#60a5fa', '#fb923c'] }],
+                    },
+                    options: { ...base, cutout: '58%' },
+                });
+            }
+
+            const exp = charts.expenseBreakdown || {};
+            if (exp.labels?.length) {
+                new Chart(document.getElementById('chart-expenses'), {
+                    type: 'bar',
+                    data: {
+                        labels: exp.labels,
+                        datasets: [{ label: 'Paid', data: exp.values, backgroundColor: brand.teal, borderRadius: 6 }],
+                    },
+                    options: {
+                        ...base,
+                        indexAxis: 'y',
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true, ...yFmt }, y: { grid: { display: false } } },
+                    },
+                });
+            }
+
+            const health = charts.animalHealth || {};
+            if (health.labels?.length) {
+                new Chart(document.getElementById('chart-health'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: health.labels,
+                        datasets: [{ data: health.values, backgroundColor: health.colors }],
+                    },
+                    options: { ...base, cutout: '55%' },
+                });
+            }
+
+            document.getElementById('filter_period')?.addEventListener('change', function () {
+                const custom = this.value === 'custom';
+                document.getElementById('dash-custom-dates')?.classList.toggle('dash-ops-field--muted', !custom);
+                if (!custom) document.getElementById('dash-filters-form')?.requestSubmit();
+            });
+        })();
+    </script>
+@endpush

@@ -11,6 +11,7 @@ use App\Models\Animal;
 use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\MilkStorage;
+use App\Models\SaleItem;
 use App\Models\SaleTransaction;
 use App\Services\CustomerService;
 use App\Services\SaleTransactionService;
@@ -175,6 +176,8 @@ class SaleTransactionController extends Controller
 
     private function formOptions(?int $farmId = null, ?SaleTransaction $transaction = null): array
     {
+        $excludeAnimalIds = $this->unavailableAnimalIds($farmId, $transaction);
+
         return [
             'farms' => Farm::query()->orderBy('name')->get(),
             'customers' => Customer::query()
@@ -184,6 +187,7 @@ class SaleTransactionController extends Controller
             'animals' => Animal::query()
                 ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->where('lifecycle_status', 'Active')
+                ->when($excludeAnimalIds !== [], fn ($q) => $q->whereNotIn('id', $excludeAnimalIds))
                 ->orderBy('tag_number')
                 ->get(),
             'storageTanks' => MilkStorage::query()
@@ -192,6 +196,36 @@ class SaleTransactionController extends Controller
                 ->get(),
             'transaction' => $transaction,
         ];
+    }
+
+    /**
+     * Animals already on this draft sale or reserved on another draft animal sale.
+     *
+     * @return list<int>
+     */
+    private function unavailableAnimalIds(?int $farmId, ?SaleTransaction $transaction): array
+    {
+        $ids = [];
+
+        if ($transaction) {
+            $ids = array_merge(
+                $ids,
+                $transaction->items()->whereNotNull('animal_id')->pluck('animal_id')->all(),
+            );
+        }
+
+        $otherDraft = SaleItem::query()
+            ->where('item_type', 'animal')
+            ->whereNotNull('animal_id')
+            ->when($transaction, fn ($q) => $q->where('sale_transaction_id', '!=', $transaction->id))
+            ->whereHas('transaction', fn ($q) => $q
+                ->where('sale_type', 'animal_sale')
+                ->where('sale_status', 'draft')
+                ->when($farmId, fn ($q2) => $q2->where('farm_id', $farmId)))
+            ->pluck('animal_id')
+            ->all();
+
+        return array_values(array_unique(array_map('intval', array_merge($ids, $otherDraft))));
     }
 
     private function resolveCustomerId(SaleTransactionRequest $request, ?SaleTransaction $transaction = null): ?int

@@ -109,12 +109,20 @@
                 <input type="hidden" name="item_type" value="{{ match($transaction->sale_type) { 'animal_sale' => 'animal', 'meat_sale' => 'meat_cut', default => 'milk' } }}">
 
                 @if ($transaction->sale_type === 'animal_sale')
+                    @if ($animals->isEmpty())
+                        <p class="dash-empty" style="margin-bottom: 1rem;">No active animals available for this farm (or all are already on a sale).</p>
+                    @endif
                     <div class="dash-form-field">
                         <label for="animal_id">Animal <span class="dash-required">*</span></label>
-                        <select name="animal_id" id="animal_id" required>
+                        <select name="animal_id" id="animal_id" required @disabled($animals->isEmpty())>
                             <option value="">Select animal</option>
                             @foreach ($animals as $animal)
-                                <option value="{{ $animal->id }}">{{ $animal->tag_number }} ({{ $animal->weight_kg ?? '?' }} kg)</option>
+                                <option
+                                    value="{{ $animal->id }}"
+                                    data-tag="{{ $animal->tag_number }}"
+                                    data-name="{{ $animal->name }}"
+                                    data-weight="{{ $animal->weight_kg }}"
+                                >{{ $animal->tag_number }}@if($animal->name) — {{ $animal->name }}@endif ({{ $animal->weight_kg ?? '?' }} kg)</option>
                             @endforeach
                         </select>
                     </div>
@@ -122,6 +130,11 @@
                         <label for="description">Description <span class="dash-required">*</span></label>
                         <input type="text" name="description" id="description" placeholder="e.g. Heifer sale" required>
                     </div>
+                    @if ($transaction->pricing_method === 'per_kg')
+                        <div class="dash-form-field dash-form-field--full">
+                            <p style="font-size: 0.8125rem; color: #808080; margin: 0;">Pricing is <strong>per kg</strong> — enter live weight and price per kg.</p>
+                        </div>
+                    @endif
                     <div class="dash-form-field">
                         <label for="live_weight_kg">Live weight (kg)</label>
                         <input type="number" step="0.01" min="0" name="live_weight_kg" id="live_weight_kg">
@@ -284,3 +297,26 @@
         </div>
     @endif
 @endsection
+
+@if ($transaction->sale_status === 'draft' && $transaction->sale_type === 'animal_sale')
+    @push('scripts')
+        <script>
+            (function () {
+                const select = document.getElementById('animal_id');
+                const desc = document.getElementById('description');
+                const weight = document.getElementById('live_weight_kg');
+                if (!select || !desc) return;
+                select.addEventListener('change', function () {
+                    const opt = select.selectedOptions[0];
+                    if (!opt?.value) return;
+                    const tag = opt.dataset.tag || '';
+                    const name = opt.dataset.name || '';
+                    desc.value = name ? `Sale of ${tag} (${name})` : `Sale of ${tag}`;
+                    if (weight && opt.dataset.weight && !weight.value) {
+                        weight.value = opt.dataset.weight;
+                    }
+                });
+            })();
+        </script>
+    @endpush
+@endif
