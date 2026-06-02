@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Tenant;
+use App\Services\TenantAccountService;
 use Closure;
 use Illuminate\Http\Request;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -17,15 +17,7 @@ class InitializeTenancyForAssets
         }
 
         if ($this->isCentralDomain($request)) {
-            $tenantId = $request->hasSession()
-                ? $request->session()->get('tenant_id')
-                : null;
-
-            if ($tenantId && $tenant = Tenant::find($tenantId)) {
-                tenancy()->initialize($tenant);
-
-                return $next($request);
-            }
+            app(TenantAccountService::class)->initializeFromRequest($request);
         }
 
         return app(InitializeTenancyByDomain::class)->handle($request, $next);

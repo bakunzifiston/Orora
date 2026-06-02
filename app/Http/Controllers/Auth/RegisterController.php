@@ -8,6 +8,7 @@ use App\Services\TenantAccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class RegisterController extends Controller
@@ -36,6 +37,8 @@ class RegisterController extends Controller
         Auth::login($user);
 
         $request->session()->put('tenant_id', $provisioned['tenant']->id);
+        $request->session()->put('auth_email', Str::lower($validated['email']));
+        $this->tenantAccounts->rememberTenantCookies($provisioned['tenant']->id, $validated['email']);
 
         return redirect()->route('dashboard');
     }

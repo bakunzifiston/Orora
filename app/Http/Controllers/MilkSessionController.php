@@ -120,6 +120,16 @@ class MilkSessionController extends Controller
     private function formOptions(?MilkSession $session = null): array
     {
         $farmId = $session?->farm_id ?? old('farm_id');
+        $livestockByFarm = Livestock::query()
+            ->select(['id', 'farm_id', 'name'])
+            ->orderBy('name')
+            ->get()
+            ->groupBy('farm_id')
+            ->map(fn ($groups) => $groups->map(fn (Livestock $group) => [
+                'id' => $group->id,
+                'name' => $group->name,
+            ])->values())
+            ->toArray();
 
         return [
             'farms' => Farm::query()->orderBy('name')->get(),
@@ -127,6 +137,7 @@ class MilkSessionController extends Controller
                 ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->orderBy('name')
                 ->get(),
+            'livestockByFarm' => $livestockByFarm,
             'storageTanks' => MilkStorage::query()
                 ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->orderBy('container_name')
@@ -147,6 +158,21 @@ class MilkSessionController extends Controller
                     ->milkingEligible()
                     ->count()
                 : 0,
+            'eligibleAnimalsByLivestock' => $session
+                ? Animal::query()
+                    ->where('farm_id', $session->farm_id)
+                    ->milkingEligible()
+                    ->whereNotIn('id', $session->records()->pluck('animal_id'))
+                    ->orderBy('tag_number')
+                    ->get(['id', 'livestock_id', 'tag_number', 'name'])
+                    ->groupBy('livestock_id')
+                    ->map(fn ($animals) => $animals->map(fn (Animal $animal) => [
+                        'id' => $animal->id,
+                        'tag_number' => $animal->tag_number,
+                        'name' => $animal->name,
+                    ])->values())
+                    ->toArray()
+                : [],
         ];
     }
 }

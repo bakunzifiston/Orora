@@ -36,6 +36,8 @@ class SaleTransactionController extends Controller
             ->when($request->filled('type'), fn ($q) => $q->where('sale_type', $request->input('type')))
             ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('sale_status', $request->input('status')))
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('sale_date', '>=', $request->input('from')))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('sale_date', '<=', $request->input('to')))
             ->orderByDesc('sale_date')
             ->paginate(15)
             ->withQueryString();
@@ -46,6 +48,8 @@ class SaleTransactionController extends Controller
             'filterType' => $request->input('type'),
             'filterFarmId' => $request->input('farm_id'),
             'filterStatus' => $request->input('status'),
+            'filterFrom' => $request->input('from'),
+            'filterTo' => $request->input('to'),
         ]));
     }
 

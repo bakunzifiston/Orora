@@ -8,6 +8,7 @@ use App\Models\MilkRecord;
 use App\Models\MilkSession;
 use App\Models\MilkStorage;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -26,15 +27,23 @@ class MilkSessionService
 
         $date = Carbon::parse($attributes['session_date']);
 
-        return MilkSession::create([
-            ...$attributes,
-            'session_code' => $this->generateSessionCode($date),
-            'status' => 'open',
-            'total_yield_liters' => 0,
-            'number_of_animals_milked' => 0,
-            'average_yield_per_animal' => 0,
-            'created_by' => auth()->id(),
-        ]);
+        try {
+            return MilkSession::create([
+                ...$attributes,
+                'session_code' => $this->generateSessionCode($date),
+                'status' => 'open',
+                'total_yield_liters' => 0,
+                'number_of_animals_milked' => 0,
+                'average_yield_per_animal' => 0,
+                'created_by' => auth()->id(),
+            ]);
+        } catch (QueryException $e) {
+            if ((int) $e->getCode() === 23000) {
+                throw new InvalidArgumentException('A milk session already exists for this herd, date, and shift.');
+            }
+
+            throw $e;
+        }
     }
 
     public function update(MilkSession $session, array $attributes): MilkSession

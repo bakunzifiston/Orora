@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\TenantAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class LoginController extends Controller
 {
+    public function __construct(private readonly TenantAccountService $tenantAccounts) {}
+
     public function create(): View|RedirectResponse
     {
         if (auth()->check()) {
@@ -26,9 +30,15 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         if (tenancy()->initialized) {
-            $request->session()->put('tenant_id', tenant('id'));
+            $email = Str::lower($request->input('email'));
+            $tenantId = tenant('id');
+
+            $request->session()->put('tenant_id', $tenantId);
+            $request->session()->put('auth_email', $email);
+            $this->tenantAccounts->rememberTenantCookies($tenantId, $email);
         } else {
-            $request->session()->forget('tenant_id');
+            $request->session()->forget(['tenant_id', 'auth_email']);
+            $this->tenantAccounts->forgetTenantCookies();
         }
 
         return redirect()->intended(route('dashboard'));
@@ -40,6 +50,7 @@ class LoginController extends Controller
 
         request()->session()->invalidate();
         request()->session()->regenerateToken();
+        $this->tenantAccounts->forgetTenantCookies();
 
         return redirect()->route('login');
     }

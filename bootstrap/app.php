@@ -16,16 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             InitializeDefaultTenant::class,
         ]);
 
-        $middleware->priority([
-            \Illuminate\Cookie\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        $middleware->appendToPriorityList(
             \Illuminate\Session\Middleware\StartSession::class,
             InitializeDefaultTenant::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \Illuminate\Auth\Middleware\Authenticate::class,
-        ]);
+        );
 
         $middleware->redirectGuestsTo('/');
         $middleware->redirectUsersTo('/dashboard');

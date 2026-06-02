@@ -188,7 +188,7 @@
                     <div class="dash-form-grid">
                         <div class="dash-form-field">
                             <label for="animal_id">Animal <span class="dash-required">*</span></label>
-                            <select name="animal_id" id="animal_id" required>
+                            <select name="animal_id" id="animal_id" required data-selected="{{ old('animal_id') }}">
                                 <option value="">Select animal</option>
                                 @foreach ($sessionAnimals as $animal)
                                     <option value="{{ $animal->id }}" @selected(old('animal_id') == $animal->id)>
@@ -252,5 +252,49 @@
                 <button type="submit" class="dash-btn-cancel">Cancel session</button>
             </form>
         </div>
+    @endif
+
+    @if ($milkSession->isOpen())
+        <script>
+            (() => {
+                const herdSelect = document.getElementById('livestock_id');
+                const animalSelect = document.getElementById('animal_id');
+
+                if (!herdSelect || !animalSelect) {
+                    return;
+                }
+
+                const animalsByLivestock = @json($eligibleAnimalsByLivestock ?? []);
+                let preferredAnimal = String(animalSelect.dataset.selected || '');
+
+                const refreshAnimals = () => {
+                    const livestockId = String(herdSelect.value || '');
+                    const animals = livestockId ? (animalsByLivestock[livestockId] || []) : [];
+
+                    animalSelect.innerHTML = '';
+                    animalSelect.append(new Option('Select animal', ''));
+
+                    for (const animal of animals) {
+                        const label = `${animal.tag_number} — ${animal.name || 'Unnamed'}`;
+                        animalSelect.append(new Option(label, String(animal.id)));
+                    }
+
+                    if (preferredAnimal && animals.some((a) => String(a.id) === preferredAnimal)) {
+                        animalSelect.value = preferredAnimal;
+                    } else {
+                        animalSelect.value = '';
+                    }
+
+                    preferredAnimal = '';
+                };
+
+                herdSelect.addEventListener('change', () => {
+                    preferredAnimal = '';
+                    refreshAnimals();
+                });
+
+                refreshAnimals();
+            })();
+        </script>
     @endif
 @endsection

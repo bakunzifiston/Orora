@@ -34,11 +34,29 @@ DB_PASSWORD=your_password
 php artisan migrate
 ```
 
-4. (Optional) Seed a demo tenant (`demo.localhost`):
+4. Seed the comprehensive demo account (linked farms, animals, sales, milk, health, breeding, etc.):
 
 ```bash
-php artisan db:seed
+php artisan migrate
+php artisan orora:seed-demo --fresh
 ```
+
+Sign in on the central app at `http://127.0.0.1:8000/` with:
+
+- **Email:** `demo@ororafarm.rw`
+- **Password:** `password`
+
+Historical demo data spans **2020-01-01 → 2026-06-01** with at least **25 records per module** (configurable via `.env`).
+
+| Variable | Default |
+|----------|---------|
+| `DEMO_DATE_START` | `2020-01-01` |
+| `DEMO_DATE_END` | `2026-06-01` |
+| `DEMO_MIN_RECORDS` | `25` |
+| `DEMO_ANIMAL_COUNT` | `120` |
+| `DEMO_FARM_COUNT` | `4` |
+
+To re-seed without deleting the tenant, set `DEMO_SEED_FORCE=true` in `.env` and run `php artisan db:seed`.
 
 5. Add tenant domains to `/etc/hosts`:
 

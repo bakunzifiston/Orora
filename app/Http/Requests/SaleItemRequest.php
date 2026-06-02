@@ -41,7 +41,12 @@ class SaleItemRequest extends FormRequest
             'description' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.001'],
             'unit' => ['required', 'string', 'max:20'],
-            'unit_price' => ['nullable', 'numeric', 'min:0'],
+            'unit_price' => [
+                Rule::requiredIf(fn () => in_array($itemType, ['milk', 'meat_cut'], true)),
+                'nullable',
+                'numeric',
+                'min:0.01',
+            ],
             'live_weight_kg' => ['nullable', 'numeric', 'min:0'],
             'carcass_weight_kg' => ['nullable', 'numeric', 'min:0'],
             'price_per_kg' => ['nullable', 'numeric', 'min:0'],
@@ -50,6 +55,14 @@ class SaleItemRequest extends FormRequest
             'certificate_verified' => ['boolean'],
             'permit_verified' => ['boolean'],
             'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'unit_price.required' => 'Unit price is required for milk and meat items.',
+            'unit_price.min' => 'Unit price must be greater than zero.',
         ];
     }
 

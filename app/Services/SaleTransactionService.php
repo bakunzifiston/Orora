@@ -45,6 +45,7 @@ class SaleTransactionService
 
         $this->assertItemMatchesType($transaction, $attributes);
 
+        $attributes = $this->normalizeItemPricingAttributes($transaction, $attributes);
         $totalPrice = $this->computeLineTotal($transaction, $attributes);
 
         $item = $transaction->items()->create([
@@ -323,6 +324,23 @@ class SaleTransactionService
         $unitPrice = (float) ($attributes['unit_price'] ?? 0);
 
         return round($qty * $unitPrice, 2);
+    }
+
+    private function normalizeItemPricingAttributes(SaleTransaction $transaction, array $attributes): array
+    {
+        if (($transaction->pricing_method ?? 'per_animal') === 'per_kg') {
+            if (! isset($attributes['unit_price']) || $attributes['unit_price'] === null || $attributes['unit_price'] === '') {
+                $attributes['unit_price'] = $attributes['price_per_kg'] ?? 0;
+            }
+
+            return $attributes;
+        }
+
+        if (! isset($attributes['unit_price']) || $attributes['unit_price'] === null || $attributes['unit_price'] === '') {
+            $attributes['unit_price'] = 0;
+        }
+
+        return $attributes;
     }
 
     private function generatePaymentReference(): string

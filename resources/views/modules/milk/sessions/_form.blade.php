@@ -1,4 +1,7 @@
-@php $milkSession = $milkSession ?? null; @endphp
+@php
+    $milkSession = $milkSession ?? null;
+    $selectedLivestockId = old('livestock_id', $milkSession?->livestock_id);
+@endphp
 
 @component('modules.farms._form-section', [
     'number' => '1',
@@ -17,7 +20,7 @@
         </div>
         <div class="dash-form-field">
             <label for="livestock_id">Herd / group <span class="dash-required">*</span></label>
-            <select name="livestock_id" id="livestock_id" required @disabled($milkSession && ! $milkSession->isOpen())>
+            <select name="livestock_id" id="livestock_id" required data-selected="{{ $selectedLivestockId }}" @disabled($milkSession && ! $milkSession->isOpen())>
                 <option value="">Select herd</option>
                 @foreach ($livestockGroups as $group)
                     <option value="{{ $group->id }}" @selected(old('livestock_id', $milkSession?->livestock_id) == $group->id)>{{ $group->name }}</option>
@@ -69,3 +72,48 @@
         </div>
     </div>
 @endcomponent
+
+@if (! ($milkSession && ! $milkSession->isOpen()))
+    <script>
+        (() => {
+            const farmSelect = document.getElementById('farm_id');
+            const herdSelect = document.getElementById('livestock_id');
+
+            if (!farmSelect || !herdSelect) {
+                return;
+            }
+
+            const livestockByFarm = @json($livestockByFarm ?? []);
+            let preferredSelection = String(herdSelect.dataset.selected || '');
+
+            const renderHerdOptions = () => {
+                const farmId = String(farmSelect.value || '');
+                const herds = farmId ? (livestockByFarm[farmId] || []) : [];
+
+                herdSelect.innerHTML = '';
+                herdSelect.append(new Option('Select herd', ''));
+
+                for (const herd of herds) {
+                    herdSelect.append(new Option(herd.name, String(herd.id)));
+                }
+
+                if (preferredSelection && herds.some((h) => String(h.id) === preferredSelection)) {
+                    herdSelect.value = preferredSelection;
+                } else if (herds.length === 1) {
+                    herdSelect.value = String(herds[0].id);
+                } else {
+                    herdSelect.value = '';
+                }
+
+                preferredSelection = '';
+            };
+
+            farmSelect.addEventListener('change', () => {
+                preferredSelection = '';
+                renderHerdOptions();
+            });
+
+            renderHerdOptions();
+        })();
+    </script>
+@endif

@@ -20,6 +20,12 @@
         <p class="auth-form-subtitle">Sign in to your farm workspace</p>
     </header>
 
+    @if (session('error'))
+        <div class="auth-alert" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+
     @if ($errors->any())
         <div class="auth-alert" role="alert">
             {{ $errors->first() }}

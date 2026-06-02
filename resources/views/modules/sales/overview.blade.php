@@ -5,17 +5,41 @@
 @section('sales-content')
     @include('modules.partials.header', [
         'title' => 'Sales overview',
-        'subtitle' => 'Revenue, balances, and recent transactions this month.',
+        'subtitle' => 'Revenue, balances, and recent transactions for '.$filters['label'].'.',
         'createRoute' => 'sales.transactions.create',
         'createLabel' => '+ New sale',
     ])
     @include('modules.partials.flash')
 
+    <form method="GET" action="{{ route('sales.overview') }}" class="dash-ops-toolbar" style="margin-bottom: 1rem;">
+        <div class="dash-ops-toolbar__controls">
+            <div class="dash-ops-field">
+                <label for="sales_filter_period">Period</label>
+                <select name="period" id="sales_filter_period">
+                    <option value="this_month" @selected($filters['period'] === 'this_month')>This month</option>
+                    <option value="last_month" @selected($filters['period'] === 'last_month')>Last month</option>
+                    <option value="this_quarter" @selected($filters['period'] === 'this_quarter')>This quarter</option>
+                    <option value="this_year" @selected($filters['period'] === 'this_year')>This year</option>
+                    <option value="custom" @selected($filters['period'] === 'custom')>Custom range</option>
+                </select>
+            </div>
+            <div class="dash-ops-field dash-ops-field--dates @if($filters['period'] !== 'custom') dash-ops-field--muted @endif">
+                <label>Date range</label>
+                <div class="dash-ops-dates">
+                    <input type="date" name="from" value="{{ $filters['from'] }}" aria-label="From date">
+                    <span class="dash-ops-dates__sep">→</span>
+                    <input type="date" name="to" value="{{ $filters['to'] }}" aria-label="To date">
+                </div>
+            </div>
+            <button type="submit" class="dash-btn-save dash-ops-apply">Apply</button>
+        </div>
+    </form>
+
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Revenue this month</div>
-                <div class="dash-stat-value">{{ number_format($stats['month_total'], 0) }} RWF</div>
+                <div class="dash-stat-label">Revenue ({{ $filters['label'] }})</div>
+                <div class="dash-stat-value">{{ number_format($stats['period_total'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'sale'])
         </div>
@@ -33,21 +57,21 @@
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'expense'])
         </a>
-        <a href="{{ route('sales.transactions', ['type' => 'animal_sale']) }}" class="dash-stat-card">
+        <a href="{{ route('sales.transactions', ['type' => 'animal_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="dash-stat-card">
             <div>
                 <div class="dash-stat-label">Animal sales</div>
                 <div class="dash-stat-value">{{ number_format($stats['animal'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'animal'])
         </a>
-        <a href="{{ route('sales.transactions', ['type' => 'meat_sale']) }}" class="dash-stat-card">
+        <a href="{{ route('sales.transactions', ['type' => 'meat_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="dash-stat-card">
             <div>
                 <div class="dash-stat-label">Meat sales</div>
                 <div class="dash-stat-value">{{ number_format($stats['meat'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'livestock'])
         </a>
-        <a href="{{ route('sales.transactions', ['type' => 'milk_sale']) }}" class="dash-stat-card">
+        <a href="{{ route('sales.transactions', ['type' => 'milk_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="dash-stat-card">
             <div>
                 <div class="dash-stat-label">Milk sales</div>
                 <div class="dash-stat-value">{{ number_format($stats['milk'], 0) }} RWF</div>

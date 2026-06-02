@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Controllers\Concerns\SalesSectionViews;
 use App\Models\SaleTransaction;
+use App\Services\DashboardAnalyticsService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -13,26 +15,29 @@ class SalesModuleController extends Controller
     use ProvidesModuleNavigation;
     use SalesSectionViews;
 
-    public function overview(): View
-    {
-        $startOfMonth = now()->startOfMonth()->toDateString();
-        $endOfMonth = now()->endOfMonth()->toDateString();
+    public function __construct(
+        private readonly DashboardAnalyticsService $analytics,
+    ) {}
 
-        $byType = SaleTransaction::query()
-            ->whereBetween('sale_date', [$startOfMonth, $endOfMonth])
+    public function overview(Request $request): View
+    {
+        $filters = $this->analytics->resolveFilters($request);
+        $from = $filters['from'];
+        $to = $filters['to'];
+
+        $periodQuery = SaleTransaction::query()->whereBetween('sale_date', [$from, $to]);
+
+        $byType = (clone $periodQuery)
             ->where('sale_status', 'completed')
             ->select('sale_type', DB::raw('SUM(total_amount) as total'))
             ->groupBy('sale_type')
             ->pluck('total', 'sale_type');
 
         $stats = [
-            'month_total' => SaleTransaction::query()
-                ->whereBetween('sale_date', [$startOfMonth, $endOfMonth])
+            'period_total' => (clone $periodQuery)
                 ->where('sale_status', 'completed')
                 ->sum('total_amount'),
-            'transaction_count' => SaleTransaction::query()
-                ->whereBetween('sale_date', [$startOfMonth, $endOfMonth])
-                ->count(),
+            'transaction_count' => (clone $periodQuery)->count(),
             'unpaid_balance' => SaleTransaction::query()
                 ->whereIn('payment_status', ['unpaid', 'partial'])
                 ->whereNotIn('sale_status', ['cancelled'])
@@ -50,6 +55,6 @@ class SalesModuleController extends Controller
             ->limit(10)
             ->get();
 
-        return view('modules.sales.overview', $this->salesSectionData('overview', compact('stats', 'recent')));
+        return view('modules.sales.overview', $this->salesSectionData('overview', compact('stats', 'recent', 'filters')));
     }
 }
