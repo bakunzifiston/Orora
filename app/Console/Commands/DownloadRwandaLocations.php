@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\RwandaLocationService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 
 class DownloadRwandaLocations extends Command
 {
@@ -11,31 +11,25 @@ class DownloadRwandaLocations extends Command
 
     protected $description = 'Download Rwanda administrative divisions JSON for farm location selects';
 
-    public function handle(): int
+    public function handle(RwandaLocationService $locations): int
     {
-        $path = database_path('data/rwanda_locations.json');
-        $directory = dirname($path);
+        if (is_file($locations->dataPath())) {
+            $this->components->info('Already present: '.$locations->dataPath());
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+            return self::SUCCESS;
         }
 
-        $this->info('Downloading Rwanda locations data…');
+        $this->info('Downloading Rwanda locations data (~6 MB)…');
 
-        $response = Http::timeout(120)->get(
-            'https://raw.githubusercontent.com/jnkindi/rwanda-locations-json/master/locations.json'
-        );
-
-        if (! $response->successful()) {
-            $this->error('Download failed.');
+        if (! $locations->downloadDataFile()) {
+            $this->error('Download failed. Check server internet access to GitHub.');
+            $this->line('Or upload manually to: '.$locations->dataPath());
 
             return self::FAILURE;
         }
 
-        file_put_contents($path, $response->body());
-
         $this->callSilent('cache:clear');
-        $this->info('Saved to '.$path);
+        $this->info('Saved to '.$locations->dataPath());
 
         return self::SUCCESS;
     }

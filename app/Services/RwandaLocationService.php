@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class RwandaLocationService
 {
+    private const SOURCE_URL = 'https://raw.githubusercontent.com/jnkindi/rwanda-locations-json/master/locations.json';
+
     private static ?array $rows = null;
 
     public function dataPath(): string
@@ -15,12 +18,45 @@ class RwandaLocationService
 
     public function ensureDataExists(): void
     {
-        if (! is_file($this->dataPath())) {
-            throw new RuntimeException(
-                'Rwanda location data is missing at database/data/rwanda_locations.json. '
-                .'On the server run: php artisan rwanda:download-locations '
-                .'or upload that file from your computer (see database/data/README.md).'
-            );
+        if (is_file($this->dataPath())) {
+            return;
+        }
+
+        if ($this->downloadDataFile()) {
+            return;
+        }
+
+        throw new RuntimeException(
+            'Rwanda location data is missing. Expected this exact path on the server: '
+            .$this->dataPath().'. '
+            .'Run: php artisan rwanda:download-locations '
+            .'or upload database/data/rwanda_locations.json from your computer (~6 MB).'
+        );
+    }
+
+    public function downloadDataFile(): bool
+    {
+        $path = $this->dataPath();
+        $directory = dirname($path);
+
+        if (! is_dir($directory)) {
+            if (! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+                return false;
+            }
+        }
+
+        try {
+            $response = Http::timeout(180)->get(self::SOURCE_URL);
+
+            if (! $response->successful()) {
+                return false;
+            }
+
+            file_put_contents($path, $response->body());
+
+            return is_file($path) && filesize($path) > 10_000;
+        } catch (\Throwable) {
+            return false;
         }
     }
 
