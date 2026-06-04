@@ -11,9 +11,14 @@ class CustomerService
 {
     public function generateCustomerCode(): string
     {
-        $seq = Customer::withTrashed()->count() + 1;
+        $prefix = 'CUS-';
+        $lastCode = Customer::withTrashed()
+            ->where('customer_code', 'like', $prefix.'%')
+            ->orderByDesc('customer_code')
+            ->value('customer_code');
+        $seq = $lastCode ? ((int) substr($lastCode, strlen($prefix))) + 1 : 1;
 
-        return sprintf('CUS-%04d', $seq);
+        return sprintf('%s%04d', $prefix, $seq);
     }
 
     public function create(array $customerData, array $profileData = [], array $contactData = null): Customer

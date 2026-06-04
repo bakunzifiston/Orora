@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\TenantModel;
+use App\Models\Concerns\BelongsToTenantWithSystemCatalog;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ExpenseCategory extends TenantModel
+class ExpenseCategory extends Model
 {
+    use BelongsToTenantWithSystemCatalog;
+
     protected $fillable = [
         'expense_group',
         'name',

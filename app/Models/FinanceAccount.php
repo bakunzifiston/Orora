@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\TenantModel;
+use App\Models\Concerns\BelongsToTenantWithSystemCatalog;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class FinanceAccount extends TenantModel
+class FinanceAccount extends Model
 {
+    use BelongsToTenantWithSystemCatalog;
+
     protected $fillable = [
         'account_code',
         'account_name',
