@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use App\Models\Tenant;
 use App\Support\CentralDomains;
+use App\Support\TenancyDatabaseNaming;
+use App\Tenancy\CpanelMysqlDatabaseManager;
 use Stancl\Tenancy\Database\Models\Domain;
+use Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager;
 
 return [
     'tenant_model' => Tenant::class,
@@ -74,16 +77,27 @@ return [
          * Tenant database names are created like this:
          * prefix + tenant_id + suffix.
          */
-        'prefix' => 'tenant',
+        'prefix' => TenancyDatabaseNaming::prefix(),
         'suffix' => '',
+
+        /**
+         * cPanel shared hosting: create tenant DBs via UAPI (SQL CREATE DATABASE is denied).
+         *
+         * @see https://api.docs.cpanel.net/openapi/cpanel/operation/create_database/
+         */
+        'cpanel' => [
+            'host' => env('TENANCY_CPANEL_HOST'),
+            'username' => env('TENANCY_CPANEL_USERNAME'),
+            'api_token' => env('TENANCY_CPANEL_API_TOKEN'),
+        ],
 
         /**
          * TenantDatabaseManagers are classes that handle the creation & deletion of tenant databases.
          */
         'managers' => [
             'sqlite' => Stancl\Tenancy\TenantDatabaseManagers\SQLiteDatabaseManager::class,
-            'mysql' => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
-            'mariadb' => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
+            'mysql' => env('TENANCY_CPANEL_HOST') ? CpanelMysqlDatabaseManager::class : MySQLDatabaseManager::class,
+            'mariadb' => env('TENANCY_CPANEL_HOST') ? CpanelMysqlDatabaseManager::class : MySQLDatabaseManager::class,
             'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
         /**

@@ -25,6 +25,8 @@ APP_URL=https://ororafarm.com
 TENANCY_DOMAIN_ROUTES=false
 ```
 
+`APP_URL` **must** include `https://` (or `http://`). A value like `ororafarm.com` alone causes `Invalid URI: Scheme is malformed` when running `php artisan tenants:migrate`.
+
 ## Setup
 
 1. Create the central MySQL database:
@@ -78,12 +80,40 @@ Each **registration** creates a new tenant row and database. Login uses `tenant_
 
 ```bash
 php artisan migrate
+php artisan tenants:migrate
+# or: php artisan orora:migrate
 php artisan config:clear
 ```
 
 Do **not** set `TENANCY_DOMAIN_ROUTES=true` unless you intentionally use per-tenant subdomains (advanced; not needed for ororafarm.com).
 
 If you see `TenantCouldNotBeIdentifiedOnDomainException`, deploy the latest code, set `TENANCY_DOMAIN_ROUTES=false`, and run `php artisan config:clear`.
+
+## cPanel / shared hosting (registration CREATE DATABASE denied)
+
+Hosts like cPanel use a MySQL user that **cannot** run `CREATE DATABASE` via SQL. Registration fails with:
+
+`Access denied for user '…'@'localhost' to database 'tenant…'`
+
+**Fix:** use cPanel’s API to create databases (included in this app when `TENANCY_CPANEL_HOST` is set).
+
+1. In cPanel → **Security** → **Manage API Tokens** → create a token with database permissions.
+2. In `.env` on the server:
+
+```env
+DB_DATABASE=sandycyi_orora
+# Optional override; default is sandycyi_tenant from DB_DATABASE:
+# TENANCY_DATABASE_PREFIX=sandycyi_tenant
+
+TENANCY_CPANEL_HOST=https://your-server-hostname:2083
+TENANCY_CPANEL_USERNAME=sandycyi
+TENANCY_CPANEL_API_TOKEN=your_api_token_here
+```
+
+3. `php artisan config:clear`
+4. Try **Register** again — the app creates `sandycyi_tenant{id}` via cPanel, then runs tenant migrations.
+
+Local dev (root MySQL): leave `TENANCY_CPANEL_*` unset; the app uses normal `CREATE DATABASE`.
 
 ## Tenant migrations
 

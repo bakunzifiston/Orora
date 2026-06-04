@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Auth\TenantAwareUserProvider;
 use App\Http\Middleware\InitializeTenancyForAssets;
+use App\Support\AppUrl;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->ensureValidConsoleRequest();
+
         Auth::provider('tenant_eloquent', function ($app, array $config) {
             return new TenantAwareUserProvider($app['hash'], $config['model']);
         });
@@ -34,5 +38,25 @@ class AppServiceProvider extends ServiceProvider
             ->get('/tenancy/assets/{path?}', [TenantAssetsController::class, 'asset'])
             ->where('path', '(.*)')
             ->name('stancl.tenancy.asset');
+    }
+
+    /**
+     * Artisan on some hosts builds a request with no valid scheme; tenancy bootstrapping
+     * then fails when code parses the request URI (e.g. during tenants:migrate).
+     */
+    protected function ensureValidConsoleRequest(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        /** @var Request $request */
+        $request = $this->app->make('request');
+
+        try {
+            $request->uri();
+        } catch (\Throwable) {
+            $this->app->instance('request', Request::create(AppUrl::base().'/', 'GET'));
+        }
     }
 }
