@@ -120,11 +120,16 @@ php artisan tenants:migrate
 
 The landing app (sign-in, register, dashboard via session `tenant_id`) only runs on hosts listed in **`CENTRAL_DOMAINS`** (see `config/tenancy.php`). Any other host is treated as a **tenant domain** and must exist in the central `domains` table.
 
-If you see `TenantCouldNotBeIdentifiedOnDomainException` on your public URL, add that host to `.env`:
+If you see `TenantCouldNotBeIdentifiedOnDomainException` on your public URL, set **`APP_URL`** to your public site (the app host is added to central domains automatically, including `www`):
 
 ```
 APP_URL=https://ororafarm.com
-CENTRAL_DOMAINS=127.0.0.1,localhost,ororafarm.com,www.ororafarm.com
+```
+
+Optional extra hosts (local dev, staging):
+
+```
+CENTRAL_DOMAINS=127.0.0.1,localhost
 ```
 
 Then clear config cache on the server:

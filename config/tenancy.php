@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Tenant;
+use App\Support\CentralDomains;
 use Stancl\Tenancy\Database\Models\Domain;
 
 return [
@@ -16,10 +17,7 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => array_values(array_filter(array_map(
-        static fn (string $domain): string => trim($domain),
-        explode(',', (string) env('CENTRAL_DOMAINS', '127.0.0.1,localhost'))
-    ))),
+    'central_domains' => CentralDomains::all(),
 
     /*
     |--------------------------------------------------------------------------
