@@ -17,7 +17,9 @@ class RwandaLocationService
     {
         if (! is_file($this->dataPath())) {
             throw new RuntimeException(
-                'Rwanda location data is missing. Run: php artisan rwanda:download-locations'
+                'Rwanda location data is missing at database/data/rwanda_locations.json. '
+                .'On the server run: php artisan rwanda:download-locations '
+                .'or upload that file from your computer (see database/data/README.md).'
             );
         }
     }

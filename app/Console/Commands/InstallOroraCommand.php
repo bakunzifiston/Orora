@@ -34,6 +34,14 @@ class InstallOroraCommand extends Command
             return self::FAILURE;
         }
 
+        if (! is_file(database_path('data/rwanda_locations.json'))) {
+            $this->components->warn('Rwanda locations file missing — farm address dropdowns will fail until you run: php artisan rwanda:download-locations');
+        }
+
+        if (! is_file(public_path('build/manifest.json'))) {
+            $this->components->warn('Vite build missing — upload public/build/ from your computer after npm run build');
+        }
+
         $this->components->info('Database ready. Farmers can register at /register.');
 
         return self::SUCCESS;
