@@ -6,7 +6,9 @@ use App\Models\Tenant;
 use App\Models\TenantAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class TenantAccountService
 {
@@ -125,6 +127,8 @@ class TenantAccountService
     {
         $email = Str::lower($email);
 
+        $this->ensureApplicationSchemaReady();
+
         $this->endTenancy();
 
         $tenant = Tenant::create([
@@ -191,6 +195,17 @@ class TenantAccountService
         }
 
         return $this->initializeTenant($defaultId);
+    }
+
+    private function ensureApplicationSchemaReady(): void
+    {
+        if (Schema::hasTable('users') && Schema::hasColumn('users', 'tenant_id')) {
+            return;
+        }
+
+        throw new RuntimeException(
+            'Application tables are not installed. On the server run: php artisan orora:install (or php artisan migrate --force), then try again.'
+        );
     }
 
     private function generateTenantId(string $email): string

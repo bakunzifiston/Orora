@@ -19,7 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (TenancyMode::usesSingleDatabase()) {
+            $this->loadMigrationsFrom(database_path('migrations/tenant'));
+        }
     }
 
     /**
@@ -28,10 +30,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->ensureValidConsoleRequest();
-
-        if (TenancyMode::usesSingleDatabase()) {
-            $this->loadMigrationsFrom(database_path('migrations/tenant'));
-        }
 
         Auth::provider('tenant_eloquent', function ($app, array $config) {
             return new TenantAwareUserProvider($app['hash'], $config['model']);

@@ -30,12 +30,15 @@ TENANCY_SINGLE_DATABASE=true
 TENANCY_DOMAIN_ROUTES=false
 ```
 
-3. Migrate (central + all app tables):
+3. Migrate (central + all app tables — required for `/register`):
 
 ```bash
-php artisan migrate
-# or: php artisan orora:migrate
+php artisan orora:install
 ```
+
+Or: `php artisan migrate --force`
+
+If registration fails with **Table 'users' doesn't exist**, the app migrations were not run yet — run the command above after deploying the latest code.
 
 4. Optional demo:
 
