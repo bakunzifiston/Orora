@@ -1526,4 +1526,51 @@
     .dash-ops-rank__label { font-weight: 600; color: #111; text-decoration: none; }
     a.dash-ops-rank__label:hover { color: var(--orora-sidebar); }
     .dash-ops-rank__value { font-weight: 600; color: var(--orora-button); white-space: nowrap; }
+
+    .dash-cost-details { list-style: none; }
+    .dash-cost-details > summary { list-style: none; cursor: pointer; }
+    .dash-cost-details > summary::-webkit-details-marker { display: none; }
+    .dash-cost-details__summary {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+    .dash-cost-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin: 0.35rem 0 0;
+        line-height: 1.4;
+    }
+    .dash-cost-meta--up { color: #b45309; }
+    .dash-cost-meta--down { color: #047857; }
+    .dash-cost-breakdown {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid #e5e7eb;
+        font-size: 0.8125rem;
+    }
+    .dash-cost-breakdown__title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    .dash-cost-breakdown__list {
+        display: grid;
+        gap: 0.35rem;
+        margin: 0 0 0.65rem;
+    }
+    .dash-cost-breakdown__list > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    .dash-cost-breakdown__list dt { color: #6b7280; margin: 0; }
+    .dash-cost-breakdown__list dd { margin: 0; font-weight: 600; color: #111; }
+    .dash-cost-breakdown__formula {
+        margin: 0;
+        color: #4b5563;
+        line-height: 1.5;
+        font-size: 0.75rem;
+    }
 </style>
