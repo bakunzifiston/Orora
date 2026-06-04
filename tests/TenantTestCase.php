@@ -5,6 +5,7 @@ namespace Tests;
 use App\Models\Tenant;
 use App\Models\TenantAccount;
 use App\Models\User;
+use App\Services\TenantContext;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ abstract class TenantTestCase extends BaseTestCase
 {
     protected Tenant $tenant;
 
-    protected static bool $centralMigrated = false;
+    protected static bool $migrated = false;
 
     protected function setUp(): void
     {
@@ -26,14 +27,9 @@ abstract class TenantTestCase extends BaseTestCase
 
         $this->configureTestConnections();
 
-        if (! static::$centralMigrated) {
-            Artisan::call('migrate', [
-                '--database' => 'central',
-                '--path' => database_path('migrations'),
-                '--realpath' => true,
-                '--force' => true,
-            ]);
-            static::$centralMigrated = true;
+        if (! static::$migrated) {
+            Artisan::call('migrate', ['--force' => true]);
+            static::$migrated = true;
         }
 
         $this->tenant = Tenant::query()->create([
@@ -41,14 +37,12 @@ abstract class TenantTestCase extends BaseTestCase
             'name' => 'Test tenant',
         ]);
 
-        tenancy()->initialize($this->tenant);
+        TenantContext::set($this->tenant);
     }
 
     protected function tearDown(): void
     {
-        if (tenancy()->initialized) {
-            tenancy()->end();
-        }
+        TenantContext::forget();
 
         if (isset($this->tenant)) {
             $this->tenant->delete();
@@ -59,18 +53,12 @@ abstract class TenantTestCase extends BaseTestCase
 
     protected function createTenantUser(array $overrides = []): User
     {
-        tenancy()->initialize($this->tenant);
-
         $user = User::factory()->create($overrides);
-
-        tenancy()->end();
 
         TenantAccount::query()->create([
             'tenant_id' => $this->tenant->id,
             'email' => strtolower($user->email),
         ]);
-
-        tenancy()->initialize($this->tenant);
 
         return $user;
     }
@@ -89,7 +77,7 @@ abstract class TenantTestCase extends BaseTestCase
     {
         try {
             $this->configureTestConnections();
-            DB::connection('central')->getPdo();
+            DB::connection('mysql')->getPdo();
 
             return true;
         } catch (\Throwable) {
@@ -104,7 +92,6 @@ abstract class TenantTestCase extends BaseTestCase
         config([
             'database.connections.central.database' => $database,
             'database.connections.mysql.database' => $database,
-            'tenancy.database.central_connection' => 'central',
         ]);
     }
 }

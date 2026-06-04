@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EmployeePayroll extends Model
+class EmployeePayroll extends TenantModel
 {
     protected $table = 'employee_payroll';
 

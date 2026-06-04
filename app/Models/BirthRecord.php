@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Support\TenantStorageUrl;
 
-class BirthRecord extends Model
+class BirthRecord extends TenantModel
 {
     protected $fillable = [
         'breeding_record_id',

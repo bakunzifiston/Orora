@@ -13,6 +13,7 @@ class TenantAccountService
     public const TENANT_COOKIE = 'orora_tenant_id';
 
     public const EMAIL_COOKIE = 'orora_auth_email';
+
     public function tenantIdForEmail(string $email): ?string
     {
         return TenantAccount::query()
@@ -105,7 +106,7 @@ class TenantAccountService
 
     public function rememberTenantCookies(string $tenantId, string $email): void
     {
-        $minutes = 525600; // ~1 year; auth still required via session / remember cookie
+        $minutes = 525600;
 
         cookie()->queue(cookie()->make(self::TENANT_COOKIE, $tenantId, $minutes));
         cookie()->queue(cookie()->make(self::EMAIL_COOKIE, Str::lower($email), $minutes));
@@ -149,6 +150,12 @@ class TenantAccountService
 
     public function endTenancy(): void
     {
+        if (config('tenancy.single_database', true)) {
+            TenantContext::forget();
+
+            return;
+        }
+
         if (tenancy()->initialized) {
             tenancy()->end();
         }
@@ -160,6 +167,12 @@ class TenantAccountService
 
         if (! $tenant) {
             return null;
+        }
+
+        if (config('tenancy.single_database', true)) {
+            TenantContext::set($tenant);
+
+            return $tenant;
         }
 
         if (! tenancy()->initialized || tenant('id') !== $tenant->id) {

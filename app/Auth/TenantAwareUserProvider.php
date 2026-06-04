@@ -2,13 +2,14 @@
 
 namespace App\Auth;
 
+use App\Services\TenantContext;
 use Illuminate\Auth\EloquentUserProvider;
 
 class TenantAwareUserProvider extends EloquentUserProvider
 {
     public function retrieveById($identifier)
     {
-        if (! tenancy()->initialized) {
+        if (! $this->tenancyIsActive()) {
             return null;
         }
 
@@ -17,10 +18,19 @@ class TenantAwareUserProvider extends EloquentUserProvider
 
     public function retrieveByToken($identifier, $token)
     {
-        if (! tenancy()->initialized) {
+        if (! $this->tenancyIsActive()) {
             return null;
         }
 
         return parent::retrieveByToken($identifier, $token);
+    }
+
+    protected function tenancyIsActive(): bool
+    {
+        if (config('tenancy.single_database', true)) {
+            return TenantContext::isActive();
+        }
+
+        return tenancy()->initialized;
     }
 }

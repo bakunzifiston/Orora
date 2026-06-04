@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Support\TenantStorageUrl;
 
-class Expense extends Model
+class Expense extends TenantModel
 {
     protected $fillable = [
         'farm_id',

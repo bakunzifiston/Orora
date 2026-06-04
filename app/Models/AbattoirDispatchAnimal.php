@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AbattoirDispatchAnimal extends Model
+class AbattoirDispatchAnimal extends TenantModel
 {
     protected $fillable = [
         'abattoir_dispatch_id',

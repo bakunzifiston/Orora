@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class MilkStorageMovement extends Model
+class MilkStorageMovement extends TenantModel
 {
     protected $fillable = [
         'milk_storage_id',

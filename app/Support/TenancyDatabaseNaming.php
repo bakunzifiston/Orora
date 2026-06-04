@@ -23,4 +23,14 @@ class TenancyDatabaseNaming
 
         return 'tenant';
     }
+
+    /**
+     * cPanel central DBs are usually account_prefixed (e.g. sandycyi_orora).
+     */
+    public static function isLikelySharedHosting(): bool
+    {
+        $central = (string) env('DB_DATABASE', config('database.connections.mysql.database', ''));
+
+        return str_contains($central, '_');
+    }
 }

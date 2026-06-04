@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Certificate extends Model
+class Certificate extends TenantModel
 {
     protected $fillable = [
         'farm_id',

@@ -3,6 +3,7 @@
 namespace App\Services\Milk;
 
 use App\Models\Animal;
+use App\Services\TenantContext;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\MilkRecord;
@@ -280,7 +281,7 @@ class MilkCostPerLitreService
 
     private function cacheKey(string $period, ?int $farmId, string $suffix): string
     {
-        $tenantKey = tenant('id') ?? 'central';
+        $tenantKey = TenantContext::id() ?? 'central';
         $farmKey = $farmId ?? 'all';
 
         return "milk.cost.{$tenantKey}.{$period}.{$farmKey}.{$suffix}";

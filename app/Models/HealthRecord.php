@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class HealthRecord extends Model
+class HealthRecord extends TenantModel
 {
     protected $fillable = [
         'farm_id',

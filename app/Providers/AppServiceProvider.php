@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\TenantAwareUserProvider;
 use App\Http\Middleware\InitializeTenancyForAssets;
 use App\Support\AppUrl;
+use App\Support\TenancyMode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->ensureValidConsoleRequest();
+
+        if (TenancyMode::usesSingleDatabase()) {
+            $this->loadMigrationsFrom(database_path('migrations/tenant'));
+        }
 
         Auth::provider('tenant_eloquent', function ($app, array $config) {
             return new TenantAwareUserProvider($app['hash'], $config['model']);

@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\CentralDomains;
 use App\Services\TenantAccountService;
+use App\Services\TenantContext;
+use App\Support\CentralDomains;
+use App\Support\TenancyMode;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,11 +24,11 @@ class InitializeDefaultTenant
             return $next($request);
         }
 
-        if (! tenancy()->initialized) {
+        if (! $this->tenancyIsActive()) {
             $this->tenantAccounts->initializeFromRequest($request);
         }
 
-        if (! tenancy()->initialized && $this->tenantAccounts->requestExpectsAuthenticatedUser($request)) {
+        if (! $this->tenancyIsActive() && $this->tenantAccounts->requestExpectsAuthenticatedUser($request)) {
             $this->clearStaleAuthState($request);
 
             $response = redirect()
@@ -50,6 +52,15 @@ class InitializeDefaultTenant
     protected function isCentralDomain(Request $request): bool
     {
         return CentralDomains::isCentralHost($request->getHost());
+    }
+
+    protected function tenancyIsActive(): bool
+    {
+        if (TenancyMode::usesSingleDatabase()) {
+            return TenantContext::isActive();
+        }
+
+        return tenancy()->initialized;
     }
 
     protected function clearStaleAuthState(Request $request): void

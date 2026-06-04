@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class AbattoirReturn extends Model
+class AbattoirReturn extends TenantModel
 {
     protected $fillable = [
         'abattoir_dispatch_id',

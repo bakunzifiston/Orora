@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BreedingLog extends Model
+class BreedingLog extends TenantModel
 {
     protected $fillable = [
         'breeding_record_id',

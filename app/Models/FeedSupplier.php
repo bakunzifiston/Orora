@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class FeedSupplier extends Model
+class FeedSupplier extends TenantModel
 {
     protected $fillable = [
         'name',

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CustomerCredit extends Model
+class CustomerCredit extends TenantModel
 {
     protected $table = 'customer_credit';
 

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MilkRecord extends Model
+class MilkRecord extends TenantModel
 {
     protected $fillable = [
         'milk_session_id',

@@ -4,9 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Tenant;
 use App\Models\TenantAccount;
+use App\Services\TenantContext;
 use Database\Seeders\Tenant\ComprehensiveDemoSeeder;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Artisan;
 
 class TenantDemoSeeder extends Seeder
 {
@@ -23,20 +23,11 @@ class TenantDemoSeeder extends Seeder
             ]);
         }
 
-        Artisan::call('tenants:migrate', [
-            '--tenants' => [$tenant->id],
-            '--force' => true,
-        ]);
-
-        tenancy()->initialize($tenant);
-
-        try {
+        TenantContext::run($tenant, function () {
             $this->call(ComprehensiveDemoSeeder::class);
-        } finally {
-            tenancy()->end();
-        }
+        });
 
-        TenantAccount::on('central')->updateOrCreate(
+        TenantAccount::query()->updateOrCreate(
             ['email' => strtolower(config('demo.user.email'))],
             ['tenant_id' => $tenant->id],
         );

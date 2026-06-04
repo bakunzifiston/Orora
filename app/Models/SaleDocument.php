@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Support\TenantStorageUrl;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SaleDocument extends Model
+class SaleDocument extends TenantModel
 {
     protected $fillable = [
         'sale_transaction_id',

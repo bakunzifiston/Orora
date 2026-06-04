@@ -2,20 +2,16 @@
 
 namespace App\Models;
 
-use Stancl\Tenancy\Contracts\TenantWithDatabase;
-use Stancl\Tenancy\Database\Concerns\HasDatabase;
-use Stancl\Tenancy\Database\Concerns\HasDomains;
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
+use Illuminate\Database\Eloquent\Model;
 
-class Tenant extends BaseTenant implements TenantWithDatabase
+class Tenant extends Model
 {
-    use HasDatabase, HasDomains;
+    public $incrementing = false;
 
-    public static function getCustomColumns(): array
-    {
-        return [
-            'id',
-            'name',
-        ];
-    }
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'id',
+        'name',
+    ];
 }

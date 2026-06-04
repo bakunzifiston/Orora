@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Tenant;
 use App\Support\CentralDomains;
 use App\Support\TenancyDatabaseNaming;
+use App\Support\TenancyMode;
 use App\Tenancy\CpanelMysqlDatabaseManager;
 use Stancl\Tenancy\Database\Models\Domain;
 use Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager;
@@ -37,6 +38,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Single database (row-level tenancy)
+    |--------------------------------------------------------------------------
+    |
+    | When true, all farmers share one MySQL database. Tables include tenant_id.
+    | No CREATE DATABASE per registration (required for cPanel shared hosting).
+    |
+    */
+
+    'single_database' => TenancyMode::usesSingleDatabase(),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default tenant (central domain)
     |--------------------------------------------------------------------------
     |
@@ -53,13 +66,7 @@ return [
      *
      * To configure their behavior, see the config keys below.
      */
-    'bootstrappers' => [
-        Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-        Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
-        Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
-        Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
-        // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
-    ],
+    'bootstrappers' => TenancyMode::bootstrappers(),
 
     /**
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
@@ -93,11 +100,12 @@ return [
 
         /**
          * TenantDatabaseManagers are classes that handle the creation & deletion of tenant databases.
+         * MySQL manager is overridden in TenancyServiceProvider (cPanel vs local).
          */
         'managers' => [
             'sqlite' => Stancl\Tenancy\TenantDatabaseManagers\SQLiteDatabaseManager::class,
-            'mysql' => env('TENANCY_CPANEL_HOST') ? CpanelMysqlDatabaseManager::class : MySQLDatabaseManager::class,
-            'mariadb' => env('TENANCY_CPANEL_HOST') ? CpanelMysqlDatabaseManager::class : MySQLDatabaseManager::class,
+            'mysql' => MySQLDatabaseManager::class,
+            'mariadb' => MySQLDatabaseManager::class,
             'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
         /**

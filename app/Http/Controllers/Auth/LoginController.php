@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\TenantAccountService;
+use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -29,9 +30,9 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        if (tenancy()->initialized) {
+        if (TenantContext::isActive()) {
             $email = Str::lower($request->input('email'));
-            $tenantId = tenant('id');
+            $tenantId = TenantContext::id();
 
             $request->session()->put('tenant_id', $tenantId);
             $request->session()->put('auth_email', $email);

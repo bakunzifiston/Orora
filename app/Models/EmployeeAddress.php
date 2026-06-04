@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EmployeeAddress extends Model
+class EmployeeAddress extends TenantModel
 {
     protected $fillable = [
         'employee_id',

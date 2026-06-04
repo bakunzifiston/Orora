@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CustomerContact extends Model
+class CustomerContact extends TenantModel
 {
     protected $fillable = [
         'customer_id',

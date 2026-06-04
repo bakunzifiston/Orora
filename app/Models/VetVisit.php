@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Support\TenantStorageUrl;
 
-class VetVisit extends Model
+class VetVisit extends TenantModel
 {
     protected $fillable = [
         'farm_id',

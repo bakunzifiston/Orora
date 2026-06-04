@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FinanceTransactionLog extends Model
+class FinanceTransactionLog extends TenantModel
 {
     protected $fillable = [
         'finance_transaction_id',
