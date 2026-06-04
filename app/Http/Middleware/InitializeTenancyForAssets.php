@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CentralDomains;
 use App\Services\TenantAccountService;
 use Closure;
 use Illuminate\Http\Request;
@@ -18,6 +19,8 @@ class InitializeTenancyForAssets
 
         if ($this->isCentralDomain($request)) {
             app(TenantAccountService::class)->initializeFromRequest($request);
+
+            return $next($request);
         }
 
         return app(InitializeTenancyByDomain::class)->handle($request, $next);
@@ -25,6 +28,6 @@ class InitializeTenancyForAssets
 
     protected function isCentralDomain(Request $request): bool
     {
-        return in_array($request->getHost(), config('tenancy.central_domains', []), true);
+        return CentralDomains::isCentralHost($request->getHost());
     }
 }

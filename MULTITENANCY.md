@@ -1,15 +1,29 @@
 # Multi-tenancy (MySQL)
 
-Orora uses [stancl/tenancy](https://tenancyforlaravel.com/) with **one MySQL database per tenant**.
+Orora uses [stancl/tenancy](https://tenancyforlaravel.com/) with **one MySQL database per farm account**, on **one public website URL**.
 
-## Architecture
+## How it works (single domain)
 
-| Layer | Database | Purpose |
-|-------|----------|---------|
-| **Central** | `orora` (configurable) | Tenants, domains, cache, queues, sessions |
-| **Tenant** | `tenant{id}` | Per-tenant data (users, etc.) |
+| What | Where |
+|------|--------|
+| **Public site** | One domain, e.g. `https://ororafarm.com` |
+| **Sign up / sign in** | `/register`, `/` on that domain |
+| **Central catalog** | DB `orora` — `tenants`, `tenant_accounts` (email → tenant), sessions |
+| **Each farmer’s data** | Separate DB `tenant{id}` — users, farms, animals, sales, milk, etc. |
 
-Tenants are identified by **domain** (e.g. `acme.localhost`).
+Farmers do **not** get their own subdomain. Everyone uses **ororafarm.com**; after login, the session points at **their** database.
+
+```
+ororafarm.com/register  →  creates tenant + tenant{id} DB  →  dashboard
+ororafarm.com/login     →  loads that farmer’s DB by email
+```
+
+Default `.env` (no extra domains):
+
+```env
+APP_URL=https://ororafarm.com
+TENANCY_DOMAIN_ROUTES=false
+```
 
 ## Setup
 
@@ -19,131 +33,69 @@ Tenants are identified by **domain** (e.g. `acme.localhost`).
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS orora CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-2. Configure `.env` (already set for MySQL):
+2. Configure `.env` (MySQL + `APP_URL` above).
 
-```
-DB_CONNECTION=mysql
-DB_DATABASE=orora
-DB_USERNAME=root
-DB_PASSWORD=your_password
-```
-
-3. Run central migrations:
+3. Central migrations:
 
 ```bash
 php artisan migrate
 ```
 
-4. Seed the comprehensive demo account (linked farms, animals, sales, milk, health, breeding, etc.):
+4. Optional demo data:
 
 ```bash
-php artisan migrate
 php artisan orora:seed-demo --fresh
 ```
 
-Sign in on the central app at `http://127.0.0.1:8000/` with:
+Sign in at your site URL with:
 
 - **Email:** `demo@ororafarm.rw`
 - **Password:** `password`
 
-Historical demo data spans **2020-01-01 → 2026-06-01** with at least **25 records per module** (configurable via `.env`).
-
-| Variable | Default |
-|----------|---------|
-| `DEMO_DATE_START` | `2020-01-01` |
-| `DEMO_DATE_END` | `2026-06-01` |
-| `DEMO_MIN_RECORDS` | `25` |
-| `DEMO_ANIMAL_COUNT` | `120` |
-| `DEMO_FARM_COUNT` | `4` |
-
-To re-seed without deleting the tenant, set `DEMO_SEED_FORCE=true` in `.env` and run `php artisan db:seed`.
-
-5. Add tenant domains to `/etc/hosts`:
-
-```
-127.0.0.1 localhost
-127.0.0.1 demo.localhost
-127.0.0.1 acme.localhost
-```
-
-6. Start the app:
+5. Local dev:
 
 ```bash
 php artisan serve
 ```
 
-- **Central app:** http://localhost:8000 — manage tenants
-- **Tenant app:** http://demo.localhost:8000 — login, register, and dashboard
+Open `http://127.0.0.1:8000` — same single-domain behaviour.
 
-## Authentication (landing page)
-
-The **login screen is the landing page** at `/`:
+## Authentication
 
 | URL | Purpose |
 |-----|---------|
-| `/` | Sign in (landing page) |
-| `/register` | Create account → dashboard |
-| `/dashboard` | Module hub (after login) |
+| `/` | Sign in |
+| `/register` | New farmer account → own `tenant{id}` database |
+| `/dashboard` | Modules (after login) |
 
-**Main URL** (`http://localhost:8000`) — each **new registration** gets its own tenant database (`tenant{id}`). The signed-in session stores `tenant_id` so the dashboard only shows that account's data.
+Each **registration** creates a new tenant row and database. Login uses `tenant_accounts` + session `tenant_id` to open the correct DB.
 
-`DEFAULT_TENANT_ID=demo` is only a **legacy login fallback** for emails that are not in `tenant_accounts` (e.g. old demo users).
+`DEFAULT_TENANT_ID=demo` is only a fallback for legacy demo emails without a `tenant_accounts` row.
 
-Tenant domains (e.g. `http://demo.localhost:8000`) use domain-based tenancy; each domain has its own user database.
+**Admin:** `/admin/tenants` — list/delete tenants (manual provisioning; domain field hidden in single-domain mode).
 
-**Admin** (manage tenants): `http://localhost:8000/admin/tenants`
+## Production deploy
 
-Users are stored in each tenant's database (`tenant{id}.users`).
-
-Dashboard modules are configured in `config/dashboard.php` — set `enabled` to `true` and add routes when you build each module.
-
-## Creating tenants
-
-Use the central UI at `/tenants` or Tinker:
-
-```php
-$tenant = App\Models\Tenant::create(['id' => 'acme', 'name' => 'Acme Corp']);
-$tenant->domains()->create(['domain' => 'acme.localhost']);
+```bash
+php artisan migrate
+php artisan config:clear
 ```
 
-This automatically creates database `tenantacme` and runs migrations in `database/migrations/tenant/`.
+Do **not** set `TENANCY_DOMAIN_ROUTES=true` unless you intentionally use per-tenant subdomains (advanced; not needed for ororafarm.com).
+
+If you see `TenantCouldNotBeIdentifiedOnDomainException`, deploy the latest code, set `TENANCY_DOMAIN_ROUTES=false`, and run `php artisan config:clear`.
 
 ## Tenant migrations
 
-Add migrations under `database/migrations/tenant/`. They run when a tenant is created and via:
+Migrations for farm data live in `database/migrations/tenant/`. They run when a tenant is created (register or admin) and via:
 
 ```bash
 php artisan tenants:migrate
 ```
 
-## Production (custom domain)
-
-The landing app (sign-in, register, dashboard via session `tenant_id`) only runs on hosts listed in **`CENTRAL_DOMAINS`** (see `config/tenancy.php`). Any other host is treated as a **tenant domain** and must exist in the central `domains` table.
-
-If you see `TenantCouldNotBeIdentifiedOnDomainException` on your public URL, set **`APP_URL`** to your public site (the app host is added to central domains automatically, including `www`):
-
-```
-APP_URL=https://ororafarm.com
-```
-
-Optional extra hosts (local dev, staging):
-
-```
-CENTRAL_DOMAINS=127.0.0.1,localhost
-```
-
-Then clear config cache on the server:
-
-```bash
-php artisan config:clear
-```
-
-Use `www` and apex consistently in DNS and in `CENTRAL_DOMAINS` (include both if users can hit either).
-
 ## Key files
 
-- `app/Models/Tenant.php` — tenant model
-- `config/tenancy.php` — tenancy configuration
-- `routes/web.php` — central (landlord) routes
-- `routes/tenant.php` — tenant routes
-- `app/Providers/TenancyServiceProvider.php` — events (create/delete DB)
+- `app/Services/TenantAccountService.php` — register, login, session tenant
+- `routes/web.php` — all app routes (single domain)
+- `routes/tenant.php` — only loaded if `TENANCY_DOMAIN_ROUTES=true`
+- `config/tenancy.php` — `enable_domain_routes`, `default_tenant_id`

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CentralDomains;
 use App\Services\TenantAccountService;
 use Closure;
 use Illuminate\Http\Request;
@@ -48,7 +49,7 @@ class InitializeDefaultTenant
 
     protected function isCentralDomain(Request $request): bool
     {
-        return in_array($request->getHost(), config('tenancy.central_domains', []), true);
+        return CentralDomains::isCentralHost($request->getHost());
     }
 
     protected function clearStaleAuthState(Request $request): void

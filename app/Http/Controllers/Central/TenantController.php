@@ -24,10 +24,14 @@ class TenantController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $domainRules = config('tenancy.enable_domain_routes', false)
+            ? ['required', 'string', 'max:255', 'unique:domains,domain']
+            : ['nullable', 'string', 'max:255', 'unique:domains,domain'];
+
         $validated = $request->validate([
             'id' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:tenants,id'],
             'name' => ['required', 'string', 'max:255'],
-            'domain' => ['required', 'string', 'max:255', 'unique:domains,domain'],
+            'domain' => $domainRules,
         ]);
 
         $tenant = Tenant::create([
@@ -35,9 +39,11 @@ class TenantController extends Controller
             'name' => $validated['name'],
         ]);
 
-        $tenant->domains()->create([
-            'domain' => $validated['domain'],
-        ]);
+        if (! empty($validated['domain'])) {
+            $tenant->domains()->create([
+                'domain' => $validated['domain'],
+            ]);
+        }
 
         return redirect()
             ->route('central.tenants.index')

@@ -10,7 +10,7 @@
         </div>
 
         @if ($tenants->isEmpty())
-            <p class="muted">No tenants yet. Create one to provision a MySQL database and domain.</p>
+            <p class="muted">No tenants yet. Farmers can register on your site, or create one here for manual provisioning.</p>
         @else
             <table>
                 <thead>
@@ -28,9 +28,13 @@
                             <td><code>{{ $tenant->id }}</code></td>
                             <td>{{ $tenant->name ?? '—' }}</td>
                             <td>
-                                @foreach ($tenant->domains as $domain)
-                                    <a href="http://{{ $domain->domain }}:8000" target="_blank" rel="noopener">{{ $domain->domain }}</a>@if (! $loop->last), @endif
-                                @endforeach
+                                @if ($tenant->domains->isEmpty())
+                                    <span class="muted">—</span>
+                                @else
+                                    @foreach ($tenant->domains as $domain)
+                                        <a href="http://{{ $domain->domain }}:8000" target="_blank" rel="noopener">{{ $domain->domain }}</a>@if (! $loop->last), @endif
+                                    @endforeach
+                                @endif
                             </td>
                             <td><code>tenant{{ $tenant->id }}</code></td>
                             <td>

@@ -21,8 +21,6 @@ class TenantDemoSeeder extends Seeder
                 'id' => $tenantId,
                 'name' => 'Orora Demo Farm',
             ]);
-
-            $tenant->domains()->firstOrCreate(['domain' => 'demo.localhost']);
         }
 
         Artisan::call('tenants:migrate', [

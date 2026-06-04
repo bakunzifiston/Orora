@@ -21,6 +21,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Domain-based tenant routes (routes/tenant.php)
+    |--------------------------------------------------------------------------
+    |
+    | When false (default), the app is served from any host (e.g. ororafarm.com)
+    | using session/cookie tenant identification — no domain must exist in `domains`.
+    | Set true only for local subdomain tenants (e.g. demo.localhost).
+    |
+    */
+
+    'enable_domain_routes' => filter_var(env('TENANCY_DOMAIN_ROUTES', false), FILTER_VALIDATE_BOOL),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default tenant (central domain)
     |--------------------------------------------------------------------------
     |
