@@ -116,6 +116,25 @@ Add migrations under `database/migrations/tenant/`. They run when a tenant is cr
 php artisan tenants:migrate
 ```
 
+## Production (custom domain)
+
+The landing app (sign-in, register, dashboard via session `tenant_id`) only runs on hosts listed in **`CENTRAL_DOMAINS`** (see `config/tenancy.php`). Any other host is treated as a **tenant domain** and must exist in the central `domains` table.
+
+If you see `TenantCouldNotBeIdentifiedOnDomainException` on your public URL, add that host to `.env`:
+
+```
+APP_URL=https://ororafarm.com
+CENTRAL_DOMAINS=127.0.0.1,localhost,ororafarm.com,www.ororafarm.com
+```
+
+Then clear config cache on the server:
+
+```bash
+php artisan config:clear
+```
+
+Use `www` and apex consistently in DNS and in `CENTRAL_DOMAINS` (include both if users can hit either).
+
 ## Key files
 
 - `app/Models/Tenant.php` — tenant model
