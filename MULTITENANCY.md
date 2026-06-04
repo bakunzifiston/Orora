@@ -40,6 +40,19 @@ Or: `php artisan migrate --force`
 
 If registration fails with **Table 'users' doesn't exist**, the app migrations were not run yet — run the command above after deploying the latest code.
 
+## Frontend assets (Vite)
+
+The login/dashboard UI needs compiled assets in `public/build/` (including `manifest.json`).
+
+On your computer (with Node.js):
+
+```bash
+npm ci
+npm run build
+```
+
+Upload the entire **`public/build/`** directory to the server (cPanel File Manager or FTP). Without this folder you get `Vite manifest not found`; the app can fall back to basic styles on auth pages only.
+
 4. Optional demo:
 
 ```bash
