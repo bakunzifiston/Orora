@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — Orora</title>
-    <x-vite-assets :entries="['resources/css/app.css', 'resources/js/app.js']" fallback="dashboard" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('layouts.partials.dashboard-styles')
 </head>
 <body class="font-sans antialiased">
     <div class="dash-app">

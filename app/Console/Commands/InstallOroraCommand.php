@@ -34,10 +34,6 @@ class InstallOroraCommand extends Command
             return self::FAILURE;
         }
 
-        if (! is_file(public_path('build/manifest.json'))) {
-            $this->components->warn('Vite build missing: run "npm ci && npm run build" locally, then upload the public/build/ folder.');
-        }
-
         $this->components->info('Database ready. Farmers can register at /register.');
 
         return self::SUCCESS;

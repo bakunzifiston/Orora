@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') — Orora</title>
-    <x-vite-assets :entries="['resources/css/app.css', 'resources/js/app.js']" fallback="auth" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('layouts.partials.auth-fallback-styles')
 </head>
 <body class="auth-page">
     @php
