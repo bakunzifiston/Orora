@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Models\Animal;
+use App\Models\DiseaseRecord;
 use App\Models\HealthRecord;
 use App\Models\Mortality;
 use App\Models\Treatment;
@@ -63,6 +64,16 @@ class HealthController extends Controller
             ->paginate(15);
 
         return view('modules.health.treatments.index', $this->healthViewData('treatments', compact('treatments')));
+    }
+
+    public function disease(): View
+    {
+        $diseaseRecords = DiseaseRecord::query()
+            ->with(['farm', 'livestock', 'animal'])
+            ->orderByDesc('diagnosis_date')
+            ->paginate(15);
+
+        return view('modules.health.disease.index', $this->healthViewData('disease', compact('diseaseRecords')));
     }
 
     public function vetVisits(): View

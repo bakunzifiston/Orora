@@ -612,6 +612,297 @@
     .dash-health-charts .dash-panel--wide {
         grid-column: 1 / -1;
     }
+    .dash-health-overview {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .dash-health-overview__stats {
+        margin-bottom: 1.25rem;
+    }
+    .dash-health-overview__split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        gap: 1rem;
+    }
+    @media (max-width: 960px) {
+        .dash-health-overview__split {
+            grid-template-columns: 1fr;
+        }
+    }
+    .dash-health-chart-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    .dash-health-chart-head .dash-panel-title {
+        margin-bottom: 0.2rem;
+    }
+    .dash-health-chart-subtitle {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #808080;
+    }
+    .dash-health-chart-kpi {
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #002B2B;
+        background: #f4f8e8;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .dash-health-chart-canvas {
+        position: relative;
+        width: 100%;
+    }
+    .dash-health-chart-canvas--trend {
+        height: 220px;
+    }
+    .dash-health-chart-canvas--donut {
+        height: 220px;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+    .dash-health-chart-canvas--bars {
+        height: 220px;
+    }
+    .dash-health-chart-empty {
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+    }
+    .dash-health-activity__date {
+        color: #808080;
+        margin-left: 0.35rem;
+    }
+    .dash-feed-calc {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .dash-feed-calc__warning {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+    .dash-feed-calc__warning p {
+        margin: 0;
+    }
+    .dash-feed-calc__warning p + p {
+        margin-top: 0.5rem;
+    }
+    .dash-feed-calc__details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem 1.25rem;
+        margin: 0;
+    }
+    .dash-feed-calc__details > div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+    .dash-feed-calc__details dt {
+        font-size: 0.75rem;
+        color: #808080;
+        font-weight: 500;
+    }
+    .dash-feed-calc__details dd {
+        margin: 0;
+        font-size: 0.9375rem;
+        color: #111;
+    }
+    .dash-feed-calc__total {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        background: #f4f8e8;
+        border-radius: 10px;
+        border: 1px solid #e2efc0;
+    }
+    .dash-feed-calc__total-label {
+        font-size: 0.875rem;
+        color: #4b5563;
+    }
+    .dash-feed-calc__total-value {
+        font-size: 1.35rem;
+        color: #002B2B;
+    }
+    .dash-feed-calc__breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+    .dash-feed-calc__stack {
+        display: flex;
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #f0f1f4;
+    }
+    .dash-feed-calc__legend {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .dash-feed-calc__legend li {
+        display: grid;
+        grid-template-columns: 14px 1fr auto;
+        align-items: center;
+        gap: 0.65rem;
+        font-size: 0.875rem;
+    }
+    .dash-feed-calc__swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .dash-feed-calc__legend-label {
+        color: #374151;
+    }
+    .dash-feed-calc__legend-value {
+        color: #111;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .dash-feed-calc__basis {
+        margin: 1rem 0 0;
+        font-size: 0.8125rem;
+        color: #808080;
+    }
+    .dash-feed-calc__reference {
+        margin-top: 1rem;
+    }
+    .dash-feed-calc__reference-summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    .dash-feed-calc__reference-summary::-webkit-details-marker {
+        display: none;
+    }
+    .dash-feed-calc__reference-hint {
+        font-size: 0.75rem;
+        color: #808080;
+    }
+    .dash-feed-calc__reference-body {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f1f4;
+    }
+    .dash-feed-calc__reference-intro {
+        margin: 0 0 1rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+        line-height: 1.5;
+    }
+    .dash-feed-calc__methods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .dash-feed-calc__method-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.85rem 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        color: #4b5563;
+    }
+    .dash-feed-calc__method-card code {
+        font-size: 0.75rem;
+        color: #002B2B;
+        background: #f4f8e8;
+        padding: 0.25rem 0.4rem;
+        border-radius: 4px;
+    }
+    .dash-feed-calc__input-sources {
+        margin: 0 0 1.25rem;
+        font-size: 0.8125rem;
+    }
+    .dash-feed-calc__input-sources dt {
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+    .dash-feed-calc__input-sources dd {
+        margin: 0 0 0.25rem 1rem;
+        color: #4b5563;
+    }
+    .dash-feed-calc__type-block + .dash-feed-calc__type-block {
+        margin-top: 1.25rem;
+    }
+    .dash-feed-calc__type-block h3 {
+        margin: 0 0 0.25rem;
+        font-size: 1rem;
+    }
+    .dash-feed-calc__type-method,
+    .dash-feed-calc__type-note {
+        margin: 0 0 0.65rem;
+        font-size: 0.8125rem;
+        color: #808080;
+    }
+    .dash-feed-calc__explain {
+        background: #f9fafb;
+    }
+    .dash-feed-calc__explain-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem 1.25rem;
+        margin: 0 0 1rem;
+    }
+    .dash-feed-calc__explain-grid dt {
+        font-size: 0.75rem;
+        color: #808080;
+    }
+    .dash-feed-calc__explain-grid dd {
+        margin: 0.15rem 0 0;
+        font-size: 0.875rem;
+    }
+    .dash-feed-calc__mapped {
+        color: #808080;
+        font-size: 0.8125rem;
+    }
+    .dash-feed-calc__params-title {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #808080;
+        margin-bottom: 0.35rem;
+    }
+    .dash-feed-calc__params ul {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.8125rem;
+        color: #374151;
+    }
+    .dash-feed-calc__steps {
+        margin: 0.75rem 0 0;
+        padding-left: 1.25rem;
+        font-size: 0.8125rem;
+        color: #374151;
+        line-height: 1.55;
+    }
     @media (min-width: 1100px) {
         .dash-health-charts {
             grid-template-columns: 1.4fr 1fr;

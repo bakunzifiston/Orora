@@ -24,6 +24,7 @@ $navigationGroups = [
         'items' => [
             ['key' => 'health', 'label' => 'Health', 'route' => 'health.overview', 'icon' => 'health'],
             ['key' => 'feeding', 'label' => 'Feeding', 'route' => 'feeding.overview', 'icon' => 'feeding'],
+            ['key' => 'feed-calculator', 'label' => 'Feed calculator', 'route' => 'feeding.calculator.index', 'icon' => 'calculator'],
             ['key' => 'milk', 'label' => 'Milk', 'route' => 'milk.overview', 'icon' => 'milk'],
             ['key' => 'breeding', 'label' => 'Breeding', 'route' => 'breeding.overview', 'icon' => 'breeding'],
         ],
@@ -534,6 +535,7 @@ return [
         ['key' => 'records', 'label' => 'Feeding records', 'route' => 'feeding.records'],
         ['key' => 'suppliers', 'label' => 'Suppliers', 'route' => 'feeding.suppliers'],
         ['key' => 'schedules', 'label' => 'Schedules', 'route' => 'feeding.schedules'],
+        ['key' => 'calculator', 'label' => 'Feed calculator', 'route' => 'feeding.calculator.index'],
     ],
 
     'feed_units' => ['kg', 'g', 'lb', 'bale', 'bag', 'liter'],
@@ -562,6 +564,7 @@ return [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'health.overview'],
         ['key' => 'vaccinations', 'label' => 'Vaccinations', 'route' => 'health.vaccinations'],
         ['key' => 'treatments', 'label' => 'Treatments', 'route' => 'health.treatments'],
+        ['key' => 'disease', 'label' => 'Disease', 'route' => 'health.disease'],
         ['key' => 'vet-visits', 'label' => 'Vet visits', 'route' => 'health.vet-visits'],
         ['key' => 'mortality', 'label' => 'Mortality', 'route' => 'health.mortality'],
         ['key' => 'timeline', 'label' => 'Timeline', 'route' => 'health.timeline'],
@@ -635,8 +638,49 @@ return [
     'health_section_record_types' => [
         'vaccinations' => ['Vaccination'],
         'treatments' => ['Treatment'],
+        'disease' => ['Illness'],
         'vet-visits' => ['Vet visit', 'Health checkup'],
         'mortality' => ['Mortality'],
+    ],
+
+    'disease_severity_levels' => [
+        'low',
+        'medium',
+        'high',
+        'critical',
+    ],
+
+    'disease_severity_labels' => [
+        'low' => 'Low',
+        'medium' => 'Medium',
+        'high' => 'High',
+        'critical' => 'Critical',
+    ],
+
+    'disease_recovery_statuses' => [
+        'recovering',
+        'recovered',
+        'chronic',
+        'dead',
+    ],
+
+    'disease_recovery_labels' => [
+        'recovering' => 'Recovering',
+        'recovered' => 'Recovered',
+        'chronic' => 'Chronic',
+        'dead' => 'Dead',
+    ],
+
+    'disease_contagious_statuses' => [
+        'unknown',
+        'contagious',
+        'non_contagious',
+    ],
+
+    'disease_contagious_labels' => [
+        'unknown' => 'Unknown',
+        'contagious' => 'Contagious',
+        'non_contagious' => 'Non contagious',
     ],
 
     'production_statuses' => [

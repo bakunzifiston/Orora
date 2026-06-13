@@ -27,12 +27,14 @@ use App\Http\Controllers\ExpenseModuleController;
 use App\Http\Controllers\ExpenseVendorController;
 use App\Http\Controllers\FarmController;
 use App\Http\Controllers\FinanceModuleController;
+use App\Http\Controllers\FeedCalculatorController;
 use App\Http\Controllers\FeedingController;
 use App\Http\Controllers\FeedingModuleController;
 use App\Http\Controllers\FeedingScheduleController;
 use App\Http\Controllers\FeedInventoryController;
 use App\Http\Controllers\FeedSupplierController;
 use App\Http\Controllers\FeedTypeController;
+use App\Http\Controllers\DiseaseRecordController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
@@ -68,6 +70,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('vaccinations', VaccinationController::class)->except(['show', 'index']);
         Route::get('/treatments', [HealthController::class, 'treatments'])->name('treatments');
         Route::resource('treatments', TreatmentController::class)->except(['show', 'index']);
+        Route::get('/disease', [HealthController::class, 'disease'])->name('disease');
+        Route::resource('disease', DiseaseRecordController::class)
+            ->except(['show', 'index'])
+            ->parameters(['disease' => 'diseaseRecord']);
         Route::get('/vet-visits', [HealthController::class, 'vetVisits'])->name('vet-visits');
         Route::resource('vet-visits', VetVisitController::class)
             ->except(['show', 'index'])
@@ -92,6 +98,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('suppliers', FeedSupplierController::class)->except(['show', 'index']);
         Route::get('/schedules', [FeedingScheduleController::class, 'index'])->name('schedules');
         Route::resource('schedules', FeedingScheduleController::class)->except(['show', 'index']);
+        Route::prefix('calculator')->name('calculator.')->group(function () {
+            Route::get('/', [FeedCalculatorController::class, 'index'])->name('index');
+            Route::post('/calculate', [FeedCalculatorController::class, 'calculate'])->name('calculate');
+            Route::get('/livestock', [FeedCalculatorController::class, 'getLivestock'])->name('livestock');
+            Route::get('/animals', [FeedCalculatorController::class, 'getAnimals'])->name('animals');
+        });
     });
     Route::redirect('/feedings', '/feeding/records');
     Route::redirect('/feedings/create', '/feeding/records/create');

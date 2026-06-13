@@ -34,6 +34,17 @@ trait ValidatesFarmRelations
         );
     }
 
+    protected function animalBelongsToLivestock(
+        string $animalKey = 'animal_id',
+        string $livestockKey = 'livestock_id',
+        string $farmKey = 'farm_id',
+    ): \Illuminate\Validation\Rules\Exists {
+        return Rule::exists('animals', 'id')->where(function ($query) use ($farmKey, $livestockKey): void {
+            $query->where('farm_id', $this->input($farmKey))
+                ->where('livestock_id', $this->input($livestockKey));
+        });
+    }
+
     /**
      * @return list<string|\Illuminate\Validation\Rules\Exists>
      */

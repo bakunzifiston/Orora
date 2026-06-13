@@ -9,6 +9,7 @@ use App\Models\PregnancyCheck;
 use App\Models\ExpenseCategory;
 use App\Models\ExpenseVendor;
 use App\Models\FeedInventoryMovement;
+use App\Models\DiseaseRecord;
 use App\Models\Treatment;
 use App\Models\Vaccination;
 use App\Models\VetVisit;
@@ -136,6 +137,18 @@ class ExpenseService
             'expense_date' => $treatment->start_date,
             'title' => 'Treatment: '.$treatment->disease_name.' — '.$treatment->medicine_name,
             'default_vendor_name' => $treatment->veterinarian_name,
+        ];
+    }
+
+    public static function diseaseRecordContext(DiseaseRecord $diseaseRecord): array
+    {
+        return [
+            'farm_id' => $diseaseRecord->farm_id,
+            'animal_id' => $diseaseRecord->animal_id,
+            'livestock_id' => $diseaseRecord->livestock_id,
+            'expense_date' => $diseaseRecord->diagnosis_date,
+            'title' => 'Disease: '.$diseaseRecord->disease_name,
+            'default_vendor_name' => $diseaseRecord->veterinarian_name,
         ];
     }
 

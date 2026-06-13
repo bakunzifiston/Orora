@@ -13,6 +13,8 @@ export default defineConfig({
                 'resources/js/livestock-form.js',
                 'resources/js/animal-form.js',
                 'resources/js/health-form.js',
+                'resources/js/feed-calculator-form.js',
+                'resources/js/health-overview-charts.js',
                 'resources/js/select-other-form.js',
             ],
             refresh: true,

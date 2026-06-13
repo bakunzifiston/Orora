@@ -16,13 +16,21 @@ class HealthOverviewAnalyticsService
     public function chartPayload(?Carbon $now = null): array
     {
         $now ??= Carbon::now();
+        $recordsByMonth = $this->recordsByMonth($now);
+        $animalsByStatus = $this->animalsByStatus();
+        $recordsByType = $this->recordsByTypeChart();
+        $start = $now->copy()->subMonths(self::MONTHS - 1)->startOfMonth();
 
         return [
-            'recordsByMonth' => $this->recordsByMonth($now),
-            'animalsByStatus' => $this->animalsByStatus(),
-            'recordsByType' => $this->recordsByTypeChart(),
+            'recordsByMonth' => $recordsByMonth,
+            'animalsByStatus' => $animalsByStatus,
+            'recordsByType' => $recordsByType,
             'meta' => [
                 'months' => self::MONTHS,
+                'periodLabel' => $start->format('M Y').' – '.$now->format('M Y'),
+                'recordsTotal' => array_sum($recordsByMonth['values']),
+                'animalsTotal' => array_sum($animalsByStatus['values']),
+                'typesTotal' => array_sum($recordsByType['values']),
             ],
         ];
     }
@@ -39,7 +47,7 @@ class HealthOverviewAnalyticsService
 
         for ($i = 0; $i < self::MONTHS; $i++) {
             $month = $start->copy()->addMonths($i);
-            $labels[] = $month->format('M Y');
+            $labels[] = $month->format('M');
             $values[] = HealthRecord::query()
                 ->whereYear('recorded_on', $month->year)
                 ->whereMonth('recorded_on', $month->month)

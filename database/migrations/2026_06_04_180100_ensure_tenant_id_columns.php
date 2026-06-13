@@ -24,6 +24,7 @@ return new class extends Migration
         'treatments',
         'vet_visits',
         'mortalities',
+        'disease_records',
         'feed_suppliers',
         'feed_types',
         'feed_inventories',
