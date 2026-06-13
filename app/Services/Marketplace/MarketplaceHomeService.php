@@ -14,32 +14,41 @@ class MarketplaceHomeService
 {
     public function featuredListings(int $limit = 4): Collection
     {
-        return MarketplaceListing::query()
-            ->active()
-            ->with(['category', 'tenant'])
-            ->orderByDesc('is_featured')
-            ->orderByDesc('created_at')
-            ->limit($limit)
-            ->get();
+        return $this->safeQuery(
+            fn () => MarketplaceListing::query()
+                ->active()
+                ->with(['category', 'tenant'])
+                ->orderByDesc('is_featured')
+                ->orderByDesc('created_at')
+                ->limit($limit)
+                ->get(),
+            collect(),
+        );
     }
 
     public function categories(): Collection
     {
-        return MarketplaceCategory::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        return $this->safeQuery(
+            fn () => MarketplaceCategory::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+            collect(),
+        );
     }
 
     public function latestLearning(int $limit = 3): Collection
     {
-        return LearningPost::query()
-            ->published()
-            ->with('category')
-            ->orderByDesc('published_at')
-            ->limit($limit)
-            ->get();
+        return $this->safeQuery(
+            fn () => LearningPost::query()
+                ->published()
+                ->with('category')
+                ->orderByDesc('published_at')
+                ->limit($limit)
+                ->get(),
+            collect(),
+        );
     }
 
     /**
@@ -154,5 +163,21 @@ class MarketplaceHomeService
                 'label' => $stat['label'],
             ];
         })->all();
+    }
+
+    /**
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @param  T  $default
+     * @return T
+     */
+    private function safeQuery(callable $callback, mixed $default): mixed
+    {
+        try {
+            return $callback();
+        } catch (\Throwable) {
+            return $default;
+        }
     }
 }

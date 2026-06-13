@@ -42,6 +42,16 @@ class InstallOroraCommand extends Command
             $this->components->warn('Vite build missing — upload public/build/ from your computer after npm run build');
         }
 
+        $marketplaceTables = ['marketplace_categories', 'marketplace_listings', 'learning_posts', 'contact_messages'];
+        $missingMarketplace = array_values(array_filter($marketplaceTables, fn (string $table) => ! Schema::hasTable($table)));
+
+        if ($missingMarketplace !== []) {
+            $this->components->warn('Marketplace tables missing: '.implode(', ', $missingMarketplace));
+            $this->line('Deploy the latest code, then run: php artisan migrate --force');
+        } elseif (Schema::hasTable('marketplace_categories') && \App\Models\Central\MarketplaceCategory::query()->count() === 0) {
+            $this->line('Optional: seed marketplace demo content with php artisan db:seed --class=MarketplaceSeeder --force');
+        }
+
         $this->components->info('Database ready. Farmers can register at /register.');
 
         return self::SUCCESS;
