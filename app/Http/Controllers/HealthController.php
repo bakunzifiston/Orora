@@ -13,6 +13,8 @@ use App\Models\VetVisit;
 use App\Models\Vaccination;
 use App\Services\HealthOverviewAnalyticsService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class HealthController extends Controller
@@ -70,12 +72,16 @@ class HealthController extends Controller
 
     public function disease(): View
     {
-        $diseaseRecords = DiseaseRecord::query()
-            ->with(['farm', 'livestock', 'animal'])
-            ->orderByDesc('diagnosis_date')
-            ->paginate(15);
+        $diseaseReady = Schema::hasTable('disease_records');
 
-        return view('modules.health.disease.index', $this->healthSectionData('disease', compact('diseaseRecords')));
+        $diseaseRecords = $diseaseReady
+            ? DiseaseRecord::query()
+                ->with(['farm', 'livestock', 'animal'])
+                ->orderByDesc('diagnosis_date')
+                ->paginate(15)
+            : new LengthAwarePaginator([], 0, 15);
+
+        return view('modules.health.disease.index', $this->healthSectionData('disease', compact('diseaseRecords', 'diseaseReady')));
     }
 
     public function vetVisits(): View

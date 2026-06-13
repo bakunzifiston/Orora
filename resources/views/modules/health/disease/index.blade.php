@@ -12,7 +12,9 @@
     @include('modules.partials.flash')
 
     <div class="dash-panel">
-        @if ($diseaseRecords->isEmpty())
+        @if (empty($diseaseReady))
+            <p class="dash-empty">Disease records are not set up on this server yet. Run <code>php artisan migrate --force</code>, then refresh this page.</p>
+        @elseif ($diseaseRecords->isEmpty())
             <p class="dash-empty">No disease records yet. <a href="{{ route('health.disease.create') }}">Add disease record</a>.</p>
         @else
             <div class="dash-table-wrap">

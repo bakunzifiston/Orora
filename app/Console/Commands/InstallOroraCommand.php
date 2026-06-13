@@ -52,6 +52,10 @@ class InstallOroraCommand extends Command
             $this->line('Optional: seed marketplace demo content with php artisan db:seed --class=MarketplaceSeeder --force');
         }
 
+        if (! Schema::hasTable('disease_records')) {
+            $this->components->warn('disease_records table missing — Health → Disease will fail until you run: php artisan migrate --force');
+        }
+
         $this->components->info('Database ready. Farmers can register at /register.');
 
         return self::SUCCESS;
