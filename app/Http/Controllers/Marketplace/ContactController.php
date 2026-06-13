@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Marketplace;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Marketplace\ContactMessageRequest;
 use App\Models\Central\ContactMessage;
+use App\Services\Marketplace\MarketplaceDatabase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -22,6 +23,12 @@ class ContactController extends Controller
 
     public function store(ContactMessageRequest $request): RedirectResponse
     {
+        if (! MarketplaceDatabase::contactReady()) {
+            return redirect()
+                ->route('marketplace.contact')
+                ->with('error', 'Contact form is temporarily unavailable. Please try again later or email us directly.');
+        }
+
         $data = $request->validated();
 
         ContactMessage::query()->create([

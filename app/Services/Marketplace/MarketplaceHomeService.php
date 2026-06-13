@@ -14,7 +14,7 @@ class MarketplaceHomeService
 {
     public function featuredListings(int $limit = 4): Collection
     {
-        return $this->safeQuery(
+        return MarketplaceDatabase::safe(
             fn () => MarketplaceListing::query()
                 ->active()
                 ->with(['category', 'tenant'])
@@ -28,7 +28,7 @@ class MarketplaceHomeService
 
     public function categories(): Collection
     {
-        return $this->safeQuery(
+        return MarketplaceDatabase::safe(
             fn () => MarketplaceCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -40,7 +40,7 @@ class MarketplaceHomeService
 
     public function latestLearning(int $limit = 3): Collection
     {
-        return $this->safeQuery(
+        return MarketplaceDatabase::safe(
             fn () => LearningPost::query()
                 ->published()
                 ->with('category')
@@ -163,21 +163,5 @@ class MarketplaceHomeService
                 'label' => $stat['label'],
             ];
         })->all();
-    }
-
-    /**
-     * @template T
-     *
-     * @param  callable(): T  $callback
-     * @param  T  $default
-     * @return T
-     */
-    private function safeQuery(callable $callback, mixed $default): mixed
-    {
-        try {
-            return $callback();
-        } catch (\Throwable) {
-            return $default;
-        }
     }
 }

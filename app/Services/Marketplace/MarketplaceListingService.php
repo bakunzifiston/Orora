@@ -13,63 +13,72 @@ class MarketplaceListingService
 {
     public function filter(Request $request, int $perPage = 12): LengthAwarePaginator
     {
-        $query = MarketplaceListing::query()
-            ->active()
-            ->with('category');
-
-        if ($search = $request->input('q')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('breed', 'like', "%{$search}%");
-            });
+        if (! MarketplaceDatabase::shopReady()) {
+            return MarketplaceDatabase::emptyPaginator($perPage);
         }
 
-        if ($categorySlug = $request->input('category')) {
-            $query->whereHas('category', fn ($q) => $q->where('slug', $categorySlug));
-        }
+        return MarketplaceDatabase::safe(function () use ($request, $perPage) {
+            $query = MarketplaceListing::query()
+                ->active()
+                ->with('category');
 
-        if ($district = $request->input('district')) {
-            $query->byDistrict($district);
-        }
+            if ($search = $request->input('q')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('breed', 'like', "%{$search}%");
+                });
+            }
 
-        if ($request->filled('price_min')) {
-            $query->where('price', '>=', (float) $request->input('price_min'));
-        }
+            if ($categorySlug = $request->input('category')) {
+                $query->whereHas('category', fn ($q) => $q->where('slug', $categorySlug));
+            }
 
-        if ($request->filled('price_max')) {
-            $query->where('price', '<=', (float) $request->input('price_max'));
-        }
+            if ($district = $request->input('district')) {
+                $query->byDistrict($district);
+            }
 
-        $sellerTypes = array_filter((array) $request->input('seller_type', []));
-        if ($sellerTypes) {
-            $query->whereIn('seller_type', $sellerTypes);
-        }
+            if ($request->filled('price_min')) {
+                $query->where('price', '>=', (float) $request->input('price_min'));
+            }
 
-        if ($request->boolean('verified')) {
-            $query->verified();
-        }
+            if ($request->filled('price_max')) {
+                $query->where('price', '<=', (float) $request->input('price_max'));
+            }
 
-        match ($request->input('sort', 'newest')) {
-            'price_asc' => $query->orderBy('price'),
-            'price_desc' => $query->orderByDesc('price'),
-            'most_viewed' => $query->orderByDesc('views_count'),
-            default => $query->orderByDesc('created_at'),
-        };
+            $sellerTypes = array_filter((array) $request->input('seller_type', []));
+            if ($sellerTypes) {
+                $query->whereIn('seller_type', $sellerTypes);
+            }
 
-        return $query->paginate($perPage)->withQueryString();
+            if ($request->boolean('verified')) {
+                $query->verified();
+            }
+
+            match ($request->input('sort', 'newest')) {
+                'price_asc' => $query->orderBy('price'),
+                'price_desc' => $query->orderByDesc('price'),
+                'most_viewed' => $query->orderByDesc('views_count'),
+                default => $query->orderByDesc('created_at'),
+            };
+
+            return $query->paginate($perPage)->withQueryString();
+        }, MarketplaceDatabase::emptyPaginator($perPage));
     }
 
     public function related(MarketplaceListing $listing, int $limit = 4)
     {
-        return MarketplaceListing::query()
-            ->active()
-            ->with('category')
-            ->where('category_id', $listing->category_id)
-            ->where('id', '!=', $listing->id)
-            ->orderByDesc('created_at')
-            ->limit($limit)
-            ->get();
+        return MarketplaceDatabase::safe(
+            fn () => MarketplaceListing::query()
+                ->active()
+                ->with('category')
+                ->where('category_id', $listing->category_id)
+                ->where('id', '!=', $listing->id)
+                ->orderByDesc('created_at')
+                ->limit($limit)
+                ->get(),
+            collect(),
+        );
     }
 
     /**

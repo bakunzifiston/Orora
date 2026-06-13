@@ -81,8 +81,12 @@
                         @include('marketplace.shop.partials.listing-card', ['listing' => $listing])
                     @empty
                         <div class="shop-empty">
-                            <p>No listings match your filters.</p>
-                            <a href="{{ route('marketplace.shop') }}" class="lp-link-arrow">View all listings</a>
+                            @if (empty($shopReady))
+                                <p>The marketplace is being set up. Listings will appear here soon.</p>
+                            @else
+                                <p>No listings match your filters.</p>
+                                <a href="{{ route('marketplace.shop') }}" class="lp-link-arrow">View all listings</a>
+                            @endif
                         </div>
                     @endforelse
                 </div>

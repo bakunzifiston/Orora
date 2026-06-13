@@ -7,6 +7,7 @@ use App\Http\Requests\Marketplace\LearningSubscribeRequest;
 use App\Models\Central\LearningCategory;
 use App\Models\Central\LearningPost;
 use App\Services\Marketplace\LearningPostService;
+use App\Services\Marketplace\MarketplaceDatabase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,7 +24,11 @@ class LearningController extends Controller
             'activePage' => 'learning',
             'posts' => $posts,
             'featuredPost' => $this->learning->featured(),
-            'categories' => LearningCategory::query()->active()->orderBy('sort_order')->get(),
+            'categories' => MarketplaceDatabase::safe(
+                fn () => LearningCategory::query()->active()->orderBy('sort_order')->get(),
+                collect(),
+            ),
+            'learningReady' => MarketplaceDatabase::learningReady(),
             'filters' => $request->only(['q', 'type', 'category', 'difficulty', 'language', 'content_type', 'sort']),
             'contentTypes' => config('marketplace.learning.content_types', []),
             'difficultyLevels' => config('marketplace.learning.difficulty_levels', []),
@@ -43,7 +48,11 @@ class LearningController extends Controller
             'category' => $category,
             'posts' => $this->learning->filter($request),
             'counts' => $category->contentCounts(),
-            'categories' => LearningCategory::query()->active()->orderBy('sort_order')->get(),
+            'categories' => MarketplaceDatabase::safe(
+                fn () => LearningCategory::query()->active()->orderBy('sort_order')->get(),
+                collect(),
+            ),
+            'learningReady' => MarketplaceDatabase::learningReady(),
             'filters' => $request->only(['q', 'type', 'difficulty', 'language', 'content_type', 'sort']),
             'contentTypes' => config('marketplace.learning.content_types', []),
             'difficultyLevels' => config('marketplace.learning.difficulty_levels', []),

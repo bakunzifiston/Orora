@@ -9,6 +9,7 @@ use App\Http\Requests\Marketplace\UpdateMarketplaceListingRequest;
 use App\Models\Central\MarketplaceCategory;
 use App\Models\Central\MarketplaceInquiry;
 use App\Models\Central\MarketplaceListing;
+use App\Services\Marketplace\MarketplaceDatabase;
 use App\Services\Marketplace\MarketplaceListingService;
 use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
@@ -26,12 +27,19 @@ class ShopController extends Controller
         return view('marketplace.shop.index', [
             'activePage' => 'shop',
             'listings' => $listings,
-            'categories' => MarketplaceCategory::query()->active()->orderBy('sort_order')->get(),
+            'categories' => MarketplaceDatabase::safe(
+                fn () => MarketplaceCategory::query()->active()->orderBy('sort_order')->get(),
+                collect(),
+            ),
             'filters' => $request->only(['q', 'category', 'district', 'price_min', 'price_max', 'seller_type', 'verified', 'sort']),
             'districts' => config('marketplace.shop.districts', []),
             'sortOptions' => config('marketplace.shop.sort_options', []),
             'sellerTypes' => config('marketplace.shop.seller_types', []),
-            'totalCount' => MarketplaceListing::query()->active()->count(),
+            'totalCount' => MarketplaceDatabase::safe(
+                fn () => MarketplaceListing::query()->active()->count(),
+                0,
+            ),
+            'shopReady' => MarketplaceDatabase::shopReady(),
         ]);
     }
 
@@ -137,7 +145,11 @@ class ShopController extends Controller
 
         return [
             'activePage' => 'shop',
-            'categories' => MarketplaceCategory::query()->active()->orderBy('sort_order')->get(),
+            'categories' => MarketplaceDatabase::safe(
+                fn () => MarketplaceCategory::query()->active()->orderBy('sort_order')->get(),
+                collect(),
+            ),
+            'shopReady' => MarketplaceDatabase::shopReady(),
             'listingTypes' => config('marketplace.shop.listing_types', []),
             'units' => config('marketplace.shop.units', []),
             'priceTypes' => config('marketplace.shop.price_types', []),
