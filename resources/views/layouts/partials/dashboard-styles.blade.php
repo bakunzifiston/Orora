@@ -110,6 +110,32 @@
     .dash-nav span.disabled { color: var(--orora-gray); opacity: 0.7; cursor: not-allowed; }
     .dash-nav-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; opacity: 0.85; }
     .dash-nav a.active .dash-nav-icon { color: var(--orora-button); opacity: 1; }
+    .dash-nav-sub {
+        margin: 0.1rem 0 0.35rem 2.35rem;
+        padding-left: 0.65rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+    .dash-nav-sub__link {
+        display: block;
+        padding: 0.4rem 0.65rem;
+        border-radius: 0.4rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #b8cbcb;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+    }
+    .dash-nav-sub__link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+    .dash-nav-sub__link.is-active {
+        background: rgba(164, 212, 0, 0.12);
+        color: #fff;
+    }
     .dash-user {
         margin: 0 0 0.65rem; padding: 0.85rem 0.75rem; border-radius: 0.5rem;
         background: rgba(255, 255, 255, 0.05); border: 1px solid var(--orora-sidebar-border);

@@ -14,6 +14,8 @@
             'navigation' => $navigation ?? config('modules.navigation'),
             'navigationGroups' => $navigationGroups ?? config('modules.navigation_groups'),
             'activeNav' => $activeNav ?? 'dashboard',
+            'healthSections' => $healthSections ?? config('modules.health_sections'),
+            'activeHealthSection' => $activeHealthSection ?? null,
         ])
 
         <div class="dash-main">

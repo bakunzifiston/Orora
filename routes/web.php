@@ -19,10 +19,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+$registerMarketplaceRoutes = function (): void {
+    require __DIR__.'/marketplace.php';
+};
+
 $registerAppRoutes = function (): void {
     Route::middleware(InitializeDefaultTenant::class)->group(function () {
         Route::middleware('guest')->group(function () {
-            Route::get('/', [LoginController::class, 'create'])->name('login');
+            Route::get('/login', [LoginController::class, 'create'])->name('login');
             Route::post('/login', [LoginController::class, 'store'])->name('login.store');
             Route::get('/register', [RegisterController::class, 'create'])->name('register');
             Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
@@ -56,8 +60,12 @@ $registerAppRoutes = function (): void {
 
 if (config('tenancy.enable_domain_routes', false)) {
     foreach (config('tenancy.central_domains', ['127.0.0.1', 'localhost']) as $domain) {
-        Route::domain($domain)->group($registerAppRoutes);
+        Route::domain($domain)->group(function () use ($registerMarketplaceRoutes, $registerAppRoutes) {
+            $registerMarketplaceRoutes();
+            $registerAppRoutes();
+        });
     }
 } else {
+    $registerMarketplaceRoutes();
     $registerAppRoutes();
 }

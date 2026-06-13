@@ -1,0 +1,703 @@
+/* Orora Farm — About page */
+
+.ab-section {
+    padding: 4.5rem 0;
+}
+
+.ab-section--tint {
+    background: var(--lp-green-light, #f1f8e9);
+}
+
+.ab-section--grey {
+    background: var(--lp-grey, #f5f5f5);
+}
+
+.ab-section--dark {
+    background: var(--lp-green, #1b5e20);
+    color: #fff;
+}
+
+.ab-section__header {
+    margin-bottom: 2.5rem;
+}
+
+.ab-section__header--center {
+    text-align: center;
+}
+
+.ab-section__title {
+    color: var(--lp-green, #1b5e20);
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ab-section__title--center {
+    text-align: center;
+}
+
+.ab-section__title--light {
+    color: #fff;
+}
+
+.ab-section__subtitle {
+    color: var(--lp-muted, #5f6368);
+    margin: 0;
+    font-size: 1.0625rem;
+}
+
+.ab-prose {
+    color: var(--lp-text, #1a2e1a);
+    margin: 0 0 1rem;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+}
+
+.ab-prose:last-child {
+    margin-bottom: 0;
+}
+
+/* Buttons */
+.ab-btn {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    justify-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.75rem 1.5rem;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+    display: inline-flex;
+}
+
+.ab-btn--lg {
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+}
+
+.ab-btn--primary {
+    background: var(--lp-green, #1b5e20);
+    color: #fff;
+}
+
+.ab-btn--primary:hover {
+    background: var(--lp-green-dark, #144717);
+    transform: translateY(-1px);
+}
+
+.ab-btn--outline-light {
+    color: #fff;
+    border-color: #ffffffbf;
+    background: #ffffff1a;
+}
+
+.ab-btn--outline-light:hover {
+    background: #fff3;
+    border-color: #fff;
+}
+
+.ab-btn--dark {
+    background: var(--lp-green, #1b5e20);
+    color: #fff;
+}
+
+.ab-btn--dark:hover {
+    background: var(--lp-green-dark, #144717);
+}
+
+.ab-btn--outline-dark {
+    color: var(--lp-green, #1b5e20);
+    border-color: var(--lp-green, #1b5e20);
+    background: transparent;
+}
+
+.ab-btn--outline-dark:hover {
+    background: #1b5e200f;
+}
+
+/* Hero */
+.ab-hero {
+    background-image: var(--ab-hero-bg);
+    background-position: center;
+    background-size: cover;
+    background-color: var(--lp-green-dark, #144717);
+    min-height: clamp(22rem, 55vh, 32rem);
+    position: relative;
+    place-items: center;
+    display: grid;
+}
+
+.ab-hero__overlay {
+    background: linear-gradient(135deg, #1b5e20e6 0%, #144717d9 100%);
+    position: absolute;
+    inset: 0;
+}
+
+.ab-hero__inner {
+    z-index: 1;
+    color: #fff;
+    text-align: center;
+    max-width: 46rem;
+    padding: 4rem 0;
+    position: relative;
+}
+
+.ab-hero__title {
+    margin: 0 0 1.25rem;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.ab-hero__title span {
+    display: block;
+}
+
+.ab-hero__subtitle {
+    opacity: 0.95;
+    margin: 0 auto 2rem;
+    max-width: 38rem;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    line-height: 1.65;
+}
+
+.ab-hero__actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    display: flex;
+}
+
+/* Our Story */
+.ab-story__grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 3rem;
+    display: grid;
+}
+
+.ab-story__image,
+.ab-rwanda__image {
+    border-radius: var(--lp-radius, 12px);
+    object-fit: cover;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    box-shadow: var(--lp-shadow-lg, 0 12px 40px #1b5e201f);
+}
+
+.ab-story__copy {
+    border-left: 4px solid var(--lp-green, #1b5e20);
+    padding-left: 1.75rem;
+}
+
+/* Mission */
+.ab-mission__quote {
+    color: var(--lp-green, #1b5e20);
+    text-align: center;
+    margin: 0 auto 3rem;
+    max-width: 52rem;
+    font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.65;
+}
+
+.ab-mission__mark {
+    color: var(--lp-gold, #f9a825);
+    font-style: normal;
+}
+
+.ab-mission__pillars {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    display: grid;
+}
+
+.ab-mission__pillar {
+    background: #fff;
+    border-radius: var(--lp-radius, 12px);
+    text-align: center;
+    padding: 1.75rem 1.25rem;
+    box-shadow: var(--lp-shadow, 0 4px 24px #1b5e2014);
+}
+
+.ab-mission__pillar-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.ab-mission__pillar-title {
+    color: var(--lp-green, #1b5e20);
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.ab-mission__pillar-text {
+    color: var(--lp-muted, #5f6368);
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+}
+
+/* What We Offer */
+.ab-offer__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    display: grid;
+}
+
+.ab-offer-card {
+    background: #fff;
+    border: 1px solid #e8ece8;
+    border-radius: var(--lp-radius, 12px);
+    padding: 1.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ab-offer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--lp-shadow-lg, 0 12px 40px #1b5e201f);
+}
+
+.ab-offer-card__icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.ab-offer-card__title {
+    color: var(--lp-green, #1b5e20);
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.ab-offer-card__text {
+    color: var(--lp-muted, #5f6368);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.ab-offer-card__link {
+    color: var(--lp-green, #1b5e20);
+    margin-top: 1rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.ab-offer-card__link:hover {
+    text-decoration: underline;
+}
+
+/* Values */
+.ab-values__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem 1.5rem;
+    margin-top: 2.5rem;
+    display: grid;
+}
+
+.ab-value__icon {
+    color: var(--lp-gold, #f9a825);
+    font-size: 1.75rem;
+    display: block;
+    margin-bottom: 0.65rem;
+}
+
+.ab-value__title {
+    margin: 0 0 0.35rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.ab-value__text {
+    opacity: 0.9;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+}
+
+/* Stats */
+.ab-stats__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    display: grid;
+}
+
+.ab-stat {
+    background: var(--lp-grey, #f5f5f5);
+    border-radius: var(--lp-radius, 12px);
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.ab-stat__value {
+    color: var(--lp-green, #1b5e20);
+    margin-bottom: 0.35rem;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.ab-stat__label {
+    color: var(--lp-muted, #5f6368);
+    font-size: 0.9375rem;
+}
+
+/* Team */
+.ab-team__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    display: grid;
+}
+
+.ab-team-card {
+    background: #fff;
+    border-radius: var(--lp-radius, 12px);
+    text-align: center;
+    padding: 2rem 1.5rem;
+    transition: transform 0.2s;
+    box-shadow: var(--lp-shadow, 0 4px 24px #1b5e2014);
+}
+
+.ab-team-card:hover {
+    transform: scale(1.03);
+}
+
+.ab-team-card__avatar,
+.ab-team-card__photo {
+    object-fit: cover;
+    border-radius: 50%;
+    width: 6rem;
+    height: 6rem;
+    margin: 0 auto 1rem;
+}
+
+.ab-team-card__avatar {
+    background: var(--lp-green-light, #f1f8e9);
+    color: var(--lp-green, #1b5e20);
+    place-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: grid;
+}
+
+.ab-team-card__name {
+    color: var(--lp-green, #1b5e20);
+    margin: 0 0 0.25rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.ab-team-card__role {
+    color: var(--lp-muted, #5f6368);
+    margin: 0 0 0.75rem;
+    font-size: 0.9375rem;
+}
+
+.ab-team-card__linkedin {
+    color: var(--lp-green, #1b5e20);
+    justify-content: center;
+    align-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-inline: auto;
+    border-radius: 50%;
+    transition: background 0.15s, color 0.15s;
+    display: inline-flex;
+}
+
+.ab-team-card__linkedin:hover {
+    background: var(--lp-green-light, #f1f8e9);
+    color: var(--lp-green-dark, #144717);
+}
+
+/* Why Rwanda */
+.ab-rwanda__grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 3rem;
+    display: grid;
+}
+
+/* Testimonials */
+.ab-testimonials__slider {
+    min-height: 14rem;
+    margin: 2rem auto 1.5rem;
+    max-width: 52rem;
+    position: relative;
+}
+
+.ab-testimonial {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s;
+    position: absolute;
+    inset: 0;
+}
+
+.ab-testimonial.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+}
+
+.ab-testimonial__mark {
+    color: var(--lp-gold, #f9a825);
+    font-size: 2rem;
+    line-height: 1;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.ab-testimonial__quote {
+    color: var(--lp-text, #1a2e1a);
+    margin: 0 0 1.5rem;
+    font-size: clamp(1.0625rem, 2vw, 1.25rem);
+    font-style: italic;
+    line-height: 1.65;
+}
+
+.ab-testimonial__author {
+    align-items: center;
+    gap: 1rem;
+    display: flex;
+}
+
+.ab-testimonial__avatar {
+    background: var(--lp-green, #1b5e20);
+    color: #fff;
+    border-radius: 50%;
+    flex-shrink: 0;
+    place-content: center;
+    width: 3rem;
+    height: 3rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    display: grid;
+}
+
+.ab-testimonial__name {
+    color: var(--lp-green, #1b5e20);
+    font-style: normal;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.ab-testimonial__role {
+    color: var(--lp-muted, #5f6368);
+    margin: 0.15rem 0 0;
+    font-size: 0.875rem;
+}
+
+.ab-testimonials__dots {
+    justify-content: center;
+    gap: 0.5rem;
+    display: flex;
+}
+
+.ab-testimonials__dot {
+    cursor: pointer;
+    background: #1b5e2040;
+    border: none;
+    border-radius: 50%;
+    width: 0.625rem;
+    height: 0.625rem;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.ab-testimonials__dot.is-active {
+    background: var(--lp-green, #1b5e20);
+    transform: scale(1.2);
+}
+
+/* Partners */
+.ab-partners__grid {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem 2.5rem;
+    margin-top: 2rem;
+    display: flex;
+}
+
+.ab-partner {
+    filter: grayscale(1);
+    opacity: 0.65;
+    text-align: center;
+    transition: filter 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+.ab-partner:hover {
+    filter: grayscale(0);
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.ab-partner__logo {
+    background: var(--lp-grey, #f5f5f5);
+    color: var(--lp-muted, #5f6368);
+    border-radius: var(--lp-radius, 12px);
+    place-content: center;
+    width: 5rem;
+    height: 3.5rem;
+    margin: 0 auto 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    display: grid;
+}
+
+.ab-partner__name {
+    color: var(--lp-muted, #5f6368);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.ab-partner:hover .ab-partner__logo {
+    background: var(--lp-green-light, #f1f8e9);
+    color: var(--lp-green, #1b5e20);
+}
+
+.ab-partner:hover .ab-partner__name {
+    color: var(--lp-green, #1b5e20);
+}
+
+/* CTA */
+.ab-cta {
+    background: var(--lp-gold, #f9a825);
+    text-align: center;
+    padding: 4rem 0;
+}
+
+.ab-cta__title {
+    color: var(--lp-green, #1b5e20);
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+}
+
+.ab-cta__subtitle {
+    color: var(--lp-green-dark, #144717);
+    margin: 0 auto 2rem;
+    max-width: 36rem;
+    font-size: 1.0625rem;
+}
+
+.ab-cta__actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    display: flex;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+    .ab-mission__pillars,
+    .ab-values__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ab-stats__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ab-team__grid {
+        grid-template-columns: 1fr;
+        max-width: 22rem;
+        margin-inline: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .ab-section {
+        padding: 3rem 0;
+    }
+
+    .ab-story__grid,
+    .ab-rwanda__grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .ab-story__copy {
+        border-left: none;
+        border-top: 4px solid var(--lp-green, #1b5e20);
+        padding-top: 1.25rem;
+        padding-left: 0;
+    }
+
+    .ab-rwanda__visual {
+        order: -1;
+    }
+
+    .ab-offer__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ab-hero__inner {
+        padding: 3rem 0;
+    }
+
+    .ab-partners__grid {
+        gap: 1.5rem;
+    }
+
+    .ab-partner {
+        flex: 0 0 calc(33.333% - 1rem);
+    }
+}
+
+@media (max-width: 480px) {
+    .ab-stats__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ab-partner {
+        flex: 0 0 calc(50% - 0.75rem);
+    }
+}
+
+/* Shared compact page hero (contact page) */
+.mp-page-hero {
+    background: var(--lp-green-light, #f1f8e9);
+    padding: 3rem 0;
+}
+
+.mp-page-hero--compact {
+    padding: 2.5rem 0;
+}
+
+.mp-page-hero__title {
+    color: var(--lp-green, #1b5e20);
+    margin: 0;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+}
+
+.mp-page-hero__subtitle {
+    color: var(--lp-muted, #5f6368);
+    margin: 0.75rem 0 0;
+    font-size: 1.0625rem;
+    max-width: 36rem;
+}
+
+.mp-eyebrow {
+    color: var(--lp-green, #1b5e20);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}

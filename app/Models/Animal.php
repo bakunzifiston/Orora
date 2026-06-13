@@ -128,6 +128,11 @@ class Animal extends TenantModel
         return $this->hasMany(Vaccination::class);
     }
 
+    public function treatments(): HasMany
+    {
+        return $this->hasMany(Treatment::class);
+    }
+
     protected function photoUrl(): Attribute
     {
         return Attribute::get(fn () => TenantStorageUrl::forPublicDisk($this->photo_path));
