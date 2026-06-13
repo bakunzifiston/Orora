@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\MortalityRequest;
 use App\Models\Animal;
@@ -13,11 +14,12 @@ use Illuminate\View\View;
 
 class MortalityController extends Controller
 {
+    use HealthSectionViews;
     use ProvidesModuleNavigation;
 
     public function create(): View
     {
-        return view('modules.health.mortalities.create', $this->healthViewData([
+        return view('modules.health.mortalities.create', $this->healthSectionData('mortality', [
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
         ]));
     }
@@ -43,7 +45,7 @@ class MortalityController extends Controller
     {
         $mortality->load(['animal', 'farm']);
 
-        return view('modules.health.mortalities.edit', $this->healthViewData([
+        return view('modules.health.mortalities.edit', $this->healthSectionData('mortality', [
             'mortality' => $mortality,
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
         ]));
@@ -132,13 +134,5 @@ class MortalityController extends Controller
             $record = HealthRecord::create($healthData);
             $mortality->update(['health_record_id' => $record->id]);
         }
-    }
-
-    private function healthViewData(array $data = []): array
-    {
-        return array_merge($this->moduleViewData('health', [
-            'activeHealthSection' => 'mortality',
-            'healthSections' => config('modules.health_sections'),
-        ]), $data);
     }
 }

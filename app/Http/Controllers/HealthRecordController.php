@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\HealthRecordRequest;
 use App\Models\Animal;
@@ -13,6 +14,7 @@ use Illuminate\View\View;
 
 class HealthRecordController extends Controller
 {
+    use HealthSectionViews;
     use ProvidesModuleNavigation;
 
     public function create(Request $request): View
@@ -24,7 +26,7 @@ class HealthRecordController extends Controller
             $defaultType = null;
         }
 
-        return view('modules.health.create', $this->healthViewData(array_merge($this->formOptions(), [
+        return view('modules.health.create', $this->healthSectionData($returnSection, array_merge($this->formOptions(), [
             'defaultType' => $defaultType,
             'returnSection' => $returnSection,
         ])));
@@ -42,7 +44,7 @@ class HealthRecordController extends Controller
 
     public function edit(HealthRecord $record, Request $request): View
     {
-        return view('modules.health.edit', $this->healthViewData(array_merge($this->formOptions(), [
+        return view('modules.health.edit', $this->healthSectionData($request->query('section', $this->sectionKeyForRecord($record)), array_merge($this->formOptions(), [
             'healthRecord' => $record,
             'returnSection' => $request->query('section', $this->sectionKeyForRecord($record)),
         ])));
@@ -111,15 +113,5 @@ class HealthRecordController extends Controller
             ->firstWhere('key', $section)['route'] ?? 'health.overview';
 
         return $route;
-    }
-
-    private function healthViewData(array $data = []): array
-    {
-        $section = $data['returnSection'] ?? 'overview';
-
-        return array_merge($this->moduleViewData('health', [
-            'activeHealthSection' => $section,
-            'healthSections' => config('modules.health_sections'),
-        ]), $data);
     }
 }

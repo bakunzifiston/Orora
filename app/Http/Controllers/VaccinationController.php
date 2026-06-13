@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\VaccinationRequest;
 use App\Models\Animal;
@@ -15,13 +16,14 @@ use Illuminate\View\View;
 
 class VaccinationController extends Controller
 {
+    use HealthSectionViews;
     use ProvidesModuleNavigation;
 
     public function __construct(private ExpenseService $expenseService) {}
 
     public function create(): View
     {
-        return view('modules.health.vaccinations.create', $this->healthViewData([
+        return view('modules.health.vaccinations.create', $this->healthSectionData('vaccinations', [
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
@@ -48,7 +50,7 @@ class VaccinationController extends Controller
     {
         $vaccination->load(['animal', 'farm', 'expense.vendor']);
 
-        return view('modules.health.vaccinations.edit', $this->healthViewData([
+        return view('modules.health.vaccinations.edit', $this->healthSectionData('vaccinations', [
             'vaccination' => $vaccination,
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
@@ -134,13 +136,5 @@ class VaccinationController extends Controller
             $record = HealthRecord::create($healthData);
             $vaccination->update(['health_record_id' => $record->id]);
         }
-    }
-
-    private function healthViewData(array $data = []): array
-    {
-        return array_merge($this->moduleViewData('health', [
-            'activeHealthSection' => 'vaccinations',
-            'healthSections' => config('modules.health_sections'),
-        ]), $data);
     }
 }

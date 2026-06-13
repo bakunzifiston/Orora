@@ -1,8 +1,6 @@
 @php
     $activeNav = $activeNav ?? 'dashboard';
     $navigationGroups = $navigationGroups ?? config('modules.navigation_groups', []);
-    $healthSections = $healthSections ?? config('modules.health_sections', []);
-    $activeHealthSection = $activeHealthSection ?? null;
     $user = auth()->user();
     $initials = collect(explode(' ', $user->name))->map(fn ($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
 @endphp
@@ -25,20 +23,6 @@
                                 @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
                                 {{ $item['label'] }}
                             </a>
-                            @if ($item['key'] === 'health' && $activeNav === 'health')
-                                <div class="dash-nav-sub" aria-label="Health sections">
-                                    @foreach ($healthSections as $section)
-                                        @if (! empty($section['route']) && Route::has($section['route']))
-                                            <a
-                                                href="{{ route($section['route']) }}"
-                                                class="dash-nav-sub__link {{ $activeHealthSection === $section['key'] ? 'is-active' : '' }}"
-                                            >
-                                                {{ $section['label'] }}
-                                            </a>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @endif
                         @else
                             <span class="disabled" title="Coming soon">
                                 @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])

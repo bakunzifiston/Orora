@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Models\Animal;
 use App\Models\DiseaseRecord;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class HealthController extends Controller
 {
+    use HealthSectionViews;
     use ProvidesModuleNavigation;
 
     public function overview(HealthOverviewAnalyticsService $analytics): View
@@ -43,7 +45,7 @@ class HealthController extends Controller
 
         $charts = $analytics->chartPayload();
 
-        return view('modules.health.overview', $this->healthViewData('overview', compact('stats', 'recentRecords', 'charts')));
+        return view('modules.health.overview', $this->healthSectionData('overview', compact('stats', 'recentRecords', 'charts')));
     }
 
     public function vaccinations(): View
@@ -53,7 +55,7 @@ class HealthController extends Controller
             ->orderByDesc('vaccination_date')
             ->paginate(15);
 
-        return view('modules.health.vaccinations.index', $this->healthViewData('vaccinations', compact('vaccinations')));
+        return view('modules.health.vaccinations.index', $this->healthSectionData('vaccinations', compact('vaccinations')));
     }
 
     public function treatments(): View
@@ -63,7 +65,7 @@ class HealthController extends Controller
             ->orderByDesc('start_date')
             ->paginate(15);
 
-        return view('modules.health.treatments.index', $this->healthViewData('treatments', compact('treatments')));
+        return view('modules.health.treatments.index', $this->healthSectionData('treatments', compact('treatments')));
     }
 
     public function disease(): View
@@ -73,7 +75,7 @@ class HealthController extends Controller
             ->orderByDesc('diagnosis_date')
             ->paginate(15);
 
-        return view('modules.health.disease.index', $this->healthViewData('disease', compact('diseaseRecords')));
+        return view('modules.health.disease.index', $this->healthSectionData('disease', compact('diseaseRecords')));
     }
 
     public function vetVisits(): View
@@ -83,7 +85,7 @@ class HealthController extends Controller
             ->orderByDesc('start_date')
             ->paginate(15);
 
-        return view('modules.health.vet-visits.index', $this->healthViewData('vet-visits', compact('vetVisits')));
+        return view('modules.health.vet-visits.index', $this->healthSectionData('vet-visits', compact('vetVisits')));
     }
 
     public function mortality(): View
@@ -103,7 +105,7 @@ class HealthController extends Controller
             ->limit(10)
             ->get();
 
-        return view('modules.health.mortalities.index', $this->healthViewData('mortality', compact('mortalities', 'deceasedAnimals')));
+        return view('modules.health.mortalities.index', $this->healthSectionData('mortality', compact('mortalities', 'deceasedAnimals')));
     }
 
     public function timeline(): View
@@ -114,7 +116,7 @@ class HealthController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return view('modules.health.timeline', $this->healthViewData('timeline', compact('healthRecords')));
+        return view('modules.health.timeline', $this->healthSectionData('timeline', compact('healthRecords')));
     }
 
     private function recordsSection(string $section, string $title, string $subtitle): View
@@ -127,14 +129,6 @@ class HealthController extends Controller
             ->orderByDesc('recorded_on')
             ->paginate(15);
 
-        return view('modules.health.records', $this->healthViewData($section, compact('healthRecords', 'title', 'subtitle', 'section')));
-    }
-
-    private function healthViewData(string $activeSection, array $data = []): array
-    {
-        return array_merge($this->moduleViewData('health', [
-            'activeHealthSection' => $activeSection,
-            'healthSections' => config('modules.health_sections'),
-        ]), $data);
+        return view('modules.health.records', $this->healthSectionData($section, compact('healthRecords', 'title', 'subtitle', 'section')));
     }
 }

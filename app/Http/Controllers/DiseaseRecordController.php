@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\DiseaseRecordRequest;
 use App\Models\Animal;
@@ -18,6 +19,7 @@ use Illuminate\View\View;
 
 class DiseaseRecordController extends Controller
 {
+    use HealthSectionViews;
     use ProvidesModuleNavigation;
 
     public function __construct(
@@ -27,7 +29,7 @@ class DiseaseRecordController extends Controller
 
     public function create(): View
     {
-        return view('modules.health.disease.create', $this->healthViewData(array_merge(
+        return view('modules.health.disease.create', $this->healthSectionData('disease', array_merge(
             $this->formOptions(),
             [
                 'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
@@ -62,7 +64,7 @@ class DiseaseRecordController extends Controller
     {
         $diseaseRecord->load(['animal.farm', 'farm', 'livestock', 'expense.vendor']);
 
-        return view('modules.health.disease.edit', $this->healthViewData(array_merge(
+        return view('modules.health.disease.edit', $this->healthSectionData('disease', array_merge(
             $this->formOptions($diseaseRecord),
             [
                 'diseaseRecord' => $diseaseRecord,
@@ -224,13 +226,5 @@ class DiseaseRecordController extends Controller
             'dead' => 'Deceased',
             default => 'Sick',
         };
-    }
-
-    private function healthViewData(array $data = []): array
-    {
-        return array_merge($this->moduleViewData('health', [
-            'activeHealthSection' => 'disease',
-            'healthSections' => config('modules.health_sections'),
-        ]), $data);
     }
 }

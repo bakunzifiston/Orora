@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\VetVisitRequest;
 use App\Models\Animal;
@@ -15,13 +16,14 @@ use Illuminate\View\View;
 
 class VetVisitController extends Controller
 {
+    use HealthSectionViews;
     use ProvidesModuleNavigation;
 
     public function __construct(private ExpenseService $expenseService) {}
 
     public function create(): View
     {
-        return view('modules.health.vet-visits.create', $this->healthViewData([
+        return view('modules.health.vet-visits.create', $this->healthSectionData('vet-visits', [
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ]));
@@ -48,7 +50,7 @@ class VetVisitController extends Controller
     {
         $vetVisit->load(['animal', 'farm', 'expense.vendor']);
 
-        return view('modules.health.vet-visits.edit', $this->healthViewData([
+        return view('modules.health.vet-visits.edit', $this->healthSectionData('vet-visits', [
             'vetVisit' => $vetVisit,
             'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
@@ -147,13 +149,5 @@ class VetVisitController extends Controller
             'Ongoing' => 'Under treatment',
             default => $vetVisit->animal->health_status,
         };
-    }
-
-    private function healthViewData(array $data = []): array
-    {
-        return array_merge($this->moduleViewData('health', [
-            'activeHealthSection' => 'vet-visits',
-            'healthSections' => config('modules.health_sections'),
-        ]), $data);
     }
 }
