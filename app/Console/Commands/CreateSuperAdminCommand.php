@@ -25,9 +25,15 @@ class CreateSuperAdminCommand extends Command
             return self::FAILURE;
         }
 
-        $name = $this->option('name') ?: $this->ask('Name', 'Super Admin');
-        $email = $this->option('email') ?: $this->ask('Email');
-        $password = $this->option('password') ?: $this->secret('Password (min 8 characters)');
+        $name = $this->option('name')
+            ?: config('admin.super_admin.name')
+            ?: $this->ask('Name', 'Super Admin');
+        $email = $this->option('email')
+            ?: config('admin.super_admin.email')
+            ?: $this->ask('Email');
+        $password = $this->option('password')
+            ?: config('admin.super_admin.password')
+            ?: $this->secret('Password (min 8 characters)');
 
         $validator = Validator::make(compact('name', 'email', 'password'), [
             'name' => ['required', 'string', 'max:255'],
@@ -58,7 +64,8 @@ class CreateSuperAdminCommand extends Command
         }
 
         $this->components->info($admin->wasRecentlyCreated ? 'Super admin created.' : 'Super admin updated.');
-        $this->line('Sign in at: '.url('/admin/login'));
+        $this->line('Email: '.$admin->email);
+        $this->line('Sign in at: '.url('/login').' (you will be redirected to /admin)');
 
         return self::SUCCESS;
     }
