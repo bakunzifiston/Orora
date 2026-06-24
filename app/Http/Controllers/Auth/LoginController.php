@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Central\AdminUser;
 use App\Services\TenantAccountService;
 use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +18,10 @@ class LoginController extends Controller
 
     public function create(): View|RedirectResponse
     {
+        if (Auth::guard('admin')->check()) {
+            return redirect('/admin');
+        }
+
         if (auth()->check()) {
             return redirect()->route('dashboard');
         }
@@ -26,9 +31,24 @@ class LoginController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $guard = $request->authenticate();
 
         $request->session()->regenerate();
+
+        if ($guard === 'admin') {
+            Auth::guard('web')->logout();
+
+            /** @var AdminUser $admin */
+            $admin = Auth::guard('admin')->user();
+            $admin->update(['last_login_at' => now()]);
+
+            $request->session()->forget(['tenant_id', 'auth_email']);
+            $this->tenantAccounts->forgetTenantCookies();
+
+            return redirect()->intended('/admin');
+        }
+
+        Auth::guard('admin')->logout();
 
         if (TenantContext::isActive()) {
             $email = Str::lower($request->input('email'));
@@ -47,7 +67,8 @@ class LoginController extends Controller
 
     public function destroy(): RedirectResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
+        Auth::guard('admin')->logout();
 
         request()->session()->invalidate();
         request()->session()->regenerateToken();

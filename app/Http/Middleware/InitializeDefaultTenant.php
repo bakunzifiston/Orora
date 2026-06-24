@@ -16,6 +16,10 @@ class InitializeDefaultTenant
 
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->is('admin', 'admin/*')) {
+            return $next($request);
+        }
+
         if (! $this->isCentralDomain($request)) {
             return $next($request);
         }

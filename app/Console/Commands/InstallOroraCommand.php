@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\SuperAdminSetup;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 
@@ -54,6 +55,18 @@ class InstallOroraCommand extends Command
 
         if (! Schema::hasTable('disease_records')) {
             $this->components->warn('disease_records table missing — Health → Disease will fail until you run: php artisan migrate --force');
+        }
+
+        if (! Schema::connection('central')->hasTable('admin_users')) {
+            $this->components->warn('admin_users table missing — run: php artisan migrate --force');
+        } elseif (! SuperAdminSetup::hasAccounts()) {
+            if (SuperAdminSetup::configuredCredentials()) {
+                SuperAdminSetup::ensureFromConfig();
+                $this->components->info('Super admin created from SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD in .env');
+            } else {
+                $this->line('Create a super admin with: php artisan orora:super-admin');
+                $this->line('Or set SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD in .env, then run orora:install again.');
+            }
         }
 
         $this->components->info('Database ready. Farmers can register at /register.');

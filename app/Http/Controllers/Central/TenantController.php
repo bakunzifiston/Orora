@@ -14,12 +14,17 @@ class TenantController extends Controller
     {
         $tenants = Tenant::with('domains')->orderBy('created_at', 'desc')->get();
 
-        return view('central.tenants.index', compact('tenants'));
+        return view('central.tenants.index', [
+            'activeNav' => 'tenants',
+            'tenants' => $tenants,
+        ]);
     }
 
     public function create(): View
     {
-        return view('central.tenants.create');
+        return view('central.tenants.create', [
+            'activeNav' => 'tenants',
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

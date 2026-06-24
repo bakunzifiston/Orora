@@ -1,53 +1,59 @@
-@extends('layouts.central')
+@extends('layouts.admin')
 
 @section('title', 'Tenants')
 
 @section('content')
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2 style="margin: 0;">Tenants</h2>
-            <a href="{{ route('central.tenants.create') }}" class="btn btn-primary">New tenant</a>
-        </div>
+    @include('modules.partials.header', [
+        'title' => 'Tenants',
+        'subtitle' => 'Farmer workspaces registered on the platform.',
+        'createRoute' => 'central.tenants.create',
+        'createLabel' => '+ New tenant',
+    ])
 
+    <div class="dash-panel">
         @if ($tenants->isEmpty())
-            <p class="muted">No tenants yet. Farmers can register on your site, or create one here for manual provisioning.</p>
+            <p class="dash-empty">No tenants yet. Farmers can register on your site, or <a href="{{ route('central.tenants.create') }}">create one manually</a>.</p>
         @else
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Domains</th>
-                        <th>Database</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($tenants as $tenant)
+            <div class="dash-table-wrap">
+                <table class="dash-table">
+                    <thead>
                         <tr>
-                            <td><code>{{ $tenant->id }}</code></td>
-                            <td>{{ $tenant->name ?? '—' }}</td>
-                            <td>
-                                @if ($tenant->domains->isEmpty())
-                                    <span class="muted">—</span>
-                                @else
-                                    @foreach ($tenant->domains as $domain)
-                                        <a href="http://{{ $domain->domain }}:8000" target="_blank" rel="noopener">{{ $domain->domain }}</a>@if (! $loop->last), @endif
-                                    @endforeach
-                                @endif
-                            </td>
-                            <td><code>tenant{{ $tenant->id }}</code></td>
-                            <td>
-                                <form action="{{ route('central.tenants.destroy', $tenant) }}" method="post" style="display: inline;" onsubmit="return confirm('Delete this tenant and its database?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </form>
-                            </td>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Domains</th>
+                            <th>Created</th>
+                            <th></th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($tenants as $tenant)
+                            <tr>
+                                <td><code>{{ $tenant->id }}</code></td>
+                                <td>{{ $tenant->name ?? '—' }}</td>
+                                <td>
+                                    @if ($tenant->domains->isEmpty())
+                                        <span style="color: var(--orora-gray);">—</span>
+                                    @else
+                                        @foreach ($tenant->domains as $domain)
+                                            {{ $domain->domain }}@if (! $loop->last), @endif
+                                        @endforeach
+                                    @endif
+                                </td>
+                                <td>{{ $tenant->created_at?->format('M j, Y') }}</td>
+                                <td>
+                                    <div class="dash-table-actions">
+                                        <form action="{{ route('central.tenants.destroy', $tenant) }}" method="post" onsubmit="return confirm('Delete this tenant? This cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="color: #b91c1c;">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
     </div>
 @endsection

@@ -2,7 +2,13 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Api\RwandaLocationController;
+use App\Http\Controllers\Central\AdminDashboardController;
+use App\Http\Controllers\Central\Auth\AdminLoginController;
+use App\Http\Controllers\Central\ContactMessageController;
+use App\Http\Controllers\Central\MarketplaceAdminController;
 use App\Http\Controllers\Central\TenantController;
+use App\Http\Controllers\Central\UserDirectoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\InitializeDefaultTenant;
@@ -43,18 +49,32 @@ $registerAppRoutes = function (): void {
     });
 
     Route::prefix('admin')->name('central.')->group(function () {
-        Route::get('/', function () {
-            return redirect()->route('central.tenants.index');
-        })->name('home');
+        Route::redirect('/login', '/login')->name('login');
 
-        Route::resource('tenants', TenantController::class)
-            ->only(['index', 'create', 'store', 'destroy'])
-            ->names([
-                'index' => 'tenants.index',
-                'create' => 'tenants.create',
-                'store' => 'tenants.store',
-                'destroy' => 'tenants.destroy',
-            ]);
+        Route::middleware('auth:admin')->group(function () {
+            Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+            Route::post('/logout', [AdminLoginController::class, 'destroy'])->name('logout');
+
+            Route::get('/users', [UserDirectoryController::class, 'index'])->name('users.index');
+            Route::get('/users/farms/{farm}', [UserDirectoryController::class, 'show'])->name('users.show');
+
+            Route::prefix('api/rwanda')->name('api.rwanda.')->group(function () {
+                Route::get('districts', [RwandaLocationController::class, 'districts'])->name('districts');
+            });
+
+            Route::resource('tenants', TenantController::class)
+                ->only(['index', 'create', 'store', 'destroy'])
+                ->names([
+                    'index' => 'tenants.index',
+                    'create' => 'tenants.create',
+                    'store' => 'tenants.store',
+                    'destroy' => 'tenants.destroy',
+                ]);
+
+            Route::get('/marketplace', [MarketplaceAdminController::class, 'index'])->name('marketplace.index');
+            Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
+            Route::patch('/contact-messages/{contactMessage}', [ContactMessageController::class, 'update'])->name('contact-messages.update');
+        });
     });
 };
 
