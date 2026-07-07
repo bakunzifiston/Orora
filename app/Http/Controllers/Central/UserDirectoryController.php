@@ -97,9 +97,9 @@ class UserDirectoryController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $farm): View
+    public function show(Request $request, int $farm): View
     {
-        $farm = Farm::query()->withoutGlobalScope('tenant')->where('slug', $farm)->firstOrFail();
+        $farm = Farm::query()->withoutGlobalScope('tenant')->findOrFail($farm);
 
         $filtersActive = $this->filters->filtersActive($request);
         $filters = $filtersActive ? $this->filters->resolve($request) : $this->filters->defaults();
