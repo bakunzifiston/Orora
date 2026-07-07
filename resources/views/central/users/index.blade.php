@@ -1,32 +1,49 @@
 @extends('layouts.admin')
 
-@section('title', 'Users')
+@section('title', 'Farms')
 
 @section('content')
-    @include('central.users.partials.toolbar')
-
     @if (empty($farmsReady))
         <div class="dash-panel">
             <p class="dash-empty">Farm tables are not set up yet. Run <code>php artisan migrate --force</code>.</p>
         </div>
     @else
-        <section class="dash-ops-row" aria-label="Platform summary" style="margin-bottom: 1.25rem;">
-            @include('central.partials.platform-kpis', ['filters' => $filters, 'hideAccountKpis' => true])
-        </section>
+        <div class="dash-page-header" style="margin-bottom: 1rem;">
+            <div>
+                <h1 class="dash-welcome" style="margin: 0;">Farms</h1>
+                <p class="dash-home-subtitle" style="margin: 0.35rem 0 0;">All registered farms across farmer workspaces.</p>
+            </div>
+        </div>
 
-        <div class="dash-panel dash-panel--flush dash-data-table-panel">
+        @include('central.users.partials.toolbar')
+
+        @if (! empty($filtersActive))
+            <section class="dash-ops-row" aria-label="Filtered summary" style="margin-bottom: 1.25rem;">
+                @include('central.partials.platform-kpis', ['filters' => $filters, 'hideAccountKpis' => true])
+            </section>
+        @endif
+
+        <div class="dash-panel dash-panel--flush dash-data-table-panel" style="margin-bottom: 1.25rem;">
             <div class="dash-panel-head">
-                <h2 class="dash-panel-title">Farms in period</h2>
+                <h2 class="dash-panel-title">All farms</h2>
                 <span class="dash-field-hint" style="margin: 0;">
-                    {{ number_format($farms->total()) }} matching {{ $filters['label'] }}
-                    @if (($filters['scope_label'] ?? 'All locations') !== 'All locations')
+                    {{ number_format($farms->total()) }} registered
+                    @if (! empty($filtersActive) && ($filters['scope_label'] ?? 'All locations') !== 'All locations')
                         · {{ $filters['scope_label'] }}
                     @endif
                 </span>
             </div>
 
             @if ($farms->isEmpty())
-                <p class="dash-data-table__empty">No farms match the selected filters.</p>
+                <p class="dash-data-table__empty">
+                    @if (! empty($filtersActive))
+                        No farms match the selected filters.
+                    @elseif (($totalFarms ?? 0) > 0)
+                        Farms exist on the platform but could not be loaded. Try clearing filters or refreshing the page.
+                    @else
+                        No farms registered yet.
+                    @endif
+                </p>
             @else
                 <div class="dash-data-table-wrap">
                     <table class="dash-data-table">
@@ -38,6 +55,7 @@
                                 <th>Account</th>
                                 <th class="dash-data-table__num">Groups</th>
                                 <th class="dash-data-table__num">Animals</th>
+                                <th>Registered</th>
                                 <th class="dash-data-table__action">Action</th>
                             </tr>
                         </thead>
@@ -86,6 +104,7 @@
                                     </td>
                                     <td class="dash-data-table__num">{{ number_format($farm->livestock_count) }}</td>
                                     <td class="dash-data-table__num">{{ number_format($farm->animals_count) }}</td>
+                                    <td class="dash-data-table__muted">{{ $farm->created_at?->format('M j, Y') ?? '—' }}</td>
                                     <td class="dash-data-table__action">
                                         <a href="{{ route('central.users.show', $farm).($farmQuery ? '?'.$farmQuery : '') }}" class="dash-data-table__view">View</a>
                                     </td>

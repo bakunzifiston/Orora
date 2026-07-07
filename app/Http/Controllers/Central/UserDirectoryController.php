@@ -9,6 +9,7 @@ use App\Models\TenantAccount;
 use App\Models\User;
 use App\Services\AdminPlatformStatsService;
 use App\Services\AdminUserDirectoryFilterService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -22,15 +23,21 @@ class UserDirectoryController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $this->filters->resolve($request);
-        $rangeStart = $this->filters->rangeStart($filters);
-        $rangeEnd = $this->filters->rangeEnd($filters);
-        $farmIds = $this->filters->scopedFarmIds($filters);
+        $filtersActive = $this->filters->filtersActive($request);
+        $filters = $filtersActive ? $this->filters->resolve($request) : $this->filters->defaults();
+        $rangeStart = $filtersActive
+            ? $this->filters->rangeStart($filters)
+            : Carbon::parse('2000-01-01')->startOfDay();
+        $rangeEnd = $filtersActive
+            ? $this->filters->rangeEnd($filters)
+            : now()->endOfDay();
+        $farmIds = $filtersActive ? $this->filters->scopedFarmIds($filters) : null;
 
         if (! Schema::hasTable('farms')) {
             return view('central.users.index', [
                 'activeNav' => 'users',
                 'filters' => $filters,
+                'filtersActive' => false,
                 'farmsReady' => false,
                 'farms' => collect(),
                 'stats' => $this->emptyPlatformStats(),
@@ -43,17 +50,11 @@ class UserDirectoryController extends Controller
         }
 
         $farmsQuery = Farm::query()
-            ->withCount([
-                'livestock as livestock_count' => fn ($query) => $query
-                    ->whereBetween('created_at', [$rangeStart, $rangeEnd]),
-                'animals as animals_count' => fn ($query) => $query
-                    ->whereBetween('created_at', [$rangeStart, $rangeEnd]),
-            ]);
+            ->withoutGlobalScope('tenant')
+            ->withCount(['livestock', 'animals']);
 
-        $this->filters->applyToFarms($farmsQuery, $filters);
-
-        if (empty($filters['farm_id'])) {
-            $farmsQuery->whereBetween('created_at', [$rangeStart, $rangeEnd]);
+        if ($filtersActive) {
+            $this->filters->applyToFarms($farmsQuery, $filters);
         }
 
         $farms = $farmsQuery
@@ -71,35 +72,57 @@ class UserDirectoryController extends Controller
             ->whereIn('id', $tenantIds)
             ->pluck('name', 'id');
 
+        $statsFilters = [
+            'from' => $rangeStart->toDateString(),
+            'to' => $rangeEnd->toDateString(),
+        ];
+
+        $totalFarms = Farm::query()->withoutGlobalScope('tenant')->count();
+
         return view('central.users.index', [
             'activeNav' => 'users',
             'filters' => $filters,
+            'filtersActive' => $filtersActive,
             'farmsReady' => true,
             'farms' => $farms,
-            'stats' => $this->stats->platformStats($filters, $rangeStart, $rangeEnd, $farmIds),
+            'totalFarms' => $totalFarms,
+            'stats' => $this->stats->platformStats($statsFilters, $rangeStart, $rangeEnd, $farmIds),
             'accountEmails' => $accountEmails,
             'tenantNames' => $tenantNames,
-            'farmOptions' => Farm::query()->orderBy('name')->get(['id', 'name', 'district', 'province']),
+            'farmOptions' => Farm::query()->withoutGlobalScope('tenant')->orderBy('name')->get(['id', 'name', 'district', 'province']),
             'provinces' => $this->filters->provinces(),
-            'districts' => $this->filters->districts($filters['province_code'] ?? null),
+            'districts' => $filtersActive
+                ? $this->filters->districts($filters['province_code'] ?? null)
+                : [],
         ]);
     }
 
-    public function show(Request $request, Farm $farm): View
+    public function show(Request $request, string $farm): View
     {
-        $filters = $this->filters->resolve($request);
-        $rangeStart = $this->filters->rangeStart($filters);
-        $rangeEnd = $this->filters->rangeEnd($filters);
+        $farm = Farm::query()->withoutGlobalScope('tenant')->where('slug', $farm)->firstOrFail();
+
+        $filtersActive = $this->filters->filtersActive($request);
+        $filters = $filtersActive ? $this->filters->resolve($request) : $this->filters->defaults();
+        $rangeStart = $filtersActive
+            ? $this->filters->rangeStart($filters)
+            : Carbon::parse('2000-01-01')->startOfDay();
+        $rangeEnd = $filtersActive
+            ? $this->filters->rangeEnd($filters)
+            : now()->endOfDay();
 
         $farm->load('members');
 
-        $farmStats = $this->stats->farmStats($farm, $filters, $rangeStart, $rangeEnd);
+        $farmStats = $this->stats->farmStats($farm, [
+            'from' => $rangeStart->toDateString(),
+            'to' => $rangeEnd->toDateString(),
+        ], $rangeStart, $rangeEnd);
 
         $livestockGroups = Schema::hasTable('livestock')
             ? $farm->livestock()
-                ->withCount(['animals as animals_count' => fn ($query) => $query
-                    ->whereBetween('created_at', [$rangeStart, $rangeEnd])])
-                ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                ->withCount(['animals as animals_count' => fn ($query) => $filtersActive
+                    ? $query->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                    : $query])
+                ->when($filtersActive, fn ($query) => $query->whereBetween('created_at', [$rangeStart, $rangeEnd]))
                 ->orderBy('name')
                 ->get()
             : collect();
@@ -117,6 +140,7 @@ class UserDirectoryController extends Controller
         return view('central.users.show', [
             'activeNav' => 'users',
             'filters' => $filters,
+            'filtersActive' => $filtersActive,
             'farm' => $farm,
             'stats' => $farmStats,
             'livestockGroups' => $livestockGroups,

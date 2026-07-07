@@ -92,7 +92,7 @@ class AdminUserDirectoryFilterService
             return null;
         }
 
-        return $this->applyToFarms(Farm::query(), $filters)->pluck('id')->all();
+        return $this->applyToFarms(Farm::query()->withoutGlobalScope('tenant'), $filters)->pluck('id')->all();
     }
 
     public function hasScope(array $filters): bool
@@ -186,5 +186,50 @@ class AdminUserDirectoryFilterService
         }
 
         return $parts !== [] ? implode(', ', $parts) : 'All locations';
+    }
+
+    public function filtersActive(Request $request): bool
+    {
+        if ($request->filled('farm_id') || $request->filled('province_code') || $request->filled('district_code')) {
+            return true;
+        }
+
+        if ($request->filled('from') || $request->filled('to')) {
+            return true;
+        }
+
+        if ($request->has('period')) {
+            $period = (string) $request->input('period', 'all');
+
+            return $period !== '' && $period !== 'all';
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array{
+     *     period: string,
+     *     from: string,
+     *     to: string,
+     *     label: string,
+     *     farm_id: ?int,
+     *     province_code: ?int,
+     *     district_code: ?int,
+     *     scope_label: string
+     * }
+     */
+    public function defaults(): array
+    {
+        return [
+            'period' => '',
+            'from' => '',
+            'to' => '',
+            'label' => 'All time',
+            'farm_id' => null,
+            'province_code' => null,
+            'district_code' => null,
+            'scope_label' => 'All locations',
+        ];
     }
 }

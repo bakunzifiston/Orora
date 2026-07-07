@@ -11,6 +11,7 @@ use App\Http\Controllers\Central\TenantController;
 use App\Http\Controllers\Central\UserDirectoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\ForgetTenantForCentralAdmin;
 use App\Http\Middleware\InitializeDefaultTenant;
 use Illuminate\Support\Facades\Route;
 
@@ -51,7 +52,7 @@ $registerAppRoutes = function (): void {
     Route::prefix('admin')->name('central.')->group(function () {
         Route::redirect('/login', '/login')->name('login');
 
-        Route::middleware('auth:admin')->group(function () {
+        Route::middleware(['auth:admin', ForgetTenantForCentralAdmin::class])->group(function () {
             Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
             Route::post('/logout', [AdminLoginController::class, 'destroy'])->name('logout');
 

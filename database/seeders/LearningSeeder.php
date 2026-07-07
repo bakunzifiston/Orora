@@ -161,5 +161,26 @@ class LearningSeeder extends Seeder
                 $post
             );
         }
+
+        LearningPost::query()->whereIn('slug', ['prevent-mastitis-dairy-cows'])->delete();
+
+        LearningPost::query()
+            ->where('content_type', 'video')
+            ->each(function (LearningPost $post) {
+                $content = trim((string) $post->content);
+
+                if ($content === '' && filled($post->excerpt)) {
+                    $content = '<p>'.e($post->excerpt).'</p>';
+                } elseif ($content !== '' && ! str_contains($content, '<')) {
+                    $content = '<p>'.e($content).'</p>';
+                }
+
+                $post->update([
+                    'content_type' => 'article',
+                    'content' => $content ?: $post->content,
+                    'video_url' => null,
+                    'video_duration' => null,
+                ]);
+            });
     }
 }

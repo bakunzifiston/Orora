@@ -4,15 +4,20 @@
     $provinces = $provinces ?? [];
     $districts = $districts ?? [];
     $scopeLabel = $filters['scope_label'] ?? 'All locations';
+    $filtersActive = $filtersActive ?? false;
 @endphp
 
 <form method="GET" action="{{ route('central.users.index') }}" class="dash-ops-toolbar" id="admin-users-filters-form">
     <div class="dash-ops-toolbar__brand">
-        <h1 class="dash-welcome" style="margin: 0;">Users & farms</h1>
+        <h2 class="dash-panel-title" style="margin: 0;">Filters</h2>
         <p class="dash-home-subtitle" style="margin: 0.25rem 0 0;">
-            <strong>{{ $filters['label'] ?? 'This month' }}</strong>
-            @if (($scopeLabel ?? 'All locations') !== 'All locations')
-                · <strong>{{ $scopeLabel }}</strong>
+            @if ($filtersActive)
+                Showing <strong>{{ $filters['label'] ?? 'filtered results' }}</strong>
+                @if (($scopeLabel ?? 'All locations') !== 'All locations')
+                    · <strong>{{ $scopeLabel }}</strong>
+                @endif
+            @else
+                Optional — narrow the farm list and show summary KPIs.
             @endif
         </p>
     </div>
@@ -52,13 +57,14 @@
         <div class="dash-ops-field">
             <label for="admin_users_filter_period">Period</label>
             <select name="period" id="admin_users_filter_period">
+                <option value="all" @selected(($filters['period'] ?? '') === 'all' || ($filters['period'] ?? '') === '')>All time</option>
                 <option value="daily" @selected(($filters['period'] ?? '') === 'daily')>Daily</option>
-                <option value="monthly" @selected(($filters['period'] ?? 'monthly') === 'monthly')>Monthly</option>
+                <option value="monthly" @selected(($filters['period'] ?? '') === 'monthly')>Monthly</option>
                 <option value="yearly" @selected(($filters['period'] ?? '') === 'yearly')>Yearly</option>
                 <option value="custom" @selected(($filters['period'] ?? '') === 'custom')>Custom range</option>
             </select>
         </div>
-        <div class="dash-ops-field dash-ops-field--dates @if(($filters['period'] ?? 'monthly') !== 'custom') dash-ops-field--muted @endif" id="admin-users-custom-dates">
+        <div class="dash-ops-field dash-ops-field--dates @if(($filters['period'] ?? '') !== 'custom') dash-ops-field--muted @endif" id="admin-users-custom-dates">
             <label>Date range</label>
             <div class="dash-ops-dates">
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
@@ -66,6 +72,9 @@
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
             </div>
         </div>
-        <button type="submit" class="dash-btn-save dash-ops-apply">Apply</button>
+        <button type="submit" class="dash-btn-save dash-ops-apply">Apply filters</button>
+        @if ($filtersActive)
+            <a href="{{ route('central.users.index') }}" class="dash-back-link" style="align-self: flex-end; padding-bottom: 0.45rem;">Clear</a>
+        @endif
     </div>
 </form>

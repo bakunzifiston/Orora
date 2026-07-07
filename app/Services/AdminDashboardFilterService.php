@@ -14,7 +14,7 @@ class AdminDashboardFilterService
     {
         $period = $request->input('period', 'monthly');
 
-        if (! in_array($period, ['daily', 'monthly', 'yearly', 'custom'], true)) {
+        if (! in_array($period, ['daily', 'monthly', 'yearly', 'custom', 'all'], true)) {
             $period = 'monthly';
         }
 
@@ -28,6 +28,11 @@ class AdminDashboardFilterService
                 now()->startOfYear(),
                 now()->endOfYear(),
                 (string) now()->year,
+            ],
+            'all' => [
+                Carbon::parse('2000-01-01')->startOfDay(),
+                now()->endOfDay(),
+                'All time',
             ],
             'custom' => [
                 Carbon::parse($request->input('from', now()->startOfMonth()->toDateString()))->startOfDay(),
