@@ -16,7 +16,6 @@ class MarketplaceHomeController extends Controller
             'activePage' => 'home',
             'categories' => $this->home->categories(),
             'featuredListings' => $this->home->featuredListings(),
-            'latestLearning' => $this->home->latestLearning(),
             'landingStats' => $this->home->landingStats(),
         ]);
     }

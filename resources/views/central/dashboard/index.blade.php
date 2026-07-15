@@ -9,6 +9,8 @@
         @include('central.partials.platform-kpis')
     </section>
 
+    @include('central.dashboard.partials.farms-map')
+
     <section class="dash-ops-row dash-ops-charts-2" aria-label="Platform charts">
         <div class="dash-panel">
             <div class="dash-panel-title">Milk sold · {{ $filters['label'] }}</div>
@@ -84,7 +86,7 @@
             <div class="dash-panel">
                 <h2 class="dash-panel-title">Animals in each group</h2>
                 <p class="dash-field-hint" style="margin: -0.5rem 0 1rem;">
-                    Groups added in period; animals registered in {{ $filters['label'] }}.
+                    Groups added {{ $filters['label'] === 'All time' ? 'across all time' : 'in period' }}; animals registered in {{ $filters['label'] }}.
                 </p>
                 <div class="dash-table-wrap">
                     <table class="dash-table dash-table--compact">
@@ -165,6 +167,61 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    @if (! empty($farmMapMarkers))
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script>
+            (function () {
+                const markers = @json($farmMapMarkers);
+                const mapEl = document.getElementById('admin-farms-map');
+
+                if (!mapEl || !markers.length || typeof L === 'undefined') {
+                    return;
+                }
+
+                const map = L.map(mapEl, { scrollWheelZoom: false }).setView([-1.9403, 29.8739], 8);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                }).addTo(map);
+
+                const bounds = [];
+
+                const escapeHtml = (value) => String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+
+                markers.forEach((farm) => {
+                    const icon = L.divIcon({
+                        className: '',
+                        html: '<div class="admin-farm-marker" aria-hidden="true">📍</div>',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14],
+                    });
+
+                    const marker = L.marker([farm.lat, farm.lng], { icon }).addTo(map);
+                    bounds.push([farm.lat, farm.lng]);
+
+                    const status = farm.status ? `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.35rem;">${escapeHtml(farm.status)}</div>` : '';
+
+                    marker.bindPopup(`
+                        <p class="admin-farm-popup__title">${escapeHtml(farm.name)}</p>
+                        <p class="admin-farm-popup__meta">${escapeHtml(farm.location)}</p>
+                        ${status}
+                        <a class="admin-farm-popup__link" href="${escapeHtml(farm.url)}">View farm →</a>
+                    `);
+                });
+
+                if (bounds.length === 1) {
+                    map.setView(bounds[0], 11);
+                } else if (bounds.length > 1) {
+                    map.fitBounds(bounds, { padding: [40, 40] });
+                }
+            })();
+        </script>
+    @endif
     <script>
         (function () {
             const charts = @json($charts);

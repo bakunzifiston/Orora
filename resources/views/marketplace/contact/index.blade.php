@@ -2,7 +2,7 @@
 
 @section('title', 'Contact')
 
-@section('meta_description', 'Contact Orora Farm — questions, support, partnerships, and demo requests. We reply within 24 hours.')
+@section('meta_description', 'Contact Orora Farm for questions, support, or partnerships. We reply within 24 hours.')
 
 @section('content')
     @include('marketplace.contact.partials.hero')

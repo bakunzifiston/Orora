@@ -10,6 +10,7 @@ use App\Models\Livestock;
 use App\Models\SaleItem;
 use App\Models\TenantAccount;
 use App\Services\AdminDashboardFilterService;
+use App\Services\AdminFarmMapService;
 use App\Services\AdminPlatformStatsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class AdminDashboardController extends Controller
     public function __construct(
         private readonly AdminDashboardFilterService $filters,
         private readonly AdminPlatformStatsService $stats,
+        private readonly AdminFarmMapService $farmMap,
     ) {}
 
     public function index(Request $request): View
@@ -80,6 +82,7 @@ class AdminDashboardController extends Controller
             'recentActivity' => $recentActivity,
             'recentContacts' => $recentContacts,
             'livestockGroups' => $livestockGroups,
+            'farmMapMarkers' => $this->farmMap->markers(),
         ]);
     }
 
@@ -133,9 +136,16 @@ class AdminDashboardController extends Controller
 
         $bucket = match ($filters['period']) {
             'daily', 'monthly' => 'day',
-            'yearly' => 'month',
+            'yearly', 'all' => 'month',
             default => $this->resolveCustomBucket($start, $end),
         };
+
+        if ($filters['period'] === 'all') {
+            $start = now()->subMonths(11)->startOfMonth();
+            if ($start->lt(Carbon::parse($filters['from'])->startOfDay())) {
+                $start = Carbon::parse($filters['from'])->startOfDay();
+            }
+        }
 
         return match ($bucket) {
             'month' => $this->bucketMilkSoldByMonth($start, $end),

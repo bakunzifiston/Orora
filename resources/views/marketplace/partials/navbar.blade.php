@@ -3,7 +3,6 @@
     $navItems = [
         ['key' => 'home', 'label' => 'Home', 'route' => 'marketplace.home'],
         ['key' => 'shop', 'label' => 'Shop', 'route' => 'marketplace.shop'],
-        ['key' => 'learning', 'label' => 'Learning', 'route' => 'marketplace.learning'],
         ['key' => 'about', 'label' => 'About', 'route' => 'marketplace.about'],
         ['key' => 'contact', 'label' => 'Contact', 'route' => 'marketplace.contact'],
     ];

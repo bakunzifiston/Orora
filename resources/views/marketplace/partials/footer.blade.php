@@ -32,8 +32,6 @@
         <div>
             <h3 class="lp-footer__heading">Resources</h3>
             <ul class="lp-footer__links">
-                <li><a href="{{ route('marketplace.learning') }}">Learning Hub</a></li>
-                <li><a href="{{ route('marketplace.learning') }}">Blog</a></li>
                 <li><a href="{{ route('marketplace.contact') }}">Documentation</a></li>
                 <li><a href="{{ route('marketplace.contact') }}">Support</a></li>
             </ul>

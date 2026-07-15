@@ -3,7 +3,7 @@
 <form method="POST" action="{{ route('marketplace.shop.inquiry', $listing) }}" class="shop-inquiry" id="inquiry">
     @csrf
 
-    <h3 class="shop-inquiry__title">Interested? Contact the seller directly</h3>
+    <h3 class="shop-inquiry__title">Send an inquiry</h3>
 
     <div class="shop-inquiry__grid">
         <div class="mp-field">
@@ -28,10 +28,10 @@
         </div>
         <div class="mp-field mp-field--full">
             <label for="message">Message *</label>
-            <textarea id="message" name="message" rows="4" required placeholder="I'm interested in this listing...">{{ old('message') }}</textarea>
+            <textarea id="message" name="message" rows="4" required placeholder="I’m interested…">{{ old('message') }}</textarea>
             @error('message')<p class="mp-field-error">{{ $message }}</p>@enderror
         </div>
     </div>
 
-    <button type="submit" class="lp-btn lp-btn--primary">Send Inquiry</button>
+    <button type="submit" class="lp-btn lp-btn--primary">Send</button>
 </form>

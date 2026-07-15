@@ -1,13 +1,13 @@
 @extends('layouts.marketplace')
 
-@section('title', 'Post a Listing')
+@section('title', 'Sell')
 
 @section('content')
     <section class="shop-form-page">
         <div class="mp-container shop-form-page__inner">
             <header class="shop-form-page__header">
-                <h1>Post a New Listing</h1>
-                <p>Reach buyers across Rwanda</p>
+                <h1>Sell on Orora</h1>
+                <p>List a farm product for buyers across Rwanda.</p>
             </header>
 
             @if ($errors->any())

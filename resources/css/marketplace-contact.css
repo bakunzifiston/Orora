@@ -46,21 +46,18 @@
     transform: translateY(-2px);
 }
 
-.ct-option__icon {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
 .ct-option__title {
     margin: 0 0 0.35rem;
-    font-size: 1.0625rem;
+    font-size: 0.75rem;
     font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .ct-option__value {
     margin: 0;
-    font-size: 0.9375rem;
+    font-size: 1.05rem;
+    font-weight: 600;
     line-height: 1.45;
 }
 
@@ -254,10 +251,25 @@
     box-shadow: var(--lp-shadow-lg, 0 12px 40px #1b5e201f);
 }
 
-.ct-success__icon {
-    font-size: 3rem;
-    line-height: 1;
-    margin-bottom: 1rem;
+.ct-success__mark {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--lp-green-light, #f1f8e9);
+    position: relative;
+}
+
+.ct-success__mark::after {
+    content: "";
+    position: absolute;
+    left: 1.05rem;
+    top: 0.85rem;
+    width: 0.55rem;
+    height: 1rem;
+    border: solid var(--lp-green, #1b5e20);
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
 }
 
 .ct-success__title {
@@ -313,7 +325,6 @@
 
 .ct-info__hours-item {
     align-items: flex-start;
-    gap: 0.625rem;
     margin-bottom: 0.75rem;
     font-size: 0.9375rem;
     line-height: 1.5;
@@ -326,10 +337,6 @@
 
 .ct-info__hours-item--closed {
     color: var(--lp-muted, #5f6368);
-}
-
-.ct-info__hours-icon {
-    flex-shrink: 0;
 }
 
 .ct-info__social {
@@ -432,12 +439,17 @@
 .ct-faq__arrow {
     color: var(--lp-green, #1b5e20);
     flex-shrink: 0;
-    font-size: 0.75rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
     transition: transform 0.25s;
+    margin-right: 0.15rem;
 }
 
 .ct-faq__item.is-open .ct-faq__arrow {
-    transform: rotate(90deg);
+    transform: rotate(45deg);
 }
 
 .ct-faq__answer {

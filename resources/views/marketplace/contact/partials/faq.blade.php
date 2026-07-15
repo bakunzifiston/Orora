@@ -1,8 +1,8 @@
 <section class="ct-faq">
     <div class="mp-container">
         <div class="ct-faq__header">
-            <h2 class="ct-faq__title">Frequently Asked Questions</h2>
-            <p class="ct-faq__subtitle">Quick answers before you reach out</p>
+            <h2 class="ct-faq__title">FAQ</h2>
+            <p class="ct-faq__subtitle">Quick answers before you write.</p>
         </div>
 
         <div class="ct-faq__list" data-ct-faq>
@@ -14,7 +14,7 @@
                         aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
                         data-faq-toggle
                     >
-                        <span class="ct-faq__arrow" aria-hidden="true">▶</span>
+                        <span class="ct-faq__arrow" aria-hidden="true"></span>
                         {{ $item['question'] }}
                     </button>
                     <div class="ct-faq__answer" data-faq-answer>
@@ -25,8 +25,8 @@
         </div>
 
         <p class="ct-faq__footer">
-            Still have questions?
-            <a href="#contact-form">Send us a message ↑</a>
+            Still need help?
+            <a href="#contact-form">Send a message</a>
         </p>
     </div>
 </section>

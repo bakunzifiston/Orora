@@ -31,13 +31,13 @@
                 <div class="shop-detail__info">
                     <div class="shop-detail__badges">
                         @if ($listing->is_verified)
-                            <span class="shop-card__badge shop-card__badge--verified">✅ Verified</span>
+                            <span class="shop-card__badge shop-card__badge--verified">Verified</span>
                         @endif
                         @if ($listing->is_featured)
-                            <span class="shop-card__badge shop-card__badge--featured">⭐ Featured</span>
+                            <span class="shop-card__badge shop-card__badge--featured">Featured</span>
                         @endif
                         @if ($listing->category)
-                            <span class="shop-card__badge">{{ $listing->category->icon }} {{ $listing->category->name }}</span>
+                            <span class="shop-card__badge">{{ $listing->category->name }}</span>
                         @endif
                     </div>
 
@@ -64,21 +64,21 @@
                         <h2>Seller</h2>
                         <p class="shop-detail__seller-name">{{ $listing->seller_name }}</p>
                         <p class="shop-detail__seller-type">{{ $listing->sellerTypeLabel() }}</p>
-                        <p class="shop-detail__seller-location">📍 {{ $listing->location_district }}</p>
+                        <p class="shop-detail__seller-location">{{ $listing->location_district }}</p>
                     </div>
 
                     <div class="shop-detail__actions">
-                        <a href="tel:{{ preg_replace('/\s+/', '', $listing->seller_phone) }}" class="lp-btn lp-btn--primary">📞 Call Seller</a>
-                        <a href="#inquiry" class="lp-btn lp-btn--outline">✉ Send Inquiry</a>
-                        <button type="button" class="lp-btn lp-btn--outline" data-share-url="{{ url()->current() }}">🔗 Share Listing</button>
+                        <a href="tel:{{ preg_replace('/\s+/', '', $listing->seller_phone) }}" class="lp-btn lp-btn--primary">Call</a>
+                        <a href="#inquiry" class="lp-btn lp-btn--outline">Inquire</a>
+                        <button type="button" class="lp-btn lp-btn--outline" data-share-url="{{ url()->current() }}">Share</button>
                         @if ($canEdit ?? false)
-                            <a href="{{ route('marketplace.shop.edit', $listing) }}" class="lp-btn lp-btn--outline">Edit Listing</a>
+                            <a href="{{ route('marketplace.shop.edit', $listing) }}" class="lp-btn lp-btn--outline">Edit</a>
                         @endif
                     </div>
 
                     <p class="shop-detail__meta">
-                        👁 {{ number_format($listing->views_count) }} views
-                        · Posted {{ $listing->created_at->format('M j, Y') }}
+                        {{ number_format($listing->views_count) }} views
+                        · {{ $listing->created_at->format('M j, Y') }}
                         · {{ $listing->listing_code }}
                     </p>
                 </div>
@@ -97,7 +97,7 @@
 
             @include('marketplace.shop.partials.related-listings', [
                 'listings' => $relatedListings,
-                'title' => 'More in '.($listing->category?->name ?? 'this category'),
+                'title' => $listing->category?->name ?? 'Related',
             ])
         </div>
     </section>

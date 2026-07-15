@@ -35,51 +35,51 @@ return [
         ],
 
         'response_times' => [
-            ['icon' => '📧', 'channel' => 'Email', 'time' => 'Within 24 hours'],
-            ['icon' => '📞', 'channel' => 'Phone', 'time' => 'Same day'],
-            ['icon' => '💬', 'channel' => 'WhatsApp', 'time' => 'Within 2 hours'],
+            ['channel' => 'Email', 'time' => 'Within 24 hours'],
+            ['channel' => 'Phone', 'time' => 'Same day'],
+            ['channel' => 'WhatsApp', 'time' => 'Within 2 hours'],
         ],
 
         'inquiry_types' => [
-            'general' => 'General Inquiry',
-            'support' => 'Technical Support',
+            'general' => 'General',
+            'support' => 'Support',
             'partnership' => 'Partnership',
             'marketplace' => 'Marketplace',
-            'demo' => 'Request a Demo',
+            'demo' => 'Demo',
         ],
 
         'faq' => [
             [
-                'question' => 'How do I register my farm on Orora Farm?',
-                'answer' => 'Click "Register" on our homepage and fill in your farm details. You will receive your own subdomain (e.g. yourfarm.ororafarm.com) and can start adding animals and records within minutes. No credit card is required for the free plan.',
+                'question' => 'How do I register my farm?',
+                'answer' => 'Click Register, add your farm details, and start tracking animals and records in minutes. The free plan needs no credit card.',
             ],
             [
-                'question' => 'Is there a free trial available?',
-                'answer' => 'Yes. Orora Farm offers a free plan with one farm and up to 50 animals. You can upgrade to Pro or Enterprise at any time as your operation grows.',
+                'question' => 'Is there a free plan?',
+                'answer' => 'Yes — one farm and up to 50 animals. Upgrade to Pro or Enterprise anytime.',
             ],
             [
                 'question' => 'How does the marketplace work?',
-                'answer' => 'Registered farmers can list live animals, meat, milk, and feed on the Orora Farm marketplace. Buyers browse listings, send inquiries, and connect directly with sellers — no middlemen required.',
+                'answer' => 'Farmers list animals, milk, meat, or feed. Buyers browse and inquire directly with sellers.',
             ],
             [
-                'question' => 'Can I manage multiple farms in one account?',
-                'answer' => 'Yes. Pro and Enterprise plans support multiple farms under a single account, with separate records and reports for each farm.',
+                'question' => 'Can I manage multiple farms?',
+                'answer' => 'Yes. Pro and Enterprise support multiple farms under one account, with separate records each.',
             ],
             [
-                'question' => 'What support do you offer after registration?',
-                'answer' => 'All users receive email support. Pro plan users get priority support, and Enterprise customers receive dedicated onboarding, training, and a named account contact.',
+                'question' => 'What support do you offer?',
+                'answer' => 'Email support for all plans. Pro gets priority help; Enterprise includes onboarding and a named contact.',
             ],
             [
-                'question' => 'Is my farm data safe and private?',
-                'answer' => 'Absolutely. Each farm operates in an isolated workspace. Your data is encrypted in transit, never sold to third parties, and you retain full ownership and export rights at all times.',
+                'question' => 'Is my farm data private?',
+                'answer' => 'Yes. Each farm has an isolated workspace. Your data stays yours — encrypted and never sold.',
             ],
             [
-                'question' => 'Do you support Kinyarwanda language?',
-                'answer' => 'The platform interface is currently in English, with Kinyarwanda support on our roadmap. Our Learning Hub already includes resources in both English and Kinyarwanda.',
+                'question' => 'Do you support Kinyarwanda?',
+                'answer' => 'The interface is in English today. Kinyarwanda is on our roadmap.',
             ],
             [
-                'question' => 'How do I post a listing on the marketplace?',
-                'answer' => 'Log in to your farm account, go to the Marketplace section, and click "Create Listing". Add photos, description, price, and location — your listing goes live once submitted.',
+                'question' => 'How do I post a listing?',
+                'answer' => 'Log in, open Marketplace, and create a listing with photos, price, and location.',
             ],
         ],
     ],
@@ -101,10 +101,9 @@ return [
     ],
 
     'landing_stats' => [
-        ['value' => 50, 'suffix' => '+', 'label' => 'Farms Registered', 'animate' => true],
-        ['value' => 1200, 'suffix' => '+', 'label' => 'Animals Tracked', 'animate' => true],
-        ['value' => null, 'display' => 'Rwanda & Africa', 'label' => 'Serving farmers', 'animate' => false],
-        ['value' => null, 'display' => 'Trusted', 'label' => 'By Farmers', 'animate' => false],
+        ['value' => 50, 'suffix' => '+', 'label' => 'Farms registered', 'animate' => true],
+        ['value' => 1200, 'suffix' => '+', 'label' => 'Animals tracked', 'animate' => true],
+        ['value' => null, 'display' => 'Rwanda', 'label' => 'Built for local farms', 'animate' => false],
     ],
 
     'problem_solution' => [
@@ -277,12 +276,6 @@ return [
                 'description' => 'Buy and sell live animals, meat, milk, and feed directly with verified farmers.',
             ],
             [
-                'icon' => '📚',
-                'title' => 'Learning Hub',
-                'description' => 'Expert articles, videos and guides on livestock farming topics.',
-                'route' => 'marketplace.learning',
-            ],
-            [
                 'icon' => '🌍',
                 'title' => 'Community',
                 'description' => 'Connect with other farmers, share knowledge and grow together.',
@@ -299,30 +292,6 @@ return [
         ],
 
         'modules_count' => 14,
-
-        'team' => [
-            [
-                'name' => 'Jean Baptiste Nkurunziza',
-                'role' => 'Founder & CEO',
-                'initials' => 'JN',
-                'photo' => null,
-                'linkedin' => 'https://linkedin.com/in/jeanbaptiste-nkurunziza',
-            ],
-            [
-                'name' => 'Marie Claire Uwimana',
-                'role' => 'Head of Product',
-                'initials' => 'MU',
-                'photo' => null,
-                'linkedin' => 'https://linkedin.com/in/marieclaire-uwimana',
-            ],
-            [
-                'name' => 'Patrick Habimana',
-                'role' => 'Lead Engineer',
-                'initials' => 'PH',
-                'photo' => null,
-                'linkedin' => 'https://linkedin.com/in/patrick-habimana',
-            ],
-        ],
 
         'why_rwanda' => [
             'title' => 'Why We Started in Rwanda',
@@ -398,9 +367,9 @@ return [
 
         'sort_options' => [
             'newest' => 'Newest',
-            'price_asc' => 'Price: Low to High',
-            'price_desc' => 'Price: High to Low',
-            'most_viewed' => 'Most Viewed',
+            'price_asc' => 'Lowest price',
+            'price_desc' => 'Highest price',
+            'most_viewed' => 'Most viewed',
         ],
 
         'districts' => [

@@ -1,6 +1,6 @@
 <section class="ct-map">
     <div class="mp-container">
-        <h2 class="ct-map__title">Find Us</h2>
+        <h2 class="ct-map__title">Location</h2>
         <div class="ct-map__embed">
             <iframe
                 src="{{ $contact['map_embed'] }}"

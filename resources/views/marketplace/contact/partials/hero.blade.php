@@ -1,11 +1,8 @@
 <section class="ct-hero">
     <div class="mp-container ct-hero__inner">
-        <h1 class="ct-hero__title">Get in Touch</h1>
+        <h1 class="ct-hero__title">Contact</h1>
         <p class="ct-hero__text">
-            We would love to hear from you.<br>
-            Whether you have a question, need support,<br>
-            or want to explore a partnership —<br>
-            our team is here to help.
+            Questions, support, or partnerships — we respond within 24 hours.
         </p>
     </div>
 </section>

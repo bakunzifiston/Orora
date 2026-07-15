@@ -1,12 +1,12 @@
 <div class="ct-form-card">
-    <h2 class="ct-form-card__title">Send Us a Message</h2>
-    <p class="ct-form-card__subtitle">We reply within 24 hours</p>
+    <h2 class="ct-form-card__title">Send a message</h2>
+    <p class="ct-form-card__subtitle">We reply within 24 hours.</p>
 
     <form method="POST" action="{{ route('marketplace.contact.store') }}" class="ct-form" novalidate>
         @csrf
 
         <fieldset class="ct-fieldset">
-            <legend class="ct-fieldset__legend">Inquiry Type <span class="ct-required">*</span></legend>
+            <legend class="ct-fieldset__legend">Topic <span class="ct-required">*</span></legend>
             <div class="ct-inquiry-types">
                 @foreach ($contact['inquiry_types'] as $value => $label)
                     <label class="ct-inquiry-type">
@@ -25,19 +25,19 @@
         </fieldset>
 
         <div class="ct-field">
-            <label for="name">Full Name <span class="ct-required">*</span></label>
+            <label for="name">Name <span class="ct-required">*</span></label>
             <input type="text" id="name" name="name" value="{{ old('name') }}" required autocomplete="name">
             @error('name')<p class="ct-field-error">{{ $message }}</p>@enderror
         </div>
 
         <div class="ct-field">
-            <label for="email">Email Address <span class="ct-required">*</span></label>
+            <label for="email">Email <span class="ct-required">*</span></label>
             <input type="email" id="email" name="email" value="{{ old('email') }}" required autocomplete="email">
             @error('email')<p class="ct-field-error">{{ $message }}</p>@enderror
         </div>
 
         <div class="ct-field">
-            <label for="phone">Phone Number</label>
+            <label for="phone">Phone</label>
             <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" autocomplete="tel">
             @error('phone')<p class="ct-field-error">{{ $message }}</p>@enderror
         </div>
@@ -50,17 +50,12 @@
 
         <div class="ct-field">
             <label for="message">Message <span class="ct-required">*</span></label>
-            <textarea id="message" name="message" rows="6" required>{{ old('message') }}</textarea>
+            <textarea id="message" name="message" rows="5" required placeholder="How can we help?">{{ old('message') }}</textarea>
             @error('message')<p class="ct-field-error">{{ $message }}</p>@enderror
         </div>
 
-        <button type="submit" class="ct-btn ct-btn--submit">
-            Send Message <span aria-hidden="true">→</span>
-        </button>
+        <button type="submit" class="ct-btn ct-btn--submit">Send</button>
 
-        <p class="ct-form-card__privacy">
-            <span aria-hidden="true">🔒</span>
-            Your information is safe and never shared
-        </p>
+        <p class="ct-form-card__privacy">Your information stays private.</p>
     </form>
 </div>

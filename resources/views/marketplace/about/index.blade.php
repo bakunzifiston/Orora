@@ -11,7 +11,6 @@
     @include('marketplace.about.partials.what-we-offer')
     @include('marketplace.about.partials.our-values')
     @include('marketplace.about.partials.stats')
-    @include('marketplace.about.partials.our-team')
     @include('marketplace.about.partials.why-rwanda')
     @include('marketplace.about.partials.testimonials')
     @include('marketplace.about.partials.partners')

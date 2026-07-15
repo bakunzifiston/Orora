@@ -8,6 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('layouts.partials.dashboard-styles')
     @include('central.partials.data-table-styles')
+    @stack('styles')
 </head>
 <body class="font-sans antialiased admin-app">
     @php

@@ -6,7 +6,7 @@
     <section class="shop-form-page">
         <div class="mp-container shop-form-page__inner">
             <header class="shop-form-page__header">
-                <h1>Edit Listing</h1>
+                <h1>Edit listing</h1>
                 <p>{{ $listing->listing_code }}</p>
             </header>
 
@@ -21,7 +21,7 @@
             <form method="POST" action="{{ route('marketplace.shop.destroy', $listing) }}" class="shop-form-delete" onsubmit="return confirm('Remove this listing?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="lp-btn lp-btn--outline">Remove Listing</button>
+                <button type="submit" class="lp-btn lp-btn--outline">Remove</button>
             </form>
         </div>
     </section>

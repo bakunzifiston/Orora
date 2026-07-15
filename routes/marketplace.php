@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Marketplace\AboutController;
 use App\Http\Controllers\Marketplace\ContactController;
-use App\Http\Controllers\Marketplace\LearningController;
 use App\Http\Controllers\Marketplace\MarketplaceHomeController;
 use App\Http\Controllers\Marketplace\ShopController;
 use App\Http\Controllers\Marketplace\TraceController;
@@ -28,10 +27,10 @@ Route::middleware('auth')->group(function () {
 Route::get('/shop/{listing}', [ShopController::class, 'show'])->name('marketplace.shop.show');
 Route::post('/shop/{listing}/inquiry', [ShopController::class, 'inquiry'])->name('marketplace.shop.inquiry');
 
-Route::get('/learning', [LearningController::class, 'index'])->name('marketplace.learning');
-Route::post('/learning/subscribe', [LearningController::class, 'subscribe'])->name('marketplace.learning.subscribe');
-Route::get('/learning/category/{category}', [LearningController::class, 'category'])->name('marketplace.learning.category');
-Route::get('/learning/{post}', [LearningController::class, 'show'])->name('marketplace.learning.show');
+Route::redirect('/learning', '/')->name('marketplace.learning');
+Route::match(['get', 'post'], '/learning/subscribe', fn () => redirect('/'))->name('marketplace.learning.subscribe');
+Route::redirect('/learning/category/{category}', '/')->name('marketplace.learning.category');
+Route::redirect('/learning/{post}', '/')->name('marketplace.learning.show');
 Route::get('/contact', [ContactController::class, 'index'])->name('marketplace.contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('marketplace.contact.store');
 

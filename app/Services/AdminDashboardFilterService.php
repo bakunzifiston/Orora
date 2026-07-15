@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Farm;
+use App\Models\TenantAccount;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class AdminDashboardFilterService
 {
@@ -12,10 +15,14 @@ class AdminDashboardFilterService
      */
     public function resolve(Request $request): array
     {
-        $period = $request->input('period', 'monthly');
+        $period = $request->input('period', 'all');
 
-        if (! in_array($period, ['daily', 'monthly', 'yearly', 'custom', 'all'], true)) {
-            $period = 'monthly';
+        if (! in_array($period, ['daily', 'monthly', 'yearly', 'custom', 'all', ''], true)) {
+            $period = 'all';
+        }
+
+        if ($period === '') {
+            $period = 'all';
         }
 
         [$from, $to, $label] = match ($period) {
@@ -29,10 +36,10 @@ class AdminDashboardFilterService
                 now()->endOfYear(),
                 (string) now()->year,
             ],
-            'all' => [
-                Carbon::parse('2000-01-01')->startOfDay(),
-                now()->endOfDay(),
-                'All time',
+            'monthly' => [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+                now()->format('F Y'),
             ],
             'custom' => [
                 Carbon::parse($request->input('from', now()->startOfMonth()->toDateString()))->startOfDay(),
@@ -40,9 +47,9 @@ class AdminDashboardFilterService
                 'Custom range',
             ],
             default => [
-                now()->startOfMonth(),
-                now()->endOfMonth(),
-                now()->format('F Y'),
+                $this->allTimeStart(),
+                now()->endOfDay(),
+                'All time',
             ],
         };
 
@@ -66,5 +73,38 @@ class AdminDashboardFilterService
     public function rangeEnd(array $filters): Carbon
     {
         return Carbon::parse($filters['to'])->endOfDay();
+    }
+
+    private function allTimeStart(): Carbon
+    {
+        $candidates = [];
+
+        try {
+            if (Schema::hasTable('farms')) {
+                $farmStart = Farm::query()->withoutGlobalScope('tenant')->min('created_at');
+                if ($farmStart) {
+                    $candidates[] = Carbon::parse($farmStart)->startOfDay();
+                }
+            }
+        } catch (\Throwable) {
+            // Keep fallback below.
+        }
+
+        try {
+            if (Schema::hasTable('tenant_accounts')) {
+                $accountStart = TenantAccount::query()->min('created_at');
+                if ($accountStart) {
+                    $candidates[] = Carbon::parse($accountStart)->startOfDay();
+                }
+            }
+        } catch (\Throwable) {
+            // Keep fallback below.
+        }
+
+        if ($candidates === []) {
+            return now()->subYear()->startOfYear();
+        }
+
+        return collect($candidates)->sort()->first();
     }
 }

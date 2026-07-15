@@ -21,6 +21,8 @@ class Farm extends TenantModel
         'cell',
         'village_code',
         'village',
+        'latitude',
+        'longitude',
         'farm_size_hectares',
         'registration_date',
         'status',
@@ -42,6 +44,8 @@ class Farm extends TenantModel
     {
         return [
             'farm_size_hectares' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
             'registration_date' => 'date',
             'owner_dob' => 'date',
         ];
