@@ -66,7 +66,7 @@ class AdminFarmMapService
             'lng' => $lng,
             'location' => collect([$farm->district, $farm->province])->filter()->implode(', ') ?: 'Rwanda',
             'status' => $farm->status,
-            'url' => route('central.users.show', $farm->id),
+            'url' => route('central.users.show', $farm),
         ];
     }
 

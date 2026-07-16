@@ -13,7 +13,7 @@
     <div class="dash-ops-toolbar__brand">
         <h1 class="dash-welcome" style="margin: 0;">{{ $toolbarTitle }}</h1>
         <p class="dash-home-subtitle" style="margin: 0.25rem 0 0;">
-            {{ $toolbarSubtitle }} <strong>{{ $filters['label'] ?? 'All time' }}</strong>
+            {{ $toolbarSubtitle }}: <strong>{{ $filters['label'] ?? 'All time' }}</strong>
         </p>
     </div>
     <div class="dash-ops-toolbar__controls">

@@ -7,7 +7,9 @@ use App\Models\Animal;
 use App\Models\Central\ContactMessage;
 use App\Models\Farm;
 use App\Models\Livestock;
+use App\Models\MilkSession;
 use App\Models\SaleItem;
+use App\Models\SaleTransaction;
 use App\Models\TenantAccount;
 use App\Services\AdminDashboardFilterService;
 use App\Services\AdminFarmMapService;
@@ -77,7 +79,7 @@ class AdminDashboardController extends Controller
             'activeNav' => 'dashboard',
             'filters' => $filters,
             'stats' => $stats,
-            'charts' => $this->buildCharts($livestockGroups, $filters),
+            'charts' => $this->buildCharts($filters),
             'recentFarms' => $recentFarms,
             'recentActivity' => $recentActivity,
             'recentContacts' => $recentContacts,
@@ -90,39 +92,166 @@ class AdminDashboardController extends Controller
      * @param  \Illuminate\Support\Collection<int, Livestock>  $livestockGroups
      * @param  array{period: string, from: string, to: string, label: string}  $filters
      * @return array{
-     *     milkSold: array{labels: list<string>, values: list<float>},
-     *     pie: array{title: string, labels: list<string>, values: list<int>}
+     *     milkYield: array{labels: list<string>, values: list<float>, interval: string},
+     *     animalsSold: array{labels: list<string>, values: list<int>, interval: string},
+     *     groups: array{labels: list<string>, values: list<int>}
      * }
      */
-    private function buildCharts($livestockGroups, array $filters): array
+    private function buildCharts(array $filters): array
     {
-        $milkSold = $this->buildMilkSoldChart($filters);
+        $milkYield = $this->buildMilkYieldChart($filters);
+        $animalsSold = $this->buildAnimalsSoldChart($filters);
+        $groups = $this->buildLivestockGroupsDonut();
 
-        $rankedGroups = $livestockGroups
-            ->sortByDesc('animals_count')
+        return [
+            'milkYield' => $milkYield,
+            'animalsSold' => $animalsSold,
+            'groups' => $groups,
+        ];
+    }
+
+    /**
+     * @return array{labels: list<string>, values: list<int>}
+     */
+    private function buildLivestockGroupsDonut(): array
+    {
+        $allGroups = $this->safeQuery(
+            Livestock::class,
+            fn ($query) => $query
+                ->withCount('animals')
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            collect(),
+        );
+
+        $aggregated = $allGroups
+            ->groupBy('name')
+            ->map(fn ($items, $name) => [
+                'name' => (string) $name,
+                'animals' => (int) $items->sum('animals_count'),
+            ])
+            ->filter(fn (array $item) => $item['animals'] > 0)
+            ->sortByDesc('animals')
             ->values();
 
-        $topGroups = $rankedGroups->take(8);
-        $otherAnimals = (int) $rankedGroups->slice(8)->sum('animals_count');
+        $top = $aggregated->take(7);
+        $otherAnimals = (int) $aggregated->slice(7)->sum('animals');
 
-        $labels = $topGroups->pluck('name')->all();
-        $values = $topGroups->pluck('animals_count')->map(fn ($count) => (int) $count)->all();
+        $labels = $top->pluck('name')->all();
+        $values = $top->pluck('animals')->all();
 
         if ($otherAnimals > 0) {
-            $labels[] = 'Other groups';
+            $labels[] = 'Other';
             $values[] = $otherAnimals;
         }
 
-        $pie = [
-            'title' => 'Animals by livestock group',
+        return [
             'labels' => $labels,
             'values' => $values,
         ];
+    }
 
-        return [
-            'milkSold' => $milkSold,
-            'pie' => $pie,
-        ];
+    /**
+     * @param  array{period: string, from: string, to: string}  $filters
+     * @return array{labels: list<string>, values: list<float>, interval: string}
+     */
+    private function buildMilkYieldChart(array $filters): array
+    {
+        $start = Carbon::parse($filters['from'])->startOfDay();
+        $end = Carbon::parse($filters['to'])->endOfDay();
+
+        $bucket = match ($filters['period']) {
+            'all' => 'year',
+            default => $this->resolveCustomBucket($start, $end),
+        };
+
+        $chart = match ($bucket) {
+            'year' => $this->bucketMilkYieldByYear($start, $end),
+            default => $this->bucketMilkYieldByMonth($start, $end),
+        };
+
+        $chart['interval'] = $bucket === 'year' ? 'year' : 'month';
+
+        return $chart;
+    }
+
+    /**
+     * @param  array{period: string, from: string, to: string}  $filters
+     * @return array{labels: list<string>, values: list<int>, interval: string}
+     */
+    private function buildAnimalsSoldChart(array $filters): array
+    {
+        $start = Carbon::parse($filters['from'])->startOfDay();
+        $end = Carbon::parse($filters['to'])->endOfDay();
+
+        $bucket = match ($filters['period']) {
+            'all' => 'year',
+            default => $this->resolveCustomBucket($start, $end),
+        };
+
+        $chart = match ($bucket) {
+            'year' => $this->bucketAnimalsSoldByYear($start, $end),
+            default => $this->bucketAnimalsSoldByMonth($start, $end),
+        };
+
+        $chart['interval'] = $bucket === 'year' ? 'year' : 'month';
+
+        return $chart;
+    }
+
+    /**
+     * @return array{labels: list<string>, values: list<int>}
+     */
+    private function bucketAnimalsSoldByMonth(Carbon $start, Carbon $end): array
+    {
+        $labels = [];
+        $values = [];
+        $cursor = $start->copy()->startOfMonth();
+        $limit = $end->copy()->startOfMonth();
+
+        while ($cursor->lte($limit)) {
+            $from = $cursor->copy()->startOfMonth()->max($start)->toDateString();
+            $to = $cursor->copy()->endOfMonth()->min($end)->toDateString();
+            $labels[] = $cursor->format('M Y');
+            $values[] = $this->animalsSoldBetween($from, $to);
+            $cursor->addMonth();
+        }
+
+        return compact('labels', 'values');
+    }
+
+    /**
+     * @return array{labels: list<string>, values: list<int>}
+     */
+    private function bucketAnimalsSoldByYear(Carbon $start, Carbon $end): array
+    {
+        $labels = [];
+        $values = [];
+        $cursor = $start->copy()->startOfYear();
+        $limit = $end->copy()->startOfYear();
+
+        while ($cursor->lte($limit)) {
+            $from = $cursor->copy()->startOfYear()->max($start)->toDateString();
+            $to = $cursor->copy()->endOfYear()->min($end)->toDateString();
+            $labels[] = (string) $cursor->year;
+            $values[] = $this->animalsSoldBetween($from, $to);
+            $cursor->addYear();
+        }
+
+        return compact('labels', 'values');
+    }
+
+    private function animalsSoldBetween(string $from, string $to): int
+    {
+        return (int) $this->safeQuery(
+            SaleTransaction::class,
+            fn ($query) => $query
+                ->where('sale_type', 'animal_sale')
+                ->where('sale_status', 'completed')
+                ->whereBetween('sale_date', [$from, $to])
+                ->count(),
+            0,
+        );
     }
 
     /**
@@ -246,6 +375,60 @@ class AdminDashboardController extends Controller
                 ->where('sale_transactions.sale_status', 'completed')
                 ->whereBetween('sale_transactions.sale_date', [$from, $to])
                 ->sum('sale_items.quantity'),
+            0.0,
+        );
+    }
+
+    /**
+     * @return array{labels: list<string>, values: list<float>}
+     */
+    private function bucketMilkYieldByMonth(Carbon $start, Carbon $end): array
+    {
+        $labels = [];
+        $values = [];
+        $cursor = $start->copy()->startOfMonth();
+        $limit = $end->copy()->startOfMonth();
+
+        while ($cursor->lte($limit)) {
+            $from = $cursor->copy()->startOfMonth()->max($start)->toDateString();
+            $to = $cursor->copy()->endOfMonth()->min($end)->toDateString();
+            $labels[] = $cursor->format('M Y');
+            $values[] = $this->litersYieldBetween($from, $to);
+            $cursor->addMonth();
+        }
+
+        return compact('labels', 'values');
+    }
+
+    /**
+     * @return array{labels: list<string>, values: list<float>}
+     */
+    private function bucketMilkYieldByYear(Carbon $start, Carbon $end): array
+    {
+        $labels = [];
+        $values = [];
+        $cursor = $start->copy()->startOfYear();
+        $limit = $end->copy()->startOfYear();
+
+        while ($cursor->lte($limit)) {
+            $from = $cursor->copy()->startOfYear()->max($start)->toDateString();
+            $to = $cursor->copy()->endOfYear()->min($end)->toDateString();
+            $labels[] = (string) $cursor->year;
+            $values[] = $this->litersYieldBetween($from, $to);
+            $cursor->addYear();
+        }
+
+        return compact('labels', 'values');
+    }
+
+    private function litersYieldBetween(string $from, string $to): float
+    {
+        return (float) $this->safeQuery(
+            MilkSession::class,
+            fn ($query) => (float) $query
+                ->where('status', 'completed')
+                ->whereBetween('session_date', [$from, $to])
+                ->sum('total_yield_liters'),
             0.0,
         );
     }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Farm;
+use App\Models\MilkSession;
 use App\Models\TenantAccount;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -95,6 +96,19 @@ class AdminDashboardFilterService
                 $accountStart = TenantAccount::query()->min('created_at');
                 if ($accountStart) {
                     $candidates[] = Carbon::parse($accountStart)->startOfDay();
+                }
+            }
+        } catch (\Throwable) {
+            // Keep fallback below.
+        }
+
+        try {
+            if (Schema::hasTable('milk_sessions')) {
+                $milkStart = MilkSession::query()
+                    ->where('status', 'completed')
+                    ->min('session_date');
+                if ($milkStart) {
+                    $candidates[] = Carbon::parse($milkStart)->startOfDay();
                 }
             }
         } catch (\Throwable) {

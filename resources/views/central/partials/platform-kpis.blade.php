@@ -1,67 +1,51 @@
 @php
     $stats = $stats ?? [];
     $hideAccountKpis = (bool) ($hideAccountKpis ?? false);
-    $periodLabel = $filters['label'] ?? 'All time';
-    $inPeriodHint = $periodLabel === 'All time' ? 'All time' : 'In '.$periodLabel;
 @endphp
 
-<div class="dash-stats">
+<div class="dash-stats admin-kpis">
     @unless ($hideAccountKpis)
         <div class="dash-stat-card dash-ops-kpi">
-        <div>
-            <div class="dash-stat-label">Accounts (no farm yet)</div>
-            <div class="dash-stat-value">{{ number_format($stats['accounts_without_farm'] ?? 0) }}</div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">{{ $inPeriodHint }} · no farm yet</p>
+            <div>
+                <div class="dash-stat-label">Accounts pending</div>
+                <div class="dash-stat-value">{{ number_format($stats['accounts_without_farm'] ?? 0) }}</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'customer', 'label' => 'Accounts without farm'])
         </div>
-        @include('modules.partials.stat-icon', ['icon' => 'customer', 'label' => 'Accounts without farm'])
-    </div>
-    <div class="dash-stat-card dash-ops-kpi">
-        <div>
-            <div class="dash-stat-label">Users (with farm)</div>
-            <div class="dash-stat-value accent">{{ number_format($stats['users_with_farm'] ?? 0) }}</div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">{{ $inPeriodHint }} · with at least one farm</p>
-        </div>
-        @include('modules.partials.stat-icon', ['icon' => 'employee', 'label' => 'Users with farm'])
-    </div>
     @endunless
     <div class="dash-stat-card dash-ops-kpi">
         <div>
-            <div class="dash-stat-label">Farms registered</div>
+            <div class="dash-stat-label">Farms</div>
             <div class="dash-stat-value accent">{{ number_format($stats['farms'] ?? 0) }}</div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">{{ $inPeriodHint }}</p>
         </div>
-        @include('modules.partials.stat-icon', ['icon' => 'farm', 'label' => 'Farms registered'])
+        @include('modules.partials.stat-icon', ['icon' => 'farm', 'label' => 'Farms'])
     </div>
     <div class="dash-stat-card dash-ops-kpi">
         <div>
             <div class="dash-stat-label">Livestock groups</div>
             <div class="dash-stat-value">{{ number_format($stats['livestock_groups'] ?? 0) }}</div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">{{ number_format($stats['head_count'] ?? 0) }} head · {{ strtolower($inPeriodHint) }}</p>
         </div>
         @include('modules.partials.stat-icon', ['icon' => 'livestock', 'label' => 'Livestock groups'])
     </div>
     <div class="dash-stat-card dash-ops-kpi">
         <div>
-            <div class="dash-stat-label">Animals registered</div>
+            <div class="dash-stat-label">Animals</div>
             <div class="dash-stat-value accent">{{ number_format($stats['animals'] ?? 0) }}</div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">{{ $inPeriodHint }}</p>
         </div>
-        @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Animals registered'])
+        @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Animals'])
     </div>
     <div class="dash-stat-card dash-ops-kpi">
         <div>
-            <div class="dash-stat-label">Liter yield</div>
-            <div class="dash-stat-value accent">{{ number_format($stats['liter_yield'] ?? 0, 0) }} <span class="dash-home-stat__suffix">L</span></div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">Completed sessions · {{ strtolower($inPeriodHint) }}</p>
+            <div class="dash-stat-label">Milk yield</div>
+            <div class="dash-stat-value accent">{{ number_format($stats['liter_yield'] ?? 0, 0) }}<span class="dash-home-stat__suffix"> L</span></div>
         </div>
-        @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Liter yield'])
+        @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Milk yield'])
     </div>
     <div class="dash-stat-card dash-ops-kpi">
         <div>
-            <div class="dash-stat-label">Liters sold</div>
-            <div class="dash-stat-value">{{ number_format($stats['liters_sold'] ?? 0, 0) }} <span class="dash-home-stat__suffix">L</span></div>
-            <p class="dash-field-hint" style="margin: 0.2rem 0 0;">Completed milk sales · {{ strtolower($inPeriodHint) }}</p>
+            <div class="dash-stat-label">Milk sold</div>
+            <div class="dash-stat-value">{{ number_format($stats['liters_sold'] ?? 0, 0) }}<span class="dash-home-stat__suffix"> L</span></div>
         </div>
-        @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Liters sold'])
+        @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Milk sold'])
     </div>
 </div>

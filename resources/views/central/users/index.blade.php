@@ -8,13 +8,6 @@
             <p class="dash-empty">Farm tables are not set up yet. Run <code>php artisan migrate --force</code>.</p>
         </div>
     @else
-        <div class="dash-page-header" style="margin-bottom: 1rem;">
-            <div>
-                <h1 class="dash-welcome" style="margin: 0;">Farms</h1>
-                <p class="dash-home-subtitle" style="margin: 0.35rem 0 0;">All registered farms across farmer workspaces.</p>
-            </div>
-        </div>
-
         @include('central.users.partials.toolbar')
 
         @if (! empty($filtersActive))
@@ -23,23 +16,16 @@
             </section>
         @endif
 
-        <div class="dash-panel dash-panel--flush dash-data-table-panel" style="margin-bottom: 1.25rem;">
-            <div class="dash-panel-head">
+        <div class="dash-panel dash-panel--flush dash-data-table-panel">
+            <div class="admin-panel-head" style="padding: 1.25rem 1.25rem 0;">
                 <h2 class="dash-panel-title">All farms</h2>
-                <span class="dash-field-hint" style="margin: 0;">
-                    {{ number_format($farms->total()) }} registered
-                    @if (! empty($filtersActive) && ($filters['scope_label'] ?? 'All locations') !== 'All locations')
-                        · {{ $filters['scope_label'] }}
-                    @endif
-                </span>
+                <span class="admin-panel-meta">{{ number_format($farms->total()) }}</span>
             </div>
 
             @if ($farms->isEmpty())
                 <p class="dash-data-table__empty">
                     @if (! empty($filtersActive))
                         No farms match the selected filters.
-                    @elseif (($totalFarms ?? 0) > 0)
-                        Farms exist on the platform but could not be loaded. Try clearing filters or refreshing the page.
                     @else
                         No farms registered yet.
                     @endif
@@ -56,7 +42,6 @@
                                 <th class="dash-data-table__num">Groups</th>
                                 <th class="dash-data-table__num">Animals</th>
                                 <th>Registered</th>
-                                <th class="dash-data-table__action">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -72,7 +57,6 @@
                                         ? ($farm->organization_name ?: '—')
                                         : ($farm->owner_full_name ?: '—');
                                     $accountEmail = $accountEmails[$farm->tenant_id] ?? null;
-                                    $workspaceName = $tenantNames[$farm->tenant_id] ?? null;
                                     $farmQuery = http_build_query(request()->only(['period', 'from', 'to', 'farm_id', 'province_code', 'district_code']));
                                 @endphp
                                 <tr>
@@ -84,30 +68,14 @@
                                                     <span class="dash-data-table__badge {{ $statusBadge }}">{{ $farm->status }}</span>
                                                 @endif
                                             </div>
-                                            @if ($farm->registration_number)
-                                                <span class="dash-data-table__meta">{{ $farm->registration_number }}</span>
-                                            @endif
                                         </div>
                                     </td>
                                     <td class="dash-data-table__muted">{{ $owner }}</td>
                                     <td class="dash-data-table__muted">{{ Str::limit($farm->location_label ?: '—', 42) }}</td>
-                                    <td>
-                                        <div class="dash-data-table__primary">
-                                            <span>{{ $accountEmail ?: '—' }}</span>
-                                            <span class="dash-data-table__meta">
-                                                <span class="dash-data-table__chip">{{ $farm->tenant_id }}</span>
-                                                @if ($workspaceName)
-                                                    {{ $workspaceName }}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </td>
+                                    <td class="dash-data-table__muted">{{ $accountEmail ?: '—' }}</td>
                                     <td class="dash-data-table__num">{{ number_format($farm->livestock_count) }}</td>
                                     <td class="dash-data-table__num">{{ number_format($farm->animals_count) }}</td>
                                     <td class="dash-data-table__muted">{{ $farm->created_at?->format('M j, Y') ?? '—' }}</td>
-                                    <td class="dash-data-table__action">
-                                        <a href="{{ route('central.users.show', $farm).($farmQuery ? '?'.$farmQuery : '') }}" class="dash-data-table__view">View</a>
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
