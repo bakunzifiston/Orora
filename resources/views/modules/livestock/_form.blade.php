@@ -42,22 +42,6 @@
 
     @component('modules.farms._form-section', [
         'number' => '2',
-        'title' => 'Group / herd',
-        'description' => 'Cattle group or herd classification — select all that apply.',
-        'id' => 'section-herd-groups',
-    ])
-        @include('modules.partials.checkbox-multi', [
-            'name' => 'herd_groups',
-            'label' => 'Group / herd',
-            'options' => config('modules.herd_groups'),
-            'selected' => $livestock?->herd_groups,
-            'otherName' => 'herd_group_other',
-            'otherValue' => $livestock?->herd_group_other,
-        ])
-    @endcomponent
-
-    @component('modules.farms._form-section', [
-        'number' => '3',
         'title' => 'Livestock types',
         'description' => 'Select all animal types in this herd or flock.',
         'id' => 'section-livestock-types',
@@ -69,6 +53,22 @@
             'selected' => $livestock?->livestock_types,
             'otherName' => 'livestock_type_other',
             'otherValue' => $livestock?->livestock_type_other,
+        ])
+    @endcomponent
+
+    @component('modules.farms._form-section', [
+        'number' => '3',
+        'title' => 'Group / herd',
+        'description' => 'Cattle group or herd classification — select all that apply.',
+        'id' => 'section-herd-groups',
+    ])
+        @include('modules.partials.checkbox-multi', [
+            'name' => 'herd_groups',
+            'label' => 'Group / herd',
+            'options' => config('modules.herd_groups'),
+            'selected' => $livestock?->herd_groups,
+            'otherName' => 'herd_group_other',
+            'otherValue' => $livestock?->herd_group_other,
         ])
     @endcomponent
 

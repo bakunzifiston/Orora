@@ -126,8 +126,30 @@
         </div>
     @endcomponent
 
+    <section class="dash-form-section" id="section-members" data-members-section hidden>
+        <header class="dash-form-section__head dash-form-section__head--split">
+            <div class="dash-form-section__head-main">
+                <span class="dash-form-section__number" aria-hidden="true">4</span>
+                <div class="dash-form-section__titles">
+                    <h2 class="dash-form-section-title">Organization members</h2>
+                    <p class="dash-form-section-hint">Required for cooperatives and companies — add all registered members.</p>
+                </div>
+            </div>
+            <button type="button" class="dash-btn-save dash-btn-save--sm" data-add-member>+ Add member</button>
+        </header>
+        <div class="dash-form-section__body">
+            <div data-members-list>
+                @forelse ($members as $index => $member)
+                    @include('modules.farms._member-row', ['index' => $index, 'member' => $member])
+                @empty
+                    @include('modules.farms._member-row', ['index' => 0, 'member' => []])
+                @endforelse
+            </div>
+        </div>
+    </section>
+
     @component('modules.farms._form-section', [
-        'number' => '4',
+        'number' => '5',
         'title' => 'Business owner',
         'description' => 'Primary owner or authorized representative personal details.',
         'id' => 'section-owner',
@@ -161,7 +183,7 @@
     @endcomponent
 
     @component('modules.farms._form-section', [
-        'number' => '5',
+        'number' => '6',
         'title' => 'Contact information',
         'description' => 'Phone, email, and emergency contact for the owner.',
         'id' => 'section-contact',
@@ -183,7 +205,7 @@
     @endcomponent
 
     @component('modules.farms._form-section', [
-        'number' => '6',
+        'number' => '7',
         'title' => 'Additional notes',
         'description' => 'Optional remarks about this farm registration.',
         'id' => 'section-notes',
@@ -195,28 +217,6 @@
             </div>
         </div>
     @endcomponent
-
-    <section class="dash-form-section" id="section-members" data-members-section hidden>
-        <header class="dash-form-section__head dash-form-section__head--split">
-            <div class="dash-form-section__head-main">
-                <span class="dash-form-section__number" aria-hidden="true">7</span>
-                <div class="dash-form-section__titles">
-                    <h2 class="dash-form-section-title">Organization members</h2>
-                    <p class="dash-form-section-hint">Required for cooperatives and companies — add all registered members.</p>
-                </div>
-            </div>
-            <button type="button" class="dash-btn-save dash-btn-save--sm" data-add-member>+ Add member</button>
-        </header>
-        <div class="dash-form-section__body">
-            <div data-members-list>
-                @forelse ($members as $index => $member)
-                    @include('modules.farms._member-row', ['index' => $index, 'member' => $member])
-                @empty
-                    @include('modules.farms._member-row', ['index' => 0, 'member' => []])
-                @endforelse
-            </div>
-        </div>
-    </section>
 
     <template id="farm-member-template">
         @include('modules.farms._member-row', ['index' => '__INDEX__', 'member' => []])
