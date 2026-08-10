@@ -1,55 +1,55 @@
 @extends('layouts.expenses-module')
 
-@section('title', 'Expenses — Overview')
+@section('title', __('Expenses — Overview'))
 
 @section('expense-content')
     @include('modules.partials.header', [
-        'title' => 'Expenses overview',
-        'subtitle' => 'Feed, health, farm operations, and general costs this month.',
+        'title' => __('Expenses overview'),
+        'subtitle' => __('Feed, health, farm operations, and general costs this month.'),
         'createRoute' => 'expenses.records.create',
-        'createLabel' => '+ Add expense',
+        'createLabel' => '+ '. __('Add expense'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Total this month</div>
+                <div class="dash-stat-label">{{ __('Total this month') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['month_total'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'expense'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Records</div>
+                <div class="dash-stat-label">{{ __('Records') }}</div>
                 <div class="dash-stat-value accent">{{ number_format($stats['record_count']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'chart'])
         </div>
         <a href="{{ route('expenses.records', ['group' => 'feed']) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Feed expenses</div>
+                <div class="dash-stat-label">{{ __('Feed expenses') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['feed'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'feeding'])
         </a>
         <a href="{{ route('expenses.records', ['group' => 'health']) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Health expenses</div>
+                <div class="dash-stat-label">{{ __('Health expenses') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['health'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'health'])
         </a>
         <a href="{{ route('expenses.records', ['group' => 'farm_operations']) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Farm operations</div>
+                <div class="dash-stat-label">{{ __('Farm operations') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['farm_operations'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'farm'])
         </a>
         <a href="{{ route('expenses.records', ['group' => 'general']) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">General / other</div>
+                <div class="dash-stat-label">{{ __('General / other') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['general'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'sale'])
@@ -58,9 +58,9 @@
 
     <div class="dash-health-grid">
         <div class="dash-panel">
-            <div class="dash-panel-title">Recent expenses</div>
+            <div class="dash-panel-title">{{ __('Recent expenses') }}</div>
             @if ($recentExpenses->isEmpty())
-                <p class="dash-empty">No expenses logged yet.</p>
+                <p class="dash-empty">{{ __('No expenses logged yet.') }}</p>
             @else
                 <ul class="dash-health-activity">
                     @foreach ($recentExpenses as $expense)
@@ -77,9 +77,9 @@
         </div>
 
         <div class="dash-panel">
-            <div class="dash-panel-title">Top categories (this month)</div>
+            <div class="dash-panel-title">{{ __('Top categories (this month)') }}</div>
             @if ($topCategories->isEmpty())
-                <p class="dash-empty">No data yet.</p>
+                <p class="dash-empty">{{ __('No data yet.') }}</p>
             @else
                 <ul class="dash-health-activity">
                     @foreach ($topCategories as $row)

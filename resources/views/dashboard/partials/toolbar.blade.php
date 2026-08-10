@@ -10,41 +10,44 @@
     <div class="dash-ops-toolbar__brand">
         <h1 class="dash-welcome" style="margin: 0;">
             @if ($welcomeName)
-                Welcome, {{ $welcomeName }}
+                {{ __('Welcome, :name', ['name' => $welcomeName]) }}
             @else
-                Welcome
+                {{ __('Dashboard') }}
             @endif
         </h1>
-        <p class="dash-home-subtitle" style="margin: 0.25rem 0 0;">Operations overview for your farm</p>
+        @if (! empty($filters['label']))
+            <p class="admin-panel-meta" style="margin: 0.25rem 0 0;">{{ __($filters['label']) }}</p>
+        @endif
     </div>
     <div class="dash-ops-toolbar__controls">
         <div class="dash-ops-field">
-            <label for="filter_farm">Farm</label>
+            <label for="filter_farm">{{ __('Farm') }}</label>
             <select name="farm_id" id="filter_farm">
-                <option value="">All farms</option>
+                <option value="">{{ __('All') }}</option>
                 @foreach ($farms as $farm)
                     <option value="{{ $farm->id }}" @selected(($filters['farm_id'] ?? null) == $farm->id)>{{ $farm->name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="dash-ops-field">
-            <label for="filter_period">Period</label>
+            <label for="filter_period">{{ __('Period') }}</label>
             <select name="period" id="filter_period">
-                <option value="this_month" @selected(($filters['period'] ?? '') === 'this_month')>This month</option>
-                <option value="last_month" @selected(($filters['period'] ?? '') === 'last_month')>Last month</option>
-                <option value="this_quarter" @selected(($filters['period'] ?? '') === 'this_quarter')>This quarter</option>
-                <option value="this_year" @selected(($filters['period'] ?? '') === 'this_year')>This year</option>
-                <option value="custom" @selected(($filters['period'] ?? '') === 'custom')>Custom range</option>
+                <option value="all" @selected(($filters['period'] ?? '') === 'all')>{{ __('All time') }}</option>
+                <option value="this_month" @selected(($filters['period'] ?? '') === 'this_month')>{{ __('This month') }}</option>
+                <option value="last_month" @selected(($filters['period'] ?? '') === 'last_month')>{{ __('Last month') }}</option>
+                <option value="this_quarter" @selected(($filters['period'] ?? '') === 'this_quarter')>{{ __('This quarter') }}</option>
+                <option value="this_year" @selected(($filters['period'] ?? 'this_year') === 'this_year')>{{ __('This year') }}</option>
+                <option value="custom" @selected(($filters['period'] ?? '') === 'custom')>{{ __('Custom') }}</option>
             </select>
         </div>
-        <div class="dash-ops-field dash-ops-field--dates @if(($filters['period'] ?? 'this_month') !== 'custom') dash-ops-field--muted @endif" id="dash-custom-dates">
-            <label>Date range</label>
+        <div class="dash-ops-field dash-ops-field--dates @if(($filters['period'] ?? 'this_year') !== 'custom') dash-ops-field--muted @endif" id="dash-custom-dates">
+            <label>{{ __('Range') }}</label>
             <div class="dash-ops-dates">
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
                 <span class="dash-ops-dates__sep">→</span>
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
             </div>
         </div>
-        <button type="submit" class="dash-btn-save dash-ops-apply">Apply</button>
+        <button type="submit" class="dash-btn-save dash-ops-apply">{{ __('Apply') }}</button>
     </div>
 </form>

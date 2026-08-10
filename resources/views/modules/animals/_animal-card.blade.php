@@ -33,7 +33,7 @@
 
         <dl class="dash-entity-card__meta">
             <div class="dash-entity-card__meta-row">
-                <dt>Farm</dt>
+                <dt>{{ __('Farm') }}</dt>
                 <dd>
                     <a href="{{ route('farms.show', $animal->farm) }}" style="color: inherit; text-decoration: none; font-weight: 600;">
                         {{ $animal->farm->name }}
@@ -41,7 +41,7 @@
                 </dd>
             </div>
             <div class="dash-entity-card__meta-row">
-                <dt>Group</dt>
+                <dt>{{ __('Group') }}</dt>
                 <dd>
                     @if ($animal->livestock)
                         <a href="{{ route('livestock.show', $animal->livestock) }}" style="color: inherit; text-decoration: none; font-weight: 600;">
@@ -53,11 +53,11 @@
                 </dd>
             </div>
             <div class="dash-entity-card__meta-row">
-                <dt>Gender</dt>
+                <dt>{{ __('Gender') }}</dt>
                 <dd>{{ $animal->gender_label }}</dd>
             </div>
             <div class="dash-entity-card__meta-row">
-                <dt>Lifecycle</dt>
+                <dt>{{ __('Lifecycle') }}</dt>
                 <dd>{{ $animal->lifecycle_status }}</dd>
             </div>
         </dl>
@@ -65,21 +65,21 @@
         <div class="dash-entity-card__stats">
             <div class="dash-entity-card__stat">
                 <span class="dash-entity-card__stat-value">{{ $animal->production_status ?: '—' }}</span>
-                <span class="dash-entity-card__stat-label">Production</span>
+                <span class="dash-entity-card__stat-label">{{ __('Production') }}</span>
             </div>
             <div class="dash-entity-card__stat">
                 <span class="dash-entity-card__stat-value">{{ $animal->age_label ?: '—' }}</span>
-                <span class="dash-entity-card__stat-label">Age</span>
+                <span class="dash-entity-card__stat-label">{{ __('Age') }}</span>
             </div>
         </div>
 
         <div class="dash-entity-card__footer">
-            <a href="{{ route('animals.show', $animal) }}" class="dash-entity-card__action dash-entity-card__action--primary">View</a>
-            <a href="{{ route('animals.edit', $animal) }}" class="dash-entity-card__action">Edit</a>
-            <form method="POST" action="{{ route('animals.destroy', $animal) }}" onsubmit="return confirm('Delete this animal?');">
+            <a href="{{ route('animals.show', $animal) }}" class="dash-entity-card__action dash-entity-card__action--primary">{{ __('View') }}</a>
+            <a href="{{ route('animals.edit', $animal) }}" class="dash-entity-card__action">{{ __('Edit') }}</a>
+            <form method="POST" action="{{ route('animals.destroy', $animal) }}" onsubmit="return confirm(@js(__('Delete this animal?')));">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="dash-entity-card__action dash-entity-card__action--danger">Delete</button>
+                <button type="submit" class="dash-entity-card__action dash-entity-card__action--danger">{{ __('Delete') }}</button>
             </form>
         </div>
     </div>

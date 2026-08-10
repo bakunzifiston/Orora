@@ -1,41 +1,41 @@
 @extends('layouts.employees-module')
 
-@section('title', 'Employees — Overview')
+@section('title', __('Employees — Overview'))
 
 @section('employee-content')
     @include('modules.partials.header', [
-        'title' => 'Employees overview',
-        'subtitle' => 'Workforce across all farms — roles, assignments, and payroll.',
+        'title' => __('Employees overview'),
+        'subtitle' => __('Workforce across all farms — roles, assignments, and payroll.'),
         'createRoute' => 'employees.create',
-        'createLabel' => '+ Add employee',
+        'createLabel' => '+ '. __('Add employee'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Total employees</div>
+                <div class="dash-stat-label">{{ __('Total employees') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['total']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'employee'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Active</div>
+                <div class="dash-stat-label">{{ __('Active') }}</div>
                 <div class="dash-stat-value accent">{{ number_format($stats['active']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'chart'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">On leave</div>
+                <div class="dash-stat-label">{{ __('On leave') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['on_leave']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'health'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Monthly payroll (est.)</div>
+                <div class="dash-stat-label">{{ __('Monthly payroll (est.)') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['monthly_payroll'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'expense'])
@@ -44,9 +44,9 @@
 
     <div class="dash-health-grid">
         <div class="dash-panel">
-            <div class="dash-panel-title">Recently added</div>
+            <div class="dash-panel-title">{{ __('Recently added') }}</div>
             @if ($recentEmployees->isEmpty())
-                <p class="dash-empty">No employees yet.</p>
+                <p class="dash-empty">{{ __('No employees yet.') }}</p>
             @else
                 <ul class="dash-health-activity">
                     @foreach ($recentEmployees as $employee)
@@ -62,9 +62,9 @@
             @endif
         </div>
         <div class="dash-panel">
-            <div class="dash-panel-title">Active by role</div>
+            <div class="dash-panel-title">{{ __('Active by role') }}</div>
             @if ($byRole->isEmpty())
-                <p class="dash-empty">No active employees.</p>
+                <p class="dash-empty">{{ __('No active employees.') }}</p>
             @else
                 <ul class="dash-health-activity">
                     @foreach ($byRole as $row)
@@ -80,12 +80,12 @@
 
     @if ($byFarm->isNotEmpty())
         <div class="dash-panel" style="margin-top: 1.25rem;">
-            <div class="dash-panel-title">Staff by farm</div>
+            <div class="dash-panel-title">{{ __('Staff by farm') }}</div>
             <ul class="dash-health-activity">
                 @foreach ($byFarm as $row)
                     <li>
                         <div>{{ $row->farm_name }}</div>
-                        <span>{{ $row->total }} staff</span>
+                        <span>{{ $row->total }} {{ __('staff') }}</span>
                     </li>
                 @endforeach
             </ul>

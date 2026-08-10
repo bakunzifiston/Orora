@@ -4,45 +4,45 @@
 
 @section('breeding-content')
     @include('modules.partials.header', [
-        'title' => 'Breeding overview',
-        'subtitle' => 'Track matings, pregnancy checks, and calving.',
+        'title' => __('Breeding overview'),
+        'subtitle' => __('Track matings, pregnancy checks, and calving.'),
         'createRoute' => 'breeding.records.create',
-        'createLabel' => '+ Record breeding',
+        'createLabel' => '+ '. __('Record breeding'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Active breedings</div>
+                <div class="dash-stat-label">{{ __('Active breedings') }}</div>
                 <div class="dash-stat-value">{{ $stats['active_breedings'] }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'breeding'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Confirmed pregnant</div>
+                <div class="dash-stat-label">{{ __('Confirmed pregnant') }}</div>
                 <div class="dash-stat-value accent">{{ $stats['confirmed_pregnant'] }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'health'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Due this month</div>
+                <div class="dash-stat-label">{{ __('Due this month') }}</div>
                 <div class="dash-stat-value">{{ $stats['due_this_month'] }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'certificate'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Births this month</div>
+                <div class="dash-stat-label">{{ __('Births this month') }}</div>
                 <div class="dash-stat-value">{{ $stats['births_this_month'] }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'animal'])
         </div>
         <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Pregnancy checks due</div>
+                <div class="dash-stat-label">{{ __('Pregnancy checks due') }}</div>
                 <div class="dash-stat-value @if(($stats['pregnancy_checks_due'] ?? 0) > 0) alert @endif">{{ $stats['pregnancy_checks_due'] ?? 0 }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'health'])
@@ -50,9 +50,11 @@
     </div>
 
     <div class="dash-panel" id="pregnancy-check-due" style="margin-bottom: 1.25rem;">
-        <div class="dash-panel-title">Pregnancy checks due ({{ config('modules.breeding_pregnancy_check_due_days', 35) }}+ days after breeding)</div>
+        <div class="dash-panel-title">
+            {{ __('Pregnancy checks due') }} ({{ config('modules.breeding_pregnancy_check_due_days', 35) }}+ {{ __('days after breeding') }})
+        </div>
         @if ($pregnancyChecksDue->isEmpty())
-            <p class="dash-empty">No pregnancy checks due right now.</p>
+            <p class="dash-empty">{{ __('No pregnancy checks due right now.') }}</p>
         @else
             <div class="dash-table-wrap">
                 <table class="dash-table">
@@ -81,16 +83,16 @@
                 </table>
             </div>
             <p style="margin: 0.75rem 0 0; font-size: 0.8125rem;">
-                <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}">View all due breedings →</a>
+                <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}">{{ __('View all due breedings') }} →</a>
             </p>
         @endif
     </div>
 
     <div class="dash-form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem;">
         <div class="dash-panel">
-            <div class="dash-panel-title">Upcoming calvings</div>
+            <div class="dash-panel-title">{{ __('Upcoming calvings') }}</div>
             @if ($upcomingCalvings->isEmpty())
-                <p class="dash-empty">No confirmed pregnancies with expected dates.</p>
+                <p class="dash-empty">{{ __('No confirmed pregnancies with expected dates.') }}</p>
             @else
                 <div class="dash-table-wrap">
                     <table class="dash-table">
@@ -118,9 +120,9 @@
         </div>
 
         <div class="dash-panel">
-            <div class="dash-panel-title">Recent breedings</div>
+            <div class="dash-panel-title">{{ __('Recent breedings') }}</div>
             @if ($recentBreedings->isEmpty())
-                <p class="dash-empty">No breeding records yet.</p>
+                <p class="dash-empty">{{ __('No breeding records yet.') }}</p>
             @else
                 <div class="dash-table-wrap">
                     <table class="dash-table">

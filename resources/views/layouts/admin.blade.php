@@ -24,23 +24,24 @@
         <div class="dash-main">
             <header class="dash-topbar">
                 <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--orora-gray);">
-                    Platform workspace
+                    {{ __('Platform workspace') }}
                 </p>
                 <div class="dash-topbar-actions">
+                    @include('layouts.partials.locale-switcher')
                     <a href="{{ url('/') }}" target="_blank" rel="noopener" class="dash-topbar-logout" style="text-decoration: none;">
-                        Public site
+                        {{ __('Public site') }}
                     </a>
                     <div class="dash-topbar-profile">
                         <div class="dash-topbar-profile__info">
                             <span class="dash-topbar-profile__avatar">{{ $initials }}</span>
                             <div class="dash-topbar-profile__text">
                                 <span class="dash-topbar-profile__name">{{ $admin->name }}</span>
-                                <span class="dash-topbar-profile__role">Super admin</span>
+                                <span class="dash-topbar-profile__role">{{ __('Super admin') }}</span>
                             </div>
                         </div>
                         <form method="POST" action="{{ route('central.logout') }}" class="dash-topbar-logout-form">
                             @csrf
-                            <button type="submit" class="dash-topbar-logout" title="Sign out">Logout</button>
+                            <button type="submit" class="dash-topbar-logout" title="{{ __('Sign out') }}">{{ __('Logout') }}</button>
                         </form>
                     </div>
                 </div>

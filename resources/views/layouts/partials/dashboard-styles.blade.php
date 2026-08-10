@@ -152,6 +152,33 @@
         border: none; background: transparent; outline: none; font-size: 0.875rem; width: 100%; color: #111;
     }
     .dash-topbar-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .dash-locale {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.15rem;
+        padding: 0.2rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background: #fff;
+    }
+    .dash-locale__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        padding: 0.3rem 0.45rem;
+        border-radius: 0.35rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #6b7280;
+        text-decoration: none;
+    }
+    .dash-locale__btn:hover { color: #111; background: #f3f4f6; }
+    .dash-locale__btn.is-active {
+        background: #002B2B;
+        color: #A4D400;
+    }
     .dash-icon-btn {
         width: 2.25rem; height: 2.25rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;
         background: #fff; display: flex; align-items: center; justify-content: center; color: #374151;
@@ -429,11 +456,24 @@
     .dash-farm-form .farm-registration,
     .dash-farm-form .livestock-registration,
     .dash-farm-form .animal-registration,
-    .dash-farm-form .health-registration {
+    .dash-farm-form .health-registration,
+    .dash-farm-form .animal-import-form,
+    .dash-farm-form .employee-import-form,
+    .dash-farm-form .customer-import-form {
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
+    .dash-import-tips {
+        margin: 1rem 0 0;
+        padding-left: 1.1rem;
+        font-size: 0.75rem;
+        color: var(--orora-gray);
+        line-height: 1.55;
+    }
+    .dash-import-tips li + li { margin-top: 0.2rem; }
+    .dash-form-section__body--flush { padding: 0; }
+    .dash-table .dash-table__row-col { width: 5rem; }
     .dash-field-hint {
         font-size: 0.75rem;
         color: var(--orora-gray);
@@ -612,71 +652,66 @@
     .dash-health-charts .dash-panel--wide {
         grid-column: 1 / -1;
     }
-    .dash-health-overview {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+    .health-overview__kpis {
+        margin-bottom: 0.85rem;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .health-overview__status {
+        margin-bottom: 1.25rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .health-overview__kpis a.dash-stat-card,
+    .health-overview__status a.dash-stat-card {
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .health-overview__kpis a.dash-stat-card:hover,
+    .health-overview__status a.dash-stat-card:hover {
+        border-color: #c5d98a;
+        box-shadow: 0 1px 0 rgba(0, 43, 43, 0.04);
+    }
+    @media (max-width: 1100px) {
+        .health-overview__kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 700px) {
+        .health-overview__kpis,
+        .health-overview__status { grid-template-columns: 1fr 1fr; }
+    }
+    .health-overview__charts {
         margin-bottom: 1.25rem;
     }
-    .dash-health-overview__stats {
-        margin-bottom: 1.25rem;
-    }
-    .dash-health-overview__split {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-        gap: 1rem;
-    }
-    @media (max-width: 960px) {
-        .dash-health-overview__split {
-            grid-template-columns: 1fr;
-        }
-    }
-    .dash-health-chart-head {
+    .health-overview__head {
         display: flex;
-        align-items: flex-start;
+        align-items: baseline;
         justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+        flex-wrap: wrap;
     }
-    .dash-health-chart-head .dash-panel-title {
-        margin-bottom: 0.2rem;
-    }
-    .dash-health-chart-subtitle {
+    .health-overview__head .dash-panel-title {
         margin: 0;
-        font-size: 0.75rem;
+    }
+    .health-overview__meta {
+        font-size: 0.8125rem;
         color: #808080;
+        font-weight: 500;
     }
-    .dash-health-chart-kpi {
-        flex-shrink: 0;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #002B2B;
-        background: #f4f8e8;
-        padding: 0.35rem 0.65rem;
-        border-radius: 999px;
-        white-space: nowrap;
-    }
-    .dash-health-chart-canvas {
+    .health-overview__chart {
         position: relative;
         width: 100%;
+        height: 210px;
     }
-    .dash-health-chart-canvas--trend {
-        height: 220px;
-    }
-    .dash-health-chart-canvas--donut {
-        height: 220px;
-        max-width: 320px;
+    .health-overview__chart--donut {
+        max-width: 260px;
         margin: 0 auto;
+        height: 210px;
     }
-    .dash-health-chart-canvas--bars {
-        height: 220px;
-    }
-    .dash-health-chart-empty {
-        min-height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
+    .dash-health-activity__meta {
+        display: block;
+        color: #808080;
+        font-size: 0.8125rem;
+        margin-top: 0.15rem;
     }
     .dash-health-activity__date {
         color: #808080;

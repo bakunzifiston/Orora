@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnimalController;
+use App\Http\Controllers\AnimalImportExportController;
 use App\Http\Controllers\AbattoirDispatchController;
 use App\Http\Controllers\BirthRecordController;
 use App\Http\Controllers\BreedingModuleController;
@@ -13,12 +14,14 @@ use App\Http\Controllers\CustomerCommunicationController;
 use App\Http\Controllers\CustomerContactController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerCreditController;
+use App\Http\Controllers\CustomerImportExportController;
 use App\Http\Controllers\CustomerModuleController;
 use App\Http\Controllers\EmployeeAddressController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeDocumentController;
 use App\Http\Controllers\EmployeeEmergencyContactController;
 use App\Http\Controllers\EmployeeFarmAssignmentController;
+use App\Http\Controllers\EmployeeImportExportController;
 use App\Http\Controllers\EmployeeModuleController;
 use App\Http\Controllers\EmployeePayrollController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -62,6 +65,10 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('farms', FarmController::class);
     Route::resource('livestock', LivestockController::class);
+    Route::get('animals/export', [AnimalImportExportController::class, 'export'])->name('animals.export');
+    Route::get('animals/import/template', [AnimalImportExportController::class, 'template'])->name('animals.import.template');
+    Route::get('animals/import', [AnimalImportExportController::class, 'create'])->name('animals.import');
+    Route::post('animals/import', [AnimalImportExportController::class, 'store'])->name('animals.import.store');
     Route::resource('animals', AnimalController::class);
     Route::prefix('health')->name('health.')->group(function () {
         Route::get('/', [HealthController::class, 'overview'])->name('overview');
@@ -176,6 +183,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('customers')->name('customers.')->group(function () {
         Route::get('/', [CustomerModuleController::class, 'overview'])->name('overview');
         Route::get('/directory', [CustomerController::class, 'directory'])->name('directory');
+        Route::get('/export', [CustomerImportExportController::class, 'export'])->name('export');
+        Route::get('/import/template', [CustomerImportExportController::class, 'template'])->name('import.template');
+        Route::get('/import', [CustomerImportExportController::class, 'create'])->name('import');
+        Route::post('/import', [CustomerImportExportController::class, 'store'])->name('import.store');
         Route::get('/create', [CustomerController::class, 'create'])->name('create');
         Route::post('/', [CustomerController::class, 'store'])->name('store');
         Route::get('/communications', [CustomerCommunicationController::class, 'index'])->name('communications');
@@ -202,6 +213,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('employees')->name('employees.')->group(function () {
         Route::get('/', [EmployeeModuleController::class, 'overview'])->name('overview');
         Route::get('/directory', [EmployeeController::class, 'directory'])->name('directory');
+        Route::get('/export', [EmployeeImportExportController::class, 'export'])->name('export');
+        Route::get('/import/template', [EmployeeImportExportController::class, 'template'])->name('import.template');
+        Route::get('/import', [EmployeeImportExportController::class, 'create'])->name('import');
+        Route::post('/import', [EmployeeImportExportController::class, 'store'])->name('import.store');
         Route::get('/create', [EmployeeController::class, 'create'])->name('create');
         Route::post('/', [EmployeeController::class, 'store'])->name('store');
         Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');

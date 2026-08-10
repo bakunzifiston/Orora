@@ -1,41 +1,41 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Farms')
+@section('title', __('Farms'))
 
 @section('content')
     @include('modules.partials.header', [
-        'title' => 'Farms',
-        'subtitle' => 'Registered farms with Rwanda location and owner details.',
+        'title' => __('Farms'),
+        'subtitle' => __('Registered farms with Rwanda location and owner details.'),
         'createRoute' => 'farms.create',
-        'createLabel' => '+ Register farm',
+        'createLabel' => '+ '. __('Register farm'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Total farms</div>
+                <div class="dash-stat-label">{{ __('Total farms') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['total']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'farm'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Active</div>
+                <div class="dash-stat-label">{{ __('Active') }}</div>
                 <div class="dash-stat-value accent">{{ number_format($stats['active']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'health'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Total area</div>
+                <div class="dash-stat-label">{{ __('Total area') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['total_hectares'], 1) }} ha</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'movement'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Livestock groups</div>
+                <div class="dash-stat-label">{{ __('Livestock groups') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['livestock_groups']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'livestock'])
@@ -47,8 +47,8 @@
             <div class="dash-entity-empty__icon" aria-hidden="true">
                 @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
             </div>
-            <p class="dash-empty">No farms registered yet.</p>
-            <a href="{{ route('farms.create') }}" class="dash-btn-save">Register your first farm</a>
+            <p class="dash-empty">{{ __('No farms registered yet.') }}</p>
+            <a href="{{ route('farms.create') }}" class="dash-btn-save">{{ __('Register your first farm') }}</a>
         </div>
     @else
         <div class="dash-entity-grid">

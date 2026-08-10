@@ -87,10 +87,19 @@ class DashboardAnalyticsService
      */
     public function resolveFilters(Request $request): array
     {
-        $period = $request->input('period', 'this_month');
+        $period = $request->input('period', 'this_year');
+        if (! in_array($period, ['all', 'this_month', 'last_month', 'this_quarter', 'this_year', 'custom'], true)) {
+            $period = 'this_year';
+        }
+
         $farmId = $request->filled('farm_id') ? (int) $request->input('farm_id') : null;
 
         [$from, $to, $label] = match ($period) {
+            'this_month' => [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+                now()->format('F Y'),
+            ],
             'last_month' => [
                 now()->subMonth()->startOfMonth(),
                 now()->subMonth()->endOfMonth(),
@@ -107,14 +116,14 @@ class DashboardAnalyticsService
                 (string) now()->year,
             ],
             'custom' => [
-                Carbon::parse($request->input('from', now()->startOfMonth()->toDateString())),
-                Carbon::parse($request->input('to', now()->endOfMonth()->toDateString())),
+                Carbon::parse($request->input('from', now()->startOfMonth()->toDateString()))->startOfDay(),
+                Carbon::parse($request->input('to', now()->endOfMonth()->toDateString()))->endOfDay(),
                 'Custom range',
             ],
             default => [
-                now()->startOfMonth(),
-                now()->endOfMonth(),
-                now()->format('F Y'),
+                $this->allTimeStart($farmId),
+                now()->endOfDay(),
+                'All time',
             ],
         };
 
@@ -129,6 +138,23 @@ class DashboardAnalyticsService
             'to' => $to->toDateString(),
             'label' => $label,
         ];
+    }
+
+    private function allTimeStart(?int $farmId): Carbon
+    {
+        $candidates = collect([
+            $this->farmScope(SaleTransaction::query(), $farmId)->min('sale_date'),
+            $this->farmScope(Expense::query(), $farmId)->min('expense_date'),
+            $this->farmScope(MilkSession::query(), $farmId)->min('session_date'),
+            $this->farmScope(FinanceTransaction::query(), $farmId)->min('transaction_date'),
+            Farm::query()->when($farmId, fn ($q) => $q->where('id', $farmId))->min('created_at'),
+        ])->filter();
+
+        if ($candidates->isEmpty()) {
+            return now()->startOfYear();
+        }
+
+        return Carbon::parse($candidates->min())->startOfDay();
     }
 
     /**

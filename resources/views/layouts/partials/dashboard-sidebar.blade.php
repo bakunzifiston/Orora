@@ -11,22 +11,22 @@
             @include('layouts.partials.dashboard-brand')
         </div>
 
-        <nav class="dash-nav" aria-label="Main navigation">
+        <nav class="dash-nav" aria-label="{{ __('Main navigation') }}">
             @foreach ($navigationGroups as $group)
                 <div class="dash-nav-group @if (empty($group['label'])) dash-nav-group--solo @endif">
                     @if (! empty($group['label']))
-                        <div class="dash-nav-group__label">{{ $group['label'] }}</div>
+                        <div class="dash-nav-group__label">{{ __($group['label']) }}</div>
                     @endif
                     @foreach ($group['items'] as $item)
                         @if ($item['route'] && Route::has($item['route']))
                             <a href="{{ route($item['route']) }}" class="{{ $activeNav === $item['key'] ? 'active' : '' }}">
                                 @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
-                                {{ $item['label'] }}
+                                {{ __($item['label']) }}
                             </a>
                         @else
-                            <span class="disabled" title="Coming soon">
+                            <span class="disabled" title="{{ __('Coming soon') }}">
                                 @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
-                                {{ $item['label'] }}
+                                {{ __($item['label']) }}
                             </span>
                         @endif
                     @endforeach
@@ -35,7 +35,7 @@
         </nav>
 
         <div class="dash-sidebar-footer">
-            <a href="{{ route('profile.edit') }}" class="dash-user {{ $activeNav === 'settings' ? 'is-active' : '' }}" title="Edit profile">
+            <a href="{{ route('profile.edit') }}" class="dash-user {{ $activeNav === 'settings' ? 'is-active' : '' }}" title="{{ __('Edit profile') }}">
                 <div class="dash-user-avatar">{{ $initials }}</div>
                 <div class="dash-user-info">
                     <div class="dash-user-name">{{ $user->name }}</div>
@@ -49,7 +49,7 @@
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
                     </svg>
-                    Sign out
+                    {{ __('Sign out') }}
                 </button>
             </form>
         </div>

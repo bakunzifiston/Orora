@@ -3,7 +3,7 @@
 @section('title', 'Edit livestock')
 
 @section('content')
-    @include('modules.partials.header', ['title' => 'Edit livestock group', 'backRoute' => 'livestock.show', 'backRouteParams' => [$livestock]])
+    @include('modules.partials.header', ['title' => __('Edit livestock group'), 'backRoute' => 'livestock.show', 'backRouteParams' => [$livestock]])
     @include('modules.partials.flash')
 
     <form method="POST" action="{{ route('livestock.update', $livestock) }}" class="dash-farm-form">

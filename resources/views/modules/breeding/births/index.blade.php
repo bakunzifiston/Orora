@@ -1,30 +1,30 @@
 @extends('layouts.breeding-module')
 
-@section('title', 'Breeding — Birth records')
+@section('title', __('Breeding — Birth records'))
 
 @section('breeding-content')
     @include('modules.partials.header', [
-        'title' => 'Birth records',
-        'subtitle' => 'Calving and kidding events.',
+        'title' => __('Birth records'),
+        'subtitle' => __('Calving and kidding events.'),
         'createRoute' => 'breeding.births.create',
-        'createLabel' => '+ Record birth',
+        'createLabel' => '+ '. __('Record birth'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-panel">
         @if ($births->isEmpty())
-            <p class="dash-empty">No births recorded yet.</p>
+            <p class="dash-empty">{{ __('No births recorded yet.') }}</p>
         @else
             <div class="dash-table-wrap">
                 <table class="dash-table">
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Date</th>
-                            <th>Mother</th>
-                            <th>Type</th>
-                            <th>Alive</th>
-                            <th>Stillborn</th>
+                            <th>{{ __('Code') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Mother') }}</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('Alive') }}</th>
+                            <th>{{ __('Stillborn') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -38,7 +38,7 @@
                                 <td>{{ $birth->alive_offspring }}</td>
                                 <td>{{ $birth->stillborn_offspring }}</td>
                                 <td>
-                                    <a href="{{ route('breeding.births.edit', $birth) }}" class="dash-btn-link">Manage offspring</a>
+                                    <a href="{{ route('breeding.births.edit', $birth) }}" class="dash-btn-link">{{ __('Manage offspring') }}</a>
                                 </td>
                             </tr>
                         @endforeach

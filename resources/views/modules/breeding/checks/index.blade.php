@@ -1,22 +1,22 @@
 @extends('layouts.breeding-module')
 
-@section('title', 'Breeding — Pregnancy checks')
+@section('title', __('Breeding — Pregnancy checks'))
 
 @section('breeding-content')
     @include('modules.partials.header', [
-        'title' => 'Pregnancy checks',
-        'subtitle' => 'Confirm or rule out pregnancy after breeding.',
+        'title' => __('Pregnancy checks'),
+        'subtitle' => __('Confirm or rule out pregnancy after breeding.'),
         'createRoute' => 'breeding.checks.create',
-        'createLabel' => '+ Add check',
+        'createLabel' => '+ '. __('Add check'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-panel" style="margin-bottom: 1rem;">
         <form method="GET" class="dash-form-grid" style="padding: 1rem 1.25rem;">
             <div class="dash-form-field">
-                <label for="result">Result</label>
+                <label for="result">{{ __('Result') }}</label>
                 <select name="result" id="result" onchange="this.form.submit()">
-                    <option value="">All results</option>
+                    <option value="">{{ __('All results') }}</option>
                     @foreach (config('modules.pregnancy_check_results') as $result)
                         <option value="{{ $result }}" @selected(request('result') === $result)>{{ config('modules.pregnancy_check_result_labels')[$result] }}</option>
                     @endforeach
@@ -27,18 +27,18 @@
 
     <div class="dash-panel">
         @if ($checks->isEmpty())
-            <p class="dash-empty">No pregnancy checks yet.</p>
+            <p class="dash-empty">{{ __('No pregnancy checks yet.') }}</p>
         @else
             <div class="dash-table-wrap">
                 <table class="dash-table">
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Date</th>
-                            <th>Female</th>
-                            <th>Breeding</th>
-                            <th>Method</th>
-                            <th>Result</th>
+                            <th>{{ __('Code') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Female') }}</th>
+                            <th>{{ __('Breeding') }}</th>
+                            <th>{{ __('Method') }}</th>
+                            <th>{{ __('Result') }}</th>
                         </tr>
                     </thead>
                     <tbody>

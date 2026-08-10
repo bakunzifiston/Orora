@@ -1,52 +1,52 @@
 @extends('layouts.finance-module')
 
-@section('title', 'Finance — Overview')
+@section('title', __('Finance — Overview'))
 
 @section('finance-content')
     @include('modules.partials.header', [
-        'title' => 'Finance overview',
+        'title' => __('Finance overview'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <a href="{{ route('finance.reports.profit_loss', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Revenue</div>
+                <div class="dash-stat-label">{{ __('Revenue') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['revenue'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'sale'])
         </a>
         <a href="{{ route('finance.reports.profit_loss', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Expenses</div>
+                <div class="dash-stat-label">{{ __('Expenses') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['expenses'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'expense'])
         </a>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Net income</div>
+                <div class="dash-stat-label">{{ __('Net income') }}</div>
                 <div class="dash-stat-value accent">{{ number_format($stats['net_income'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'chart'])
         </div>
         <a href="{{ route('finance.reports.cash_flow', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Cash change</div>
+                <div class="dash-stat-label">{{ __('Cash change') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['cash_change'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'finance'])
         </a>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Accounts receivable</div>
+                <div class="dash-stat-label">{{ __('Accounts receivable') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['accounts_receivable'], 0) }} RWF</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'customer'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Ledger entries</div>
+                <div class="dash-stat-label">{{ __('Ledger entries') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['transaction_count']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'finance'])
@@ -54,24 +54,24 @@
     </div>
 
     <div class="dash-panel" style="margin-bottom: 1.25rem;">
-        <p style="margin: 0 0 1rem; color: #808080; font-size: 0.875rem;">Auto-posted from completed sales and paid expenses.</p>
+        <p style="margin: 0 0 1rem; color: #808080; font-size: 0.875rem;">{{ __('Auto-posted from completed sales and paid expenses.') }}</p>
         @include('modules.finance.partials.filters')
     </div>
 
     <div class="dash-panel">
-        <div class="dash-panel-title">Recent ledger entries</div>
+        <div class="dash-panel-title">{{ __('Recent ledger entries') }}</div>
         @if ($recent->isEmpty())
-            <p class="dash-empty">No finance entries yet. Complete a sale or mark an expense as paid. For existing data run: <code>php artisan tenants:run finance:backfill</code></p>
+            <p class="dash-empty">{{ __('No finance entries yet. Complete a sale or mark an expense as paid. For existing data run:') }} <code>php artisan tenants:run finance:backfill</code></p>
         @else
             <table class="dash-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Code</th>
-                        <th>Description</th>
-                        <th>Farm</th>
-                        <th>Type</th>
-                        <th>Amount</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Farm') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Amount') }}</th>
                     </tr>
                 </thead>
                 <tbody>

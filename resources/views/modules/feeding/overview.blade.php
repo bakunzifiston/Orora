@@ -4,52 +4,52 @@
 
 @section('feeding-content')
     @include('modules.partials.header', [
-        'title' => 'Feeding overview',
-        'subtitle' => 'Supplier → feed type → inventory → feeding records, with schedules and stock movements.',
+        'title' => __('Feeding overview'),
+        'subtitle' => __('Supplier → feed type → inventory → feeding records, with schedules and stock movements.'),
         'createRoute' => 'feeding.records.create',
-        'createLabel' => '+ Log feeding',
+        'createLabel' => '+ '. __('Log feeding'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Suppliers</div>
+                <div class="dash-stat-label">{{ __('Suppliers') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['suppliers']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'farm'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Feed types</div>
+                <div class="dash-stat-label">{{ __('Feed types') }}</div>
                 <div class="dash-stat-value accent">{{ number_format($stats['feed_types']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'feeding'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Inventory items</div>
+                <div class="dash-stat-label">{{ __('Inventory items') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['inventory_items']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'box'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Low stock</div>
+                <div class="dash-stat-label">{{ __('Low stock') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['low_stock']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'movement'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Active schedules</div>
+                <div class="dash-stat-label">{{ __('Active schedules') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['active_schedules']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'certificate'])
         </div>
         <div class="dash-stat-card">
             <div>
-                <div class="dash-stat-label">Records this month</div>
+                <div class="dash-stat-label">{{ __('Records this month') }}</div>
                 <div class="dash-stat-value">{{ number_format($stats['records_this_month']) }}</div>
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'chart'])
@@ -58,9 +58,9 @@
 
     <div class="dash-health-grid">
         <div class="dash-panel">
-            <div class="dash-panel-title">Recent feeding records</div>
+            <div class="dash-panel-title">{{ __('Recent feeding records') }}</div>
             @if ($recentFeedings->isEmpty())
-                <p class="dash-empty">No feeding records yet.</p>
+                <p class="dash-empty">{{ __('No feeding records yet.') }}</p>
             @else
                 <ul class="dash-health-activity">
                     @foreach ($recentFeedings as $feeding)
@@ -77,9 +77,9 @@
         </div>
 
         <div class="dash-panel">
-            <div class="dash-panel-title">Low stock alerts</div>
+            <div class="dash-panel-title">{{ __('Low stock alerts') }}</div>
             @if ($lowStockItems->isEmpty())
-                <p class="dash-empty">No low-stock items.</p>
+                <p class="dash-empty">{{ __('No low-stock items.') }}</p>
             @else
                 <ul class="dash-health-activity">
                     @foreach ($lowStockItems as $item)
@@ -87,7 +87,7 @@
                             <div>
                                 <strong>{{ $item->feedType->name }}</strong> — {{ $item->farm->name }}
                             </div>
-                            <span>{{ $item->quantity_on_hand }} {{ $item->unit }} left</span>
+                            <span>{{ $item->quantity_on_hand }} {{ $item->unit }} {{ __('left') }}</span>
                         </li>
                     @endforeach
                 </ul>

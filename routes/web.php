@@ -10,6 +10,7 @@ use App\Http\Controllers\Central\MarketplaceAdminController;
 use App\Http\Controllers\Central\TenantController;
 use App\Http\Controllers\Central\UserDirectoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\ForgetTenantForCentralAdmin;
 use App\Http\Middleware\InitializeDefaultTenant;
@@ -32,6 +33,10 @@ $registerMarketplaceRoutes = function (): void {
 
 $registerAppRoutes = function (): void {
     Route::middleware(InitializeDefaultTenant::class)->group(function () {
+        Route::get('/locale/{locale}', LocaleController::class)
+            ->whereIn('locale', array_keys(config('localization.supported', ['en' => [], 'rw' => []])))
+            ->name('locale.switch');
+
         Route::middleware('guest')->group(function () {
             Route::get('/login', [LoginController::class, 'create'])->name('login');
             Route::post('/login', [LoginController::class, 'store'])->name('login.store');

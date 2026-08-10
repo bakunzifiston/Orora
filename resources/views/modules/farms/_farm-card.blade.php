@@ -26,19 +26,19 @@
 
         <dl class="dash-farm-card__meta">
             <div class="dash-farm-card__meta-row">
-                <dt>Location</dt>
+                <dt>{{ __('Location') }}</dt>
                 <dd>{{ $farm->district ?: $farm->province ?: '—' }}{{ $farm->village ? ', '.$farm->village : '' }}</dd>
             </div>
             <div class="dash-farm-card__meta-row">
-                <dt>Size</dt>
+                <dt>{{ __('Size') }}</dt>
                 <dd>{{ $farm->farm_size_hectares !== null ? number_format($farm->farm_size_hectares, 2).' ha' : '—' }}</dd>
             </div>
             <div class="dash-farm-card__meta-row">
-                <dt>Owner</dt>
+                <dt>{{ __('Owner') }}</dt>
                 <dd>{{ $farm->owner_full_name ?: '—' }}</dd>
             </div>
             <div class="dash-farm-card__meta-row">
-                <dt>Ownership</dt>
+                <dt>{{ __('Ownership') }}</dt>
                 <dd>{{ $ownershipLabel ?: '—' }}</dd>
             </div>
         </dl>
@@ -46,21 +46,21 @@
         <div class="dash-farm-card__stats">
             <div class="dash-farm-card__stat">
                 <span class="dash-farm-card__stat-value">{{ number_format($farm->livestock_count) }}</span>
-                <span class="dash-farm-card__stat-label">Livestock groups</span>
+                <span class="dash-farm-card__stat-label">{{ __('Livestock groups') }}</span>
             </div>
             <div class="dash-farm-card__stat">
                 <span class="dash-farm-card__stat-value">{{ number_format($farm->animals_count) }}</span>
-                <span class="dash-farm-card__stat-label">Animals</span>
+                <span class="dash-farm-card__stat-label">{{ __('Animals') }}</span>
             </div>
         </div>
 
         <div class="dash-farm-card__footer">
-            <a href="{{ route('farms.show', $farm) }}" class="dash-farm-card__action dash-farm-card__action--primary">View</a>
-            <a href="{{ route('farms.edit', $farm) }}" class="dash-farm-card__action">Edit</a>
-            <form method="POST" action="{{ route('farms.destroy', $farm) }}" onsubmit="return confirm('Delete this farm?');">
+            <a href="{{ route('farms.show', $farm) }}" class="dash-farm-card__action dash-farm-card__action--primary">{{ __('View') }}</a>
+            <a href="{{ route('farms.edit', $farm) }}" class="dash-farm-card__action">{{ __('Edit') }}</a>
+            <form method="POST" action="{{ route('farms.destroy', $farm) }}" onsubmit="return confirm(@js(__('Delete this farm?')));">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="dash-farm-card__action dash-farm-card__action--danger">Delete</button>
+                <button type="submit" class="dash-farm-card__action dash-farm-card__action--danger">{{ __('Delete') }}</button>
             </form>
         </div>
     </div>

@@ -1,31 +1,31 @@
 @extends('layouts.breeding-module')
 
-@section('title', 'Breeding — Records')
+@section('title', __('Breeding — Records'))
 
 @section('breeding-content')
     @include('modules.partials.header', [
-        'title' => 'Breeding records',
-        'subtitle' => 'Mating events — natural or AI.',
+        'title' => __('Breeding records'),
+        'subtitle' => __('Mating events — natural or AI.'),
         'createRoute' => 'breeding.records.create',
-        'createLabel' => '+ Record breeding',
+        'createLabel' => '+ '. __('Record breeding'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-panel" style="margin-bottom: 1rem;">
         <form method="GET" class="dash-form-grid" style="padding: 1rem 1.25rem;">
             <div class="dash-form-field">
-                <label for="farm_id">Farm</label>
+                <label for="farm_id">{{ __('Farm') }}</label>
                 <select name="farm_id" id="farm_id" onchange="this.form.submit()">
-                    <option value="">All farms</option>
+                    <option value="">{{ __('All farms') }}</option>
                     @foreach ($farms as $farm)
                         <option value="{{ $farm->id }}" @selected(request('farm_id') == $farm->id)>{{ $farm->name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="dash-form-field">
-                <label for="status">Status</label>
+                <label for="status">{{ __('Status') }}</label>
                 <select name="status" id="status" onchange="this.form.submit()">
-                    <option value="">All statuses</option>
+                    <option value="">{{ __('All statuses') }}</option>
                     @foreach (config('modules.breeding_statuses') as $status)
                         <option value="{{ $status }}" @selected(request('status') === $status)>{{ config('modules.breeding_status_labels')[$status] }}</option>
                     @endforeach
@@ -34,7 +34,7 @@
             <div class="dash-form-field" style="display: flex; align-items: flex-end;">
                 <label class="dash-checkbox">
                     <input type="checkbox" name="pregnancy_check_due" value="1" @checked(request()->boolean('pregnancy_check_due')) onchange="this.form.submit()">
-                    Pregnancy check due only
+                    {{ __('Pregnancy check due only') }}
                 </label>
             </div>
         </form>
@@ -42,20 +42,20 @@
 
     <div class="dash-panel">
         @if ($records->isEmpty())
-            <p class="dash-empty">No breeding records yet. <a href="{{ route('breeding.records.create') }}">Record breeding</a>.</p>
+            <p class="dash-empty">{{ __('No breeding records yet.') }} <a href="{{ route('breeding.records.create') }}">{{ __('Record breeding') }}</a>.</p>
         @else
             <div class="dash-table-wrap">
                 <table class="dash-table">
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Date</th>
-                            <th>Female</th>
-                            <th>Sire</th>
-                            <th>Type</th>
-                            <th>Expected calving</th>
-                            <th>Check due</th>
-                            <th>Status</th>
+                            <th>{{ __('Code') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Female') }}</th>
+                            <th>{{ __('Sire') }}</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('Expected calving') }}</th>
+                            <th>{{ __('Check due') }}</th>
+                            <th>{{ __('Status') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -72,7 +72,7 @@
                                     @if ($record->breeding_status === 'pending' && $record->pregnancyChecks->isEmpty())
                                         {{ $record->pregnancy_check_due_on?->format('M j, Y') ?? '—' }}
                                         @if ($record->pregnancy_check_due_on && $record->pregnancy_check_due_on->lte(now()->startOfDay()))
-                                            <span class="dash-badge" style="background: #fff7ed; color: #c2410c; margin-left: 0.25rem;">Due</span>
+                                            <span class="dash-badge" style="background: #fff7ed; color: #c2410c; margin-left: 0.25rem;">{{ __('Due') }}</span>
                                         @endif
                                     @else
                                         —

@@ -24,15 +24,17 @@ class HealthController extends Controller
 
     public function overview(HealthOverviewAnalyticsService $analytics): View
     {
+        $diseaseReady = Schema::hasTable('disease_records');
+
         $stats = [
-            'total_animals' => Animal::query()->count(),
+            'vaccinations' => Vaccination::query()->count(),
+            'treatments' => Treatment::query()->count(),
+            'disease' => $diseaseReady ? DiseaseRecord::query()->count() : 0,
+            'vet_visits' => VetVisit::query()->count(),
+            'mortality' => Mortality::query()->count(),
             'healthy' => Animal::query()->where('health_status', 'Healthy')->count(),
             'needs_attention' => Animal::query()->whereIn('health_status', ['Sick', 'Under treatment', 'Quarantined', 'Recovering'])->count(),
-            'deceased' => Animal::query()->where(function (Builder $query) {
-                $query->where('health_status', 'Deceased')
-                    ->orWhere('lifecycle_status', 'Deceased');
-            })->count(),
-            'upcoming_followups' => HealthRecord::query()
+            'followups' => HealthRecord::query()
                 ->whereNotNull('next_follow_up')
                 ->whereDate('next_follow_up', '>=', now()->toDateString())
                 ->whereDate('next_follow_up', '<=', now()->addDays(30)->toDateString())

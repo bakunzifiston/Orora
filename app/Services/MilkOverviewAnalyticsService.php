@@ -14,27 +14,57 @@ class MilkOverviewAnalyticsService
     /**
      * @return array<string, mixed>
      */
-    public function chartPayload(?Carbon $now = null): array
-    {
+    public function chartPayload(
+        ?Carbon $now = null,
+        ?int $farmId = null,
+        ?Carbon $from = null,
+        ?Carbon $to = null,
+        bool $allTime = false,
+    ): array {
         $now ??= Carbon::now();
-        $compareStart = $now->copy()->subDays(self::ANALYTICS_COMPARE_DAYS)->startOfDay();
+
+        if ($allTime) {
+            $compareStart = null;
+            $compareEnd = null;
+        } else {
+            $compareStart = $from?->copy()->startOfDay()
+                ?? $now->copy()->subDays(self::ANALYTICS_COMPARE_DAYS)->startOfDay();
+            $compareEnd = $to?->copy()->endOfDay();
+        }
 
         $records = MilkRecord::query()
-            ->whereHas('session', fn ($q) => $q
-                ->where('status', 'completed')
-                ->whereDate('session_date', '>=', $compareStart))
+            ->whereHas('session', function ($q) use ($farmId, $compareStart, $compareEnd) {
+                $q->where('status', 'completed')
+                    ->when($farmId, fn ($sq) => $sq->where('farm_id', $farmId));
+
+                if ($compareStart && $compareEnd) {
+                    $q->whereBetween('session_date', [
+                        $compareStart->toDateString(),
+                        $compareEnd->toDateString(),
+                    ]);
+                } elseif ($compareStart) {
+                    $q->whereDate('session_date', '>=', $compareStart->toDateString());
+                }
+            })
             ->with('session')
             ->get(['id', 'milk_session_id', 'animal_id', 'yield_liters']);
 
         $perAnimal = $this->yieldByAnimal($records);
         $perHerd = $this->yieldByHerd($records);
 
+        $days = match (true) {
+            $allTime => null,
+            $compareStart && $compareEnd => max(1, (int) $compareStart->diffInDays($compareEnd) + 1),
+            default => self::ANALYTICS_COMPARE_DAYS,
+        };
+
         return [
             'animalsCompare' => $perAnimal->take(10)->values()->all(),
             'herdsCompare' => $perHerd->take(10)->values()->all(),
             'bestAnimalsTable' => $perAnimal->take(15)->values()->all(),
             'meta' => [
-                'compareDays' => self::ANALYTICS_COMPARE_DAYS,
+                'compareDays' => $days,
+                'allTime' => $allTime,
             ],
         ];
     }
@@ -124,12 +154,17 @@ class MilkOverviewAnalyticsService
     /**
      * @return array<string, mixed>
      */
-    public function chartPayloadHydrated(?Carbon $now = null): array
-    {
-        $payload = $this->chartPayload($now);
-        $payload['animalsCompare'] = $this->hydrateAnimals(collect($payload['animalsCompare']));
-        $payload['herdsCompare'] = $this->hydrateHerds(collect($payload['herdsCompare']));
-        $payload['bestAnimalsTable'] = $this->hydrateAnimals(collect($payload['bestAnimalsTable']));
+    public function chartPayloadHydrated(
+        ?Carbon $now = null,
+        ?int $farmId = null,
+        ?Carbon $from = null,
+        ?Carbon $to = null,
+        bool $allTime = false,
+    ): array {
+        $payload = $this->chartPayload($now, $farmId, $from, $to, $allTime);
+        $payload['animalsCompare'] = $this->hydrateAnimals(collect($payload['animalsCompare']))->values()->all();
+        $payload['herdsCompare'] = $this->hydrateHerds(collect($payload['herdsCompare']))->values()->all();
+        $payload['bestAnimalsTable'] = $this->hydrateAnimals(collect($payload['bestAnimalsTable']))->values()->all();
 
         return $payload;
     }

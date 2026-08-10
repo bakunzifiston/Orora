@@ -1,30 +1,30 @@
 @extends('layouts.sales-module')
 
-@section('title', 'Sales — Abattoir')
+@section('title', __('Sales — Abattoir'))
 
 @section('sales-content')
     @include('modules.partials.header', [
-        'title' => 'Abattoir dispatches',
-        'subtitle' => 'Send animals for slaughter and record returns.',
+        'title' => __('Abattoir dispatches'),
+        'subtitle' => __('Send animals for slaughter and record returns.'),
         'createRoute' => 'sales.abattoir.create',
-        'createLabel' => '+ New dispatch',
+        'createLabel' => '+ '. __('New dispatch'),
     ])
     @include('modules.partials.flash')
 
     <div class="dash-panel">
         @if ($dispatches->isEmpty())
-            <p class="dash-empty">No abattoir dispatches yet.</p>
+            <p class="dash-empty">{{ __('No abattoir dispatches yet.') }}</p>
         @else
             <div class="dash-table-wrap">
                 <table class="dash-table">
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Date</th>
-                            <th>Farm</th>
-                            <th>Abattoir</th>
-                            <th>Animals</th>
-                            <th>Status</th>
+                            <th>{{ __('Code') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Farm') }}</th>
+                            <th>{{ __('Abattoir') }}</th>
+                            <th>{{ __('Animals') }}</th>
+                            <th>{{ __('Status') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -37,7 +37,7 @@
                                 <td>{{ $dispatch->abattoir_name }}</td>
                                 <td>{{ $dispatch->total_animals_dispatched }}</td>
                                 <td>{{ ucfirst($dispatch->dispatch_status) }}</td>
-                                <td><a href="{{ route('sales.abattoir.show', $dispatch) }}">View</a></td>
+                                <td><a href="{{ route('sales.abattoir.show', $dispatch) }}">{{ __('View') }}</a></td>
                             </tr>
                         @endforeach
                     </tbody>

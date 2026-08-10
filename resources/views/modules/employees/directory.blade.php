@@ -4,10 +4,21 @@
 
 @section('employee-content')
     @include('modules.partials.header', [
-        'title' => 'Employee directory',
-        'subtitle' => 'Tenant-wide workforce — assign staff to one or more farms.',
+        'title' => __('Employee directory'),
+        'subtitle' => __('Tenant-wide workforce — assign staff to one or more farms.'),
         'createRoute' => 'employees.create',
-        'createLabel' => '+ Add employee',
+        'createLabel' => '+ '.__('Add employee'),
+        'secondaryLinks' => [
+            [
+                'route' => 'employees.export',
+                'params' => request()->query(),
+                'label' => __('Export CSV'),
+            ],
+            [
+                'route' => 'employees.import',
+                'label' => __('Import'),
+            ],
+        ],
     ])
     @include('modules.partials.flash')
 
