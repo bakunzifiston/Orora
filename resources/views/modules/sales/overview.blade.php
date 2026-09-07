@@ -78,6 +78,13 @@
             </div>
             @include('modules.partials.stat-icon', ['icon' => 'milk'])
         </a>
+        <a href="{{ route('sales.transactions', ['type' => 'egg_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="dash-stat-card">
+            <div>
+                <div class="dash-stat-label">{{ __('Egg sales') }}</div>
+                <div class="dash-stat-value">{{ number_format($stats['eggs'] ?? 0, 0) }} RWF</div>
+            </div>
+            @include('modules.partials.stat-icon', ['icon' => 'milk'])
+        </a>
     </div>
 
     <div class="dash-panel">

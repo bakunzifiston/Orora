@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\FeedingSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\FeedingScheduleRequest;
-use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\FeedingSchedule;
 use App\Models\FeedInventory;
@@ -19,13 +19,14 @@ class FeedingScheduleController extends Controller
 {
     use FeedingSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function __construct(private FeedInventoryService $inventoryService) {}
 
     public function index(): View
     {
         $schedules = FeedingSchedule::query()
-            ->with(['farm', 'feedType', 'animal', 'livestock'])
+            ->with(['farm', 'feedType', 'animal', 'livestock', 'flock'])
             ->orderByDesc('start_date')
             ->paginate(15);
 
@@ -89,7 +90,7 @@ class FeedingScheduleController extends Controller
             'feedTypes' => FeedType::query()->where('is_active', true)->orderBy('name')->get(),
             'inventories' => FeedInventory::query()->with(['farm', 'feedType'])->get(),
             'livestockGroups' => Livestock::query()->orderBy('name')->get(),
-            'animals' => Animal::query()->orderBy('tag_number')->get(),
+            ...$this->stockOptions(),
         ];
     }
 }

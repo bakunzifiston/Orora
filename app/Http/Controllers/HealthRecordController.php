@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\HealthRecordRequest;
-use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\HealthRecord;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +16,7 @@ class HealthRecordController extends Controller
 {
     use HealthSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function create(Request $request): View
     {
@@ -74,19 +75,21 @@ class HealthRecordController extends Controller
     {
         return [
             'farms' => Farm::query()->orderBy('name')->get(),
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+            ...$this->stockOptions(),
         ];
     }
 
     private function syncAnimalHealthStatus(HealthRecord $record): void
     {
-        $record->animal()->update(['health_status' => $record->health_status]);
+        if ($record->animal) {
+            $record->animal()->update(['health_status' => $record->health_status]);
 
-        if ($record->record_type === 'Mortality' || $record->health_status === 'Deceased') {
-            $record->animal()->update([
-                'lifecycle_status' => 'Deceased',
-                'health_status' => 'Deceased',
-            ]);
+            if ($record->record_type === 'Mortality' || $record->health_status === 'Deceased') {
+                $record->animal()->update([
+                    'lifecycle_status' => 'Deceased',
+                    'health_status' => 'Deceased',
+                ]);
+            }
         }
     }
 

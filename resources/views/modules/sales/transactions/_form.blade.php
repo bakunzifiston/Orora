@@ -15,8 +15,8 @@
     <div class="dash-form-field">
         <label for="sale_type">Sale type <span class="dash-required">*</span></label>
         <select name="sale_type" id="sale_type" required @disabled($transaction)>
-            @foreach (config('modules.sale_type_labels') as $value => $typeLabel)
-                <option value="{{ $value }}" @selected($saleType === $value)>{{ $typeLabel }}</option>
+            @foreach ($saleTypes ?? array_keys(config('modules.sale_type_labels')) as $value)
+                <option value="{{ $value }}" @selected($saleType === $value)>{{ config('modules.sale_type_labels.'.$value, $value) }}</option>
             @endforeach
         </select>
     </div>

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\VaccinationRequest;
-use App\Models\Animal;
 use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\Vaccination;
@@ -18,24 +18,20 @@ class VaccinationController extends Controller
 {
     use HealthSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function __construct(private ExpenseService $expenseService) {}
 
     public function create(): View
     {
-        return view('modules.health.vaccinations.create', $this->healthSectionData('vaccinations', [
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+        return view('modules.health.vaccinations.create', $this->healthSectionData('vaccinations', array_merge($this->stockOptions(), [
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        ])));
     }
 
     public function store(VaccinationRequest $request): RedirectResponse
     {
-        $animal = Animal::query()->findOrFail($request->input('animal_id'));
-
-        $vaccination = Vaccination::create(array_merge($request->vaccinationAttributes(), [
-            'farm_id' => $animal->farm_id,
-        ]));
+        $vaccination = Vaccination::create(array_merge($request->vaccinationAttributes(), $request->resolvedStockAttributes()));
 
         $this->storeAttachment($request, $vaccination);
         $this->syncHealthRecord($vaccination);
@@ -50,20 +46,15 @@ class VaccinationController extends Controller
     {
         $vaccination->load(['animal', 'farm', 'expense.vendor']);
 
-        return view('modules.health.vaccinations.edit', $this->healthSectionData('vaccinations', [
+        return view('modules.health.vaccinations.edit', $this->healthSectionData('vaccinations', array_merge($this->stockOptions(), [
             'vaccination' => $vaccination,
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        ])));
     }
 
     public function update(VaccinationRequest $request, Vaccination $vaccination): RedirectResponse
     {
-        $animal = Animal::query()->findOrFail($request->input('animal_id'));
-
-        $vaccination->update(array_merge($request->vaccinationAttributes(), [
-            'farm_id' => $animal->farm_id,
-        ]));
+        $vaccination->update(array_merge($request->vaccinationAttributes(), $request->resolvedStockAttributes()));
 
         $this->storeAttachment($request, $vaccination);
         $vaccination = $vaccination->fresh();
@@ -106,7 +97,7 @@ class VaccinationController extends Controller
 
     private function syncHealthRecord(Vaccination $vaccination): void
     {
-        $vaccination->load('animal');
+        $vaccination->load(['animal', 'flock']);
 
         $summary = collect([
             $vaccination->vaccine_name,
@@ -117,9 +108,10 @@ class VaccinationController extends Controller
         $healthData = [
             'farm_id' => $vaccination->farm_id,
             'animal_id' => $vaccination->animal_id,
+            'flock_id' => $vaccination->flock_id,
             'record_type' => 'Vaccination',
             'recorded_on' => $vaccination->vaccination_date,
-            'health_status' => $vaccination->status === 'Completed' ? 'Healthy' : $vaccination->animal->health_status,
+            'health_status' => $vaccination->status === 'Completed' ? 'Healthy' : ($vaccination->animal?->health_status ?? 'Healthy'),
             'title' => $summary,
             'treatment' => $vaccination->dosage,
             'medication' => $vaccination->vaccine_name,

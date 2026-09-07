@@ -7,17 +7,7 @@
         'description' => 'Select the animal and enter vaccine product details.',
     ])
         <div class="dash-form-grid">
-            <div class="dash-form-field dash-form-field--full">
-                <label for="animal_id">Animal <span class="dash-required">*</span></label>
-                <select name="animal_id" id="animal_id" required>
-                    <option value="">Select animal</option>
-                    @foreach ($animals as $animal)
-                        <option value="{{ $animal->id }}" @selected(old('animal_id', $vaccination?->animal_id) == $animal->id)>
-                            {{ $animal->tag_number }} — {{ $animal->name }} ({{ $animal->farm->name }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            @include('modules.partials.stock-picker', ['record' => $vaccination])
             <div class="dash-form-field">
                 <label for="vaccine_name">Vaccine name <span class="dash-required">*</span></label>
                 <input type="text" name="vaccine_name" id="vaccine_name" value="{{ old('vaccine_name', $vaccination?->vaccine_name) }}" required placeholder="e.g. FMD vaccine">

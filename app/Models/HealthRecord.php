@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HealthRecord extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'farm_id',
         'animal_id',
+        'flock_id',
         'record_type',
         'recorded_on',
         'health_status',

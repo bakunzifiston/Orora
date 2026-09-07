@@ -13,7 +13,7 @@ class AuthAndDashboardTest extends TenantTestCase
 
     public function test_guest_is_redirected_from_dashboard(): void
     {
-        $this->get('/dashboard')->assertRedirect('/');
+        $this->get('/dashboard')->assertRedirect('/login');
     }
 
     public function test_tenant_user_can_view_dashboard(): void

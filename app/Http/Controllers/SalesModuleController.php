@@ -47,6 +47,7 @@ class SalesModuleController extends Controller
             'animal' => $byType['animal_sale'] ?? 0,
             'meat' => $byType['meat_sale'] ?? 0,
             'milk' => $byType['milk_sale'] ?? 0,
+            'eggs' => $byType['egg_sale'] ?? 0,
         ];
 
         $recent = SaleTransaction::query()

@@ -111,9 +111,32 @@
             <div class="dash-panel-title">Add line item</div>
             <form method="POST" action="{{ route('sales.transactions.items.store', $transaction) }}" class="dash-form-grid">
                 @csrf
-                <input type="hidden" name="item_type" value="{{ match($transaction->sale_type) { 'animal_sale' => 'animal', 'meat_sale' => 'meat_cut', default => 'milk' } }}">
+                <input type="hidden" name="item_type" value="{{ match($transaction->sale_type) { 'animal_sale' => $transaction->farm?->isPoultry() ? 'flock_birds' : 'animal', 'meat_sale' => 'meat_cut', 'egg_sale' => 'egg', default => 'milk' } }}">
 
-                @if ($transaction->sale_type === 'animal_sale')
+                @if ($transaction->sale_type === 'animal_sale' && $transaction->farm?->isPoultry())
+                    <div class="dash-form-field">
+                        <label for="flock_id">{{ __('Flock') }} <span class="dash-required">*</span></label>
+                        <select name="flock_id" id="flock_id" required>
+                            <option value="">{{ __('Select flock') }}</option>
+                            @foreach ($flocks ?? [] as $flock)
+                                <option value="{{ $flock->id }}">{{ $flock->label() }} ({{ number_format($flock->current_count) }} {{ __('birds') }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="description">{{ __('Description') }} <span class="dash-required">*</span></label>
+                        <input type="text" name="description" id="description" value="Live birds" required>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="quantity">{{ __('Birds') }} <span class="dash-required">*</span></label>
+                        <input type="number" min="1" name="quantity" id="quantity" required>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="unit_price">{{ __('Price / bird') }}</label>
+                        <input type="number" step="0.01" min="0" name="unit_price" id="unit_price">
+                    </div>
+                    <input type="hidden" name="unit" value="head">
+                @elseif ($transaction->sale_type === 'animal_sale')
                     @if ($animals->isEmpty())
                         <p class="dash-empty" style="margin-bottom: 1rem;">No active animals available for this farm (or all are already on a sale).</p>
                     @endif
@@ -177,6 +200,36 @@
                         <input type="number" step="0.01" min="0" name="unit_price" id="unit_price">
                     </div>
                     <input type="hidden" name="unit" value="L">
+                @elseif ($transaction->sale_type === 'egg_sale')
+                    <div class="dash-form-field">
+                        <label for="flock_id">{{ __('Flock') }}</label>
+                        <select name="flock_id" id="flock_id">
+                            <option value="">{{ __('Not specified') }}</option>
+                            @foreach ($flocks ?? [] as $flock)
+                                <option value="{{ $flock->id }}">{{ $flock->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="description">{{ __('Description') }} <span class="dash-required">*</span></label>
+                        <input type="text" name="description" id="description" value="Egg sale" required>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="quantity">{{ __('Quantity') }} <span class="dash-required">*</span></label>
+                        <input type="number" step="0.01" min="0.001" name="quantity" id="quantity" required>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="unit">{{ __('Unit') }}</label>
+                        <select name="unit" id="unit">
+                            <option value="piece">{{ __('Piece') }}</option>
+                            <option value="tray">{{ __('Tray') }}</option>
+                            <option value="dozen">{{ __('Dozen') }}</option>
+                        </select>
+                    </div>
+                    <div class="dash-form-field">
+                        <label for="unit_price">{{ __('Unit price') }}</label>
+                        <input type="number" step="0.01" min="0" name="unit_price" id="unit_price">
+                    </div>
                 @else
                     <div class="dash-form-field dash-form-field--full">
                         <label for="description">Cut description <span class="dash-required">*</span></label>

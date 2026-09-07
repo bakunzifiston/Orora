@@ -24,7 +24,8 @@ class FeedingScheduleRequest extends FormRequest
                 Rule::exists('feed_inventories', 'id')->where(fn ($q) => $q->where('farm_id', $this->input('farm_id'))),
             ],
             'livestock_id' => $this->optionalLivestockBelongsToFarm(),
-            'animal_id' => $this->optionalAnimalBelongsToFarm(),
+            'animal_id' => array_merge($this->optionalAnimalBelongsToFarm(), ['prohibits:flock_id']),
+            'flock_id' => array_merge($this->optionalFlockBelongsToFarm(), ['prohibits:animal_id']),
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit' => ['required', Rule::in(config('modules.feed_units'))],
             'frequency' => ['required', Rule::in(config('modules.schedule_frequencies'))],
@@ -41,7 +42,7 @@ class FeedingScheduleRequest extends FormRequest
     {
         $merge = [];
 
-        foreach (['feed_inventory_id', 'livestock_id', 'animal_id'] as $field) {
+        foreach (['feed_inventory_id', 'livestock_id', 'animal_id', 'flock_id'] as $field) {
             if ($this->input($field) === '') {
                 $merge[$field] = null;
             }

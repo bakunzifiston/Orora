@@ -34,8 +34,7 @@
                             <tr>
                                 <td>{{ $vetVisit->start_date->format('M j, Y') }}</td>
                                 <td>
-                                    <strong>{{ $vetVisit->animal->tag_number }}</strong>
-                                    <div style="font-size: 0.75rem; color: #808080;">{{ $vetVisit->animal->name }}</div>
+                                    <strong>{{ $vetVisit->stockLabel() }}</strong>
                                 </td>
                                 <td><strong>{{ $vetVisit->disease_name }}</strong></td>
                                 <td>

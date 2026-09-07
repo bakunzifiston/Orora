@@ -55,11 +55,20 @@
         </select>
     </div>
     <div class="dash-form-field">
-        <label for="animal_id">Animal (optional)</label>
+        <label for="animal_id">{{ __('Animal') }}</label>
         <select name="animal_id" id="animal_id">
-            <option value="">None</option>
+            <option value="">{{ __('None') }}</option>
             @foreach ($animals as $animal)
                 <option value="{{ $animal->id }}" @selected(old('animal_id', $feeding?->animal_id) == $animal->id)>{{ $animal->tag_number }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="dash-form-field">
+        <label for="flock_id">{{ __('Flock') }}</label>
+        <select name="flock_id" id="flock_id">
+            <option value="">{{ __('None') }}</option>
+            @foreach (($flocks ?? []) as $flock)
+                <option value="{{ $flock->id }}" @selected(old('flock_id', $feeding?->flock_id) == $flock->id)>{{ $flock->label() }}</option>
             @endforeach
         </select>
     </div>

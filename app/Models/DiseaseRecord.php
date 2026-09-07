@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Support\TenantStorageUrl;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class DiseaseRecord extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'disease_code',
         'farm_id',
         'livestock_id',
         'animal_id',
+        'flock_id',
         'health_record_id',
         'disease_name',
         'diagnosis_date',

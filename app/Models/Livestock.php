@@ -51,6 +51,11 @@ class Livestock extends TenantModel
         return $this->hasMany(Animal::class);
     }
 
+    public function flocks(): HasMany
+    {
+        return $this->hasMany(Flock::class);
+    }
+
     protected function herdGroupsLabel(): Attribute
     {
         return Attribute::get(fn () => $this->formatSelection($this->herd_groups, $this->herd_group_other));

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
-use App\Models\Animal;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Models\Farm;
 use App\Models\Movement;
 use Illuminate\Http\RedirectResponse;
@@ -13,11 +13,12 @@ use Illuminate\View\View;
 class MovementController extends Controller
 {
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function index(): View
     {
         $movements = Movement::query()
-            ->with(['animal', 'fromFarm', 'toFarm'])
+            ->with(['animal', 'flock', 'fromFarm', 'toFarm'])
             ->orderByDesc('moved_on')
             ->paginate(15);
 
@@ -57,16 +58,17 @@ class MovementController extends Controller
 
     private function formOptions(): array
     {
-        return [
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+        return array_merge($this->stockOptions(), [
             'farms' => Farm::query()->orderBy('name')->get(),
-        ];
+        ]);
     }
 
     private function rules(): array
     {
         return [
-            'animal_id' => ['required', 'exists:animals,id'],
+            'animal_id' => ['required_without:flock_id', 'nullable', 'exists:animals,id', 'prohibits:flock_id'],
+            'flock_id' => ['required_without:animal_id', 'nullable', 'exists:flocks,id', 'prohibits:animal_id'],
+            'quantity' => ['nullable', 'integer', 'min:1'],
             'from_farm_id' => ['required', 'exists:farms,id'],
             'to_farm_id' => ['nullable', 'exists:farms,id', 'different:from_farm_id'],
             'movement_type' => ['required', 'in:'.implode(',', config('modules.movement_types'))],

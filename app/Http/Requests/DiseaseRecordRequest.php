@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\LinkedExpenseRules;
 use App\Http\Requests\Concerns\ValidatesFarmRelations;
+use App\Http\Requests\Concerns\ValidatesStockSubject;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,6 +12,7 @@ class DiseaseRecordRequest extends FormRequest
 {
     use LinkedExpenseRules;
     use ValidatesFarmRelations;
+    use ValidatesStockSubject;
 
     public function authorize(): bool
     {
@@ -23,6 +25,7 @@ class DiseaseRecordRequest extends FormRequest
             'quarantine_required' => $this->boolean('quarantine_required'),
         ]);
 
+        $this->prepareStockSubject();
         $this->prepareLinkedExpenseValidation();
     }
 
@@ -30,8 +33,9 @@ class DiseaseRecordRequest extends FormRequest
     {
         return array_merge([
             'farm_id' => ['required', 'exists:farms,id'],
-            'livestock_id' => ['required', $this->livestockBelongsToFarm()],
-            'animal_id' => ['required', $this->animalBelongsToLivestock()],
+            'livestock_id' => ['required_without:flock_id', 'nullable', $this->livestockBelongsToFarm()],
+            'animal_id' => ['required_without:flock_id', 'nullable', 'prohibits:flock_id', $this->animalBelongsToFarm()],
+            'flock_id' => ['required_without:animal_id', 'nullable', 'prohibits:animal_id', $this->flockBelongsToFarm()],
             'disease_name' => ['required', 'string', 'max:255'],
             'diagnosis_date' => ['required', 'date', 'before_or_equal:today'],
             'severity_level' => ['required', Rule::in(config('modules.disease_severity_levels'))],

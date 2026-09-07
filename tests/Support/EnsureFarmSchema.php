@@ -31,6 +31,7 @@ final class EnsureFarmSchema
             $table->decimal('farm_size_hectares', 10, 2)->nullable();
             $table->date('registration_date')->nullable();
             $table->string('status')->default('active');
+            $table->string('primary_species', 32)->default('cattle');
             $table->string('ownership_type')->default('individual');
             $table->string('owner_first_name')->nullable();
             $table->string('owner_last_name')->nullable();

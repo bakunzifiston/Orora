@@ -16,6 +16,7 @@ class SaleTransactionService
     public function __construct(
         private readonly MilkStorageService $storageService,
         private readonly CustomerService $customerService,
+        private readonly FlockService $flocks,
     ) {}
 
     public function createDraft(array $attributes): SaleTransaction
@@ -126,6 +127,7 @@ class SaleTransactionService
         return DB::transaction(function () use ($transaction) {
             if ($transaction->sale_type === 'animal_sale') {
                 $this->completeAnimalSale($transaction);
+                $this->completeFlockBirdSale($transaction);
             } elseif ($transaction->sale_type === 'meat_sale') {
                 $this->completeMeatSale($transaction);
             } elseif ($transaction->sale_type === 'milk_sale' && $transaction->sale_status === 'draft') {
@@ -180,6 +182,7 @@ class SaleTransactionService
     {
         $dateKey = Carbon::parse($date)->format('Ymd');
         $prefix = match ($type) {
+            'egg_sale' => "EGS-{$dateKey}-",
             'milk_sale' => "MLS-{$dateKey}-",
             'meat_sale' => "MET-{$dateKey}-",
             default => "SL-{$dateKey}-",
@@ -227,6 +230,28 @@ class SaleTransactionService
         }
     }
 
+    private function completeFlockBirdSale(SaleTransaction $transaction): void
+    {
+        foreach ($transaction->items()->where('item_type', 'flock_birds')->with('flock')->get() as $item) {
+            if (! $item->flock_id || ! $item->flock) {
+                continue;
+            }
+
+            $qty = (int) $item->quantity;
+            if ($qty < 1) {
+                continue;
+            }
+
+            $this->flocks->recordSale(
+                $item->flock,
+                $qty,
+                $transaction->sale_date,
+                'Sale '.$transaction->sale_number,
+                $item,
+            );
+        }
+    }
+
     private function completeMeatSale(SaleTransaction $transaction): void
     {
         foreach ($transaction->items()->where('item_type', 'meat_cut')->get() as $item) {
@@ -258,14 +283,36 @@ class SaleTransactionService
         $itemType = $attributes['item_type'] ?? null;
 
         $expected = match ($transaction->sale_type) {
-            'animal_sale' => 'animal',
-            'meat_sale' => 'meat_cut',
-            'milk_sale' => 'milk',
+            'animal_sale' => ['animal', 'flock_birds'],
+            'meat_sale' => ['meat_cut'],
+            'milk_sale' => ['milk'],
+            'egg_sale' => ['egg'],
             default => null,
         };
 
-        if ($expected && $itemType !== $expected) {
-            throw new InvalidArgumentException("Item type must be {$expected} for this sale.");
+        if (is_array($expected) && ! in_array($itemType, $expected, true)) {
+            throw new InvalidArgumentException('Item type does not match this sale.');
+        }
+
+        if ($itemType === 'flock_birds') {
+            $flockId = (int) ($attributes['flock_id'] ?? 0);
+            if ($flockId < 1) {
+                throw new InvalidArgumentException('Select a flock for live-bird sales.');
+            }
+
+            $flock = \App\Models\Flock::query()->findOrFail($flockId);
+            if ((int) $flock->farm_id !== (int) $transaction->farm_id) {
+                throw new InvalidArgumentException('Flock must belong to the sale farm.');
+            }
+
+            $qty = (int) ($attributes['quantity'] ?? 0);
+            if ($qty < 1) {
+                throw new InvalidArgumentException('Enter how many birds are being sold.');
+            }
+
+            if ($qty > $flock->current_count) {
+                throw new InvalidArgumentException('Cannot sell more birds than the flock currently holds.');
+            }
         }
 
         if ($itemType === 'animal' && ! empty($attributes['animal_id'])) {

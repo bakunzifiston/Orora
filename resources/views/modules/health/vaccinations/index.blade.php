@@ -33,8 +33,7 @@
                             <tr>
                                 <td>{{ $vaccination->vaccination_date->format('M j, Y') }}</td>
                                 <td>
-                                    <strong>{{ $vaccination->animal->tag_number }}</strong>
-                                    <div style="font-size: 0.75rem; color: #808080;">{{ $vaccination->animal->name }}</div>
+                                    <strong>{{ $vaccination->stockLabel() }}</strong>
                                 </td>
                                 <td>
                                     <strong>{{ $vaccination->vaccine_name }}</strong>

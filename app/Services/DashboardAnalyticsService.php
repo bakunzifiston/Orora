@@ -7,11 +7,13 @@ use App\Models\BirthRecord;
 use App\Models\BreedingRecord;
 use App\Models\Certificate;
 use App\Models\Customer;
+use App\Models\EggCollection;
 use App\Models\EmployeeDocument;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\FeedInventory;
 use App\Models\FinanceTransaction;
+use App\Models\Flock;
 use App\Models\HealthRecord;
 use App\Models\MilkRecord;
 use App\Models\MilkSession;
@@ -20,6 +22,8 @@ use App\Models\SaleItem;
 use App\Models\SaleTransaction;
 use App\Models\Vaccination;
 use App\Services\Finance\FinanceReportService;
+use App\Services\Species\ActiveFarmContext;
+use App\Services\Species\SpeciesProfile;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -48,6 +52,9 @@ class DashboardAnalyticsService
         $from = $filters['from'];
         $to = $filters['to'];
         $farmId = $filters['farm_id'];
+        $farm = $farmId ? Farm::query()->find($farmId) : null;
+        $species = app(SpeciesProfile::class);
+        $isPoultry = $species->isPoultry($farm);
         $alerts = $this->alerts($farmId);
 
         $critical = collect($alerts)->where('severity', 'critical')->count();
@@ -58,6 +65,7 @@ class DashboardAnalyticsService
 
         return [
             'filters' => $filters,
+            'species' => $species->key($farm),
             'alertStrip' => [
                 'total' => count($alerts),
                 'critical' => $critical,
@@ -65,18 +73,19 @@ class DashboardAnalyticsService
                 'info' => $info,
             ],
             'financial' => $this->financialSummary($from, $to, $farmId, $financeStats),
-            'livestock' => $this->livestockSummary($farmId),
+            'livestock' => $this->livestockSummary($farmId, $isPoultry, $from, $to),
             'charts' => [
                 'revenueExpenses' => $this->revenueExpenseTrends($farmId),
-                'milkTrend' => $this->milkProductionTrend($farmId),
+                'milkTrend' => $isPoultry ? $this->eggProductionTrend($farmId) : $this->milkProductionTrend($farmId),
+                'productionChartTitle' => $isPoultry ? __('Egg collections') : __('Milk production'),
                 'salesByType' => $this->salesByType($from, $to, $farmId),
                 'expenseBreakdown' => $this->expenseBreakdown($from, $to, $farmId),
                 'animalHealth' => $this->animalHealthChart($farmId),
             ],
-            'moduleStrips' => $this->moduleStrips($from, $to, $farmId),
+            'moduleStrips' => $this->moduleStrips($from, $to, $farmId, $isPoultry),
             'recentSales' => $this->recentSales($from, $to, $farmId, 5),
             'pendingAlerts' => $this->pendingAlertsByModule($alerts),
-            'topAnimals' => $this->topMilkProducers($from, $to, $farmId, 5),
+            'topAnimals' => $isPoultry ? [] : $this->topMilkProducers($from, $to, $farmId, 5),
             'topCustomers' => $this->topCustomers($from, $to, $farmId, 5),
             'activity' => $this->recentActivity($farmId),
         ];
@@ -92,7 +101,11 @@ class DashboardAnalyticsService
             $period = 'this_year';
         }
 
-        $farmId = $request->filled('farm_id') ? (int) $request->input('farm_id') : null;
+        if ($request->exists('farm_id')) {
+            $farmId = $request->filled('farm_id') ? (int) $request->input('farm_id') : null;
+        } else {
+            $farmId = app(ActiveFarmContext::class)->id();
+        }
 
         [$from, $to, $label] = match ($period) {
             'this_month' => [
@@ -177,11 +190,38 @@ class DashboardAnalyticsService
     /**
      * @return array<string, mixed>
      */
-    private function livestockSummary(?int $farmId): array
+    private function livestockSummary(?int $farmId, bool $isPoultry = false, ?string $from = null, ?string $to = null): array
     {
+        if ($isPoultry) {
+            $flockQuery = $this->farmScope(Flock::query(), $farmId);
+            $placed = (int) (clone $flockQuery)->sum('placed_count');
+            $current = (int) (clone $flockQuery)->sum('current_count');
+            $eggs = 0;
+
+            if ($from && $to) {
+                $eggs = (int) $this->farmScope(EggCollection::query(), $farmId)
+                    ->whereBetween('collected_on', [$from, $to])
+                    ->sum('eggs_count');
+            }
+
+            return [
+                'species' => 'poultry',
+                'total_animals' => $current,
+                'active_farms' => $farmId
+                    ? (Farm::query()->where('id', $farmId)->where('status', 'active')->exists() ? 1 : 0)
+                    : Farm::query()->where('status', 'active')->count(),
+                'lactating' => 0,
+                'for_sale' => 0,
+                'birds_on_hand' => $current,
+                'mortality_percent' => $placed > 0 ? round((($placed - $current) / $placed) * 100, 1) : 0,
+                'eggs_period' => $eggs,
+            ];
+        }
+
         $animalQuery = $this->farmScope(Animal::query(), $farmId);
 
         return [
+            'species' => 'cattle',
             'total_animals' => (clone $animalQuery)->count(),
             'active_farms' => $farmId
                 ? (Farm::query()->where('id', $farmId)->where('status', 'active')->exists() ? 1 : 0)
@@ -190,6 +230,9 @@ class DashboardAnalyticsService
                 ->where('lifecycle_status', 'Active')
                 ->count(),
             'for_sale' => $this->animalsForSaleCount($farmId),
+            'birds_on_hand' => 0,
+            'mortality_percent' => 0,
+            'eggs_period' => 0,
         ];
     }
 
@@ -209,7 +252,7 @@ class DashboardAnalyticsService
     /**
      * @return list<array<string, mixed>>
      */
-    private function moduleStrips(string $from, string $to, ?int $farmId): array
+    private function moduleStrips(string $from, string $to, ?int $farmId, bool $isPoultry = false): array
     {
         $vaccDue = Vaccination::query()
             ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
@@ -230,7 +273,7 @@ class DashboardAnalyticsService
             ->whereBetween('expected_calving_date', [now()->toDateString(), now()->addDays(60)->toDateString()])
             ->count();
 
-        return [
+        $strips = [
             [
                 'key' => 'health',
                 'label' => 'Health',
@@ -255,7 +298,28 @@ class DashboardAnalyticsService
                     )],
                 ],
             ],
-            [
+        ];
+
+        if ($isPoultry) {
+            $eggs = (int) $this->farmScope(EggCollection::query(), $farmId)
+                ->whereBetween('collected_on', [$from, $to])
+                ->sum('eggs_count');
+            $cracked = (int) $this->farmScope(EggCollection::query(), $farmId)
+                ->whereBetween('collected_on', [$from, $to])
+                ->sum('cracked_count');
+
+            $strips[] = [
+                'key' => 'eggs',
+                'label' => 'Eggs',
+                'route' => 'eggs.overview',
+                'icon' => 'milk',
+                'metrics' => [
+                    ['label' => 'Eggs collected', 'value' => number_format($eggs)],
+                    ['label' => 'Cracked', 'value' => number_format($cracked)],
+                ],
+            ];
+        } else {
+            $strips[] = [
                 'key' => 'breeding',
                 'label' => 'Breeding',
                 'route' => 'breeding.overview',
@@ -264,8 +328,10 @@ class DashboardAnalyticsService
                     ['label' => 'Pregnant', 'value' => number_format($pregnant)],
                     ['label' => 'Calvings (60d)', 'value' => number_format($upcomingCalvings)],
                 ],
-            ],
-        ];
+            ];
+        }
+
+        return $strips;
     }
 
     /**
@@ -448,6 +514,48 @@ class DashboardAnalyticsService
                     ->where('status', 'completed')
                     ->whereBetween('session_date', [$from, $to])
                     ->sum('total_yield_liters');
+            }
+            $datasets[] = [
+                'label' => $farm->name,
+                'data' => $data,
+                'color' => self::CHART_COLORS[$index % count(self::CHART_COLORS)],
+            ];
+        }
+
+        return ['labels' => $labels, 'datasets' => $datasets];
+    }
+
+    private function eggProductionTrend(?int $farmId): array
+    {
+        $labels = [];
+        $start = now()->subMonths(self::TREND_MONTHS - 1)->startOfMonth();
+
+        for ($i = 0; $i < self::TREND_MONTHS; $i++) {
+            $labels[] = $start->copy()->addMonths($i)->format('M');
+        }
+
+        $farmsQuery = Farm::query()->where('primary_species', 'poultry')->orderBy('name');
+        if ($farmId) {
+            $farmsQuery->where('id', $farmId);
+        }
+
+        $farms = $farmsQuery->get();
+        if ($farms->isEmpty()) {
+            return ['labels' => $labels, 'datasets' => []];
+        }
+
+        $datasets = [];
+        foreach ($farms->take(5) as $index => $farm) {
+            $data = [];
+            for ($i = 0; $i < self::TREND_MONTHS; $i++) {
+                $month = $start->copy()->addMonths($i);
+                $data[] = (int) EggCollection::query()
+                    ->where('farm_id', $farm->id)
+                    ->whereBetween('collected_on', [
+                        $month->copy()->startOfMonth()->toDateString(),
+                        $month->copy()->endOfMonth()->toDateString(),
+                    ])
+                    ->sum('eggs_count');
             }
             $datasets[] = [
                 'label' => $farm->name,

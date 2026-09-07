@@ -3,12 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\LinkedExpenseRules;
+use App\Http\Requests\Concerns\ValidatesStockSubject;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class VetVisitRequest extends FormRequest
 {
     use LinkedExpenseRules;
+    use ValidatesStockSubject;
 
     public function authorize(): bool
     {
@@ -21,13 +23,13 @@ class VetVisitRequest extends FormRequest
             $this->merge(['treatment_method' => null]);
         }
 
+        $this->prepareStockSubject();
         $this->prepareLinkedExpenseValidation();
     }
 
     public function rules(): array
     {
-        return array_merge([
-            'animal_id' => ['required', 'exists:animals,id'],
+        return array_merge($this->stockSubjectRules(), [
             'disease_name' => ['required', 'string', 'max:255'],
             'medicine_name' => ['required', 'string', 'max:255'],
             'dosage' => ['nullable', 'string', 'max:100'],

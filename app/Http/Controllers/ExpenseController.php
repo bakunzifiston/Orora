@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ExpenseSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\ExpenseRequest;
-use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\ExpenseVendor;
@@ -20,11 +20,12 @@ class ExpenseController extends Controller
 {
     use ExpenseSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function index(Request $request): View
     {
         $query = Expense::query()
-            ->with(['category', 'farm', 'vendor', 'animal'])
+            ->with(['category', 'farm', 'vendor', 'animal', 'flock'])
             ->orderByDesc('expense_date');
 
         if ($request->filled('group')) {
@@ -106,6 +107,7 @@ class ExpenseController extends Controller
             'expense_category_id' => $request->input('expense_category_id'),
             'farm_id' => $request->input('farm_id'),
             'animal_id' => $request->input('animal_id'),
+            'flock_id' => $request->input('flock_id'),
             'livestock_id' => $request->input('livestock_id'),
             'expense_vendor_id' => $request->input('expense_vendor_id'),
             'expense_date' => $request->input('expense_date'),
@@ -142,8 +144,8 @@ class ExpenseController extends Controller
             'categories' => $categories,
             'categoriesByGroup' => $categories->groupBy('expense_group'),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-            'animals' => Animal::query()->orderBy('tag_number')->get(),
             'livestockGroups' => Livestock::query()->orderBy('name')->get(),
+            ...$this->stockOptions(),
             'preselectedGroup' => $request->input('group'),
             'preselectedCategoryId' => $request->input('category'),
         ];

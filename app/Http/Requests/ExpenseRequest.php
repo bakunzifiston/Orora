@@ -19,7 +19,7 @@ class ExpenseRequest extends FormRequest
     {
         $merge = [];
 
-        foreach (['animal_id', 'livestock_id', 'expense_vendor_id'] as $field) {
+        foreach (['animal_id', 'flock_id', 'livestock_id', 'expense_vendor_id'] as $field) {
             if ($this->input($field) === '') {
                 $merge[$field] = null;
             }
@@ -42,7 +42,8 @@ class ExpenseRequest extends FormRequest
                 'nullable',
                 'exists:farms,id',
             ],
-            'animal_id' => $this->optionalAnimalBelongsToFarm(),
+            'animal_id' => array_merge($this->optionalAnimalBelongsToFarm(), ['prohibits:flock_id']),
+            'flock_id' => array_merge($this->optionalFlockBelongsToFarm(), ['prohibits:animal_id']),
             'livestock_id' => $this->optionalLivestockBelongsToFarm(),
             'expense_vendor_id' => ['nullable', 'exists:expense_vendors,id'],
             'expense_date' => ['required', 'date'],

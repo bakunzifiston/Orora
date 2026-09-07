@@ -199,6 +199,14 @@ class SaleTransactionController extends Controller
                 ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->orderBy('container_name')
                 ->get(),
+            'flocks' => \App\Models\Flock::query()
+                ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
+                ->where('lifecycle_status', 'Active')
+                ->orderBy('name')
+                ->get(),
+            'saleTypes' => app(\App\Services\Species\SpeciesProfile::class)->saleTypes(
+                $farmId ? Farm::query()->find($farmId) : null
+            ),
             'transaction' => $transaction,
         ];
     }

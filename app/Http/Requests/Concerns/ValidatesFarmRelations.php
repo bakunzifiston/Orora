@@ -34,6 +34,20 @@ trait ValidatesFarmRelations
         );
     }
 
+    protected function flockBelongsToFarm(string $flockKey = 'flock_id', string $farmKey = 'farm_id'): \Illuminate\Validation\Rules\Exists
+    {
+        return Rule::exists('flocks', 'id')->where(
+            fn ($query) => $query->where('farm_id', $this->input($farmKey))
+        );
+    }
+
+    protected function flockBelongsToFarmId(?int $farmId, string $flockKey = 'flock_id'): \Illuminate\Validation\Rules\Exists
+    {
+        return Rule::exists('flocks', 'id')->where(
+            fn ($query) => $query->where('farm_id', $farmId)
+        );
+    }
+
     protected function animalBelongsToLivestock(
         string $animalKey = 'animal_id',
         string $livestockKey = 'livestock_id',
@@ -67,5 +81,17 @@ trait ValidatesFarmRelations
         }
 
         return ['nullable', $this->livestockBelongsToFarm($livestockKey, $farmKey)];
+    }
+
+    /**
+     * @return list<string|\Illuminate\Validation\Rules\Exists>
+     */
+    protected function optionalFlockBelongsToFarm(string $flockKey = 'flock_id', string $farmKey = 'farm_id'): array
+    {
+        if (! $this->filled($farmKey)) {
+            return ['nullable', 'exists:flocks,id'];
+        }
+
+        return ['nullable', $this->flockBelongsToFarm($flockKey, $farmKey)];
     }
 }

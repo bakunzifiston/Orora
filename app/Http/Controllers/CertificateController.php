@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
-use App\Models\Animal;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Models\Certificate;
 use App\Models\Farm;
 use Illuminate\Http\RedirectResponse;
@@ -13,10 +13,11 @@ use Illuminate\View\View;
 class CertificateController extends Controller
 {
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function index(): View
     {
-        $certificates = Certificate::query()->with(['farm', 'animal'])->orderByDesc('issued_on')->paginate(15);
+        $certificates = Certificate::query()->with(['farm', 'animal', 'flock'])->orderByDesc('issued_on')->paginate(15);
 
         return view('modules.certificates.index', $this->moduleViewData('certificates', compact('certificates')));
     }
@@ -54,17 +55,17 @@ class CertificateController extends Controller
 
     private function formOptions(): array
     {
-        return [
+        return array_merge($this->stockOptions(), [
             'farms' => Farm::query()->orderBy('name')->get(),
-            'animals' => Animal::query()->orderBy('tag_number')->get(),
-        ];
+        ]);
     }
 
     private function rules(): array
     {
         return [
             'farm_id' => ['required', 'exists:farms,id'],
-            'animal_id' => ['nullable', 'exists:animals,id'],
+            'animal_id' => ['nullable', 'exists:animals,id', 'prohibits:flock_id'],
+            'flock_id' => ['nullable', 'exists:flocks,id', 'prohibits:animal_id'],
             'certificate_type' => ['required', 'in:'.implode(',', config('modules.certificate_types'))],
             'certificate_number' => ['nullable', 'string', 'max:255'],
             'issuing_authority' => ['nullable', 'string', 'max:255'],

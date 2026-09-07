@@ -38,8 +38,7 @@
                                 <td><strong>{{ $record->disease_code }}</strong></td>
                                 <td>{{ $record->diagnosis_date->format('M j, Y') }}</td>
                                 <td>
-                                    <strong>{{ $record->animal->tag_number }}</strong>
-                                    <div style="font-size: 0.75rem; color: #808080;">{{ $record->animal->name }}</div>
+                                    <strong>{{ $record->stockLabel() }}</strong>
                                 </td>
                                 <td>{{ $record->farm->name }}</td>
                                 <td><strong>{{ $record->disease_name }}</strong></td>

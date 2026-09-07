@@ -20,20 +20,11 @@
                     @endforeach
                 </select>
             </div>
-            <div class="dash-form-field">
-                <label for="animal_id">Animal <span class="dash-required">*</span></label>
-                <select name="animal_id" id="animal_id" required data-health-animal>
-                    <option value="">Select animal</option>
-                    @foreach ($animals as $animal)
-                        <option
-                            value="{{ $animal->id }}"
-                            data-farm-id="{{ $animal->farm_id }}"
-                            data-health-status="{{ $animal->health_status }}"
-                            @selected(old('animal_id', $healthRecord?->animal_id) == $animal->id)
-                        >{{ $animal->tag_number }} — {{ $animal->name }} ({{ $animal->health_status }})</option>
-                    @endforeach
-                </select>
-            </div>
+            @include('modules.partials.stock-picker', [
+                'record' => $healthRecord,
+                'fullWidth' => false,
+                'animalFarmAttr' => true,
+            ])
             <div class="dash-form-field">
                 <label for="record_type">Record type <span class="dash-required">*</span></label>
                 <select name="record_type" id="record_type" required>

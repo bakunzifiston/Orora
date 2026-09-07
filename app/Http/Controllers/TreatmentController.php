@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\TreatmentRequest;
-use App\Models\Animal;
 use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\Treatment;
@@ -18,24 +18,20 @@ class TreatmentController extends Controller
 {
     use HealthSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function __construct(private ExpenseService $expenseService) {}
 
     public function create(): View
     {
-        return view('modules.health.treatments.create', $this->healthSectionData('treatments', [
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+        return view('modules.health.treatments.create', $this->healthSectionData('treatments', array_merge($this->stockOptions(), [
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        ])));
     }
 
     public function store(TreatmentRequest $request): RedirectResponse
     {
-        $animal = Animal::query()->findOrFail($request->input('animal_id'));
-
-        $treatment = Treatment::create(array_merge($request->treatmentAttributes(), [
-            'farm_id' => $animal->farm_id,
-        ]));
+        $treatment = Treatment::create(array_merge($request->treatmentAttributes(), $request->resolvedStockAttributes()));
 
         $this->storeAttachment($request, $treatment);
         $this->syncHealthRecord($treatment);
@@ -50,20 +46,15 @@ class TreatmentController extends Controller
     {
         $treatment->load(['animal', 'farm', 'expense.vendor']);
 
-        return view('modules.health.treatments.edit', $this->healthSectionData('treatments', [
+        return view('modules.health.treatments.edit', $this->healthSectionData('treatments', array_merge($this->stockOptions(), [
             'treatment' => $treatment,
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        ])));
     }
 
     public function update(TreatmentRequest $request, Treatment $treatment): RedirectResponse
     {
-        $animal = Animal::query()->findOrFail($request->input('animal_id'));
-
-        $treatment->update(array_merge($request->treatmentAttributes(), [
-            'farm_id' => $animal->farm_id,
-        ]));
+        $treatment->update(array_merge($request->treatmentAttributes(), $request->resolvedStockAttributes()));
 
         $this->storeAttachment($request, $treatment);
         $treatment = $treatment->fresh();
@@ -106,7 +97,7 @@ class TreatmentController extends Controller
 
     private function syncHealthRecord(Treatment $treatment): void
     {
-        $treatment->load('animal');
+        $treatment->load(['animal', 'flock']);
 
         $title = collect([$treatment->disease_name, $treatment->medicine_name])
             ->filter()
@@ -121,6 +112,7 @@ class TreatmentController extends Controller
         $healthData = [
             'farm_id' => $treatment->farm_id,
             'animal_id' => $treatment->animal_id,
+            'flock_id' => $treatment->flock_id,
             'record_type' => 'Treatment',
             'recorded_on' => $treatment->start_date,
             'health_status' => $this->healthStatusForTreatment($treatment),
@@ -147,7 +139,7 @@ class TreatmentController extends Controller
         return match ($treatment->status) {
             'Completed' => 'Recovering',
             'Ongoing' => 'Under treatment',
-            default => $treatment->animal->health_status,
+            default => $treatment->animal?->health_status ?? 'Under treatment',
         };
     }
 }

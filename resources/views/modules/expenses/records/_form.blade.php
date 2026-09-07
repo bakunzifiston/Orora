@@ -82,6 +82,15 @@
             @endforeach
         </select>
     </div>
+    <div class="dash-form-field">
+        <label for="flock_id">{{ __('Flock') }}</label>
+        <select name="flock_id" id="flock_id">
+            <option value="">{{ __('None') }}</option>
+            @foreach (($flocks ?? []) as $flock)
+                <option value="{{ $flock->id }}" @selected(old('flock_id', $expense?->flock_id) == $flock->id)>{{ $flock->label() }}</option>
+            @endforeach
+        </select>
+    </div>
     <div class="dash-form-field dash-form-field--full">
         <label for="title">Title</label>
         <input type="text" name="title" id="title" value="{{ old('title', $expense?->title) }}" placeholder="Short description">

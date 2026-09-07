@@ -15,6 +15,7 @@ $navigationGroups = [
             ['key' => 'farms', 'label' => 'Farms', 'route' => 'farms.index', 'icon' => 'farm'],
             ['key' => 'livestock', 'label' => 'Livestock', 'route' => 'livestock.index', 'icon' => 'livestock'],
             ['key' => 'animals', 'label' => 'Animals', 'route' => 'animals.index', 'icon' => 'animal'],
+            ['key' => 'flocks', 'label' => 'Flocks', 'route' => 'flocks.index', 'icon' => 'animal'],
             ['key' => 'employees', 'label' => 'Employees', 'route' => 'employees.overview', 'icon' => 'employee'],
         ],
     ],
@@ -26,6 +27,7 @@ $navigationGroups = [
             ['key' => 'feeding', 'label' => 'Feeding', 'route' => 'feeding.overview', 'icon' => 'feeding'],
             ['key' => 'feed-calculator', 'label' => 'Feed calculator', 'route' => 'feeding.calculator.index', 'icon' => 'calculator'],
             ['key' => 'milk', 'label' => 'Milk', 'route' => 'milk.overview', 'icon' => 'milk'],
+            ['key' => 'eggs', 'label' => 'Eggs', 'route' => 'eggs.overview', 'icon' => 'milk'],
             ['key' => 'breeding', 'label' => 'Breeding', 'route' => 'breeding.overview', 'icon' => 'breeding'],
         ],
     ],
@@ -188,12 +190,13 @@ return [
         ['key' => 'abattoir', 'label' => 'Abattoir', 'route' => 'sales.abattoir'],
     ],
 
-    'sale_types' => ['animal_sale', 'meat_sale', 'milk_sale'],
+    'sale_types' => ['animal_sale', 'meat_sale', 'milk_sale', 'egg_sale'],
 
     'sale_type_labels' => [
         'animal_sale' => 'Animal sale',
         'meat_sale' => 'Meat sale',
         'milk_sale' => 'Milk sale',
+        'egg_sale' => 'Egg sale',
     ],
 
     'sale_statuses' => ['draft', 'confirmed', 'completed', 'cancelled', 'refunded'],
@@ -234,9 +237,12 @@ return [
         'per_animal' => 'Per animal (head)',
         'per_kg' => 'Per kg (live weight)',
         'per_liter' => 'Per liter',
+        'per_egg' => 'Per egg',
+        'per_tray' => 'Per tray',
+        'per_dozen' => 'Per dozen',
     ],
 
-    'sale_item_types' => ['animal', 'meat_cut', 'milk'],
+    'sale_item_types' => ['animal', 'meat_cut', 'milk', 'egg', 'flock_birds'],
 
     'sale_delivery_methods' => ['pickup', 'delivery', 'abattoir_transfer'],
 
@@ -379,6 +385,43 @@ return [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'milk.overview'],
         ['key' => 'sessions', 'label' => 'Milking sessions', 'route' => 'milk.sessions'],
         ['key' => 'storage', 'label' => 'Storage', 'route' => 'milk.storage'],
+    ],
+
+    'egg_sections' => [
+        ['key' => 'overview', 'label' => 'Overview', 'route' => 'eggs.overview'],
+        ['key' => 'collections', 'label' => 'Collections', 'route' => 'eggs.collections'],
+    ],
+
+    'flock_production_types' => [
+        'layer' => 'Layers',
+        'broiler' => 'Broilers',
+        'pullet' => 'Pullets',
+        'breeder' => 'Breeders',
+        'cockerel' => 'Cockerels',
+        'mixed' => 'Mixed',
+    ],
+
+    'flock_sources' => [
+        'hatchery' => 'Purchased (hatchery)',
+        'own' => 'Own hatch',
+        'transfer' => 'Transfer',
+        'other' => 'Other',
+    ],
+
+    'flock_event_types' => [
+        'placement' => 'Placement',
+        'mortality' => 'Mortality',
+        'cull' => 'Cull',
+        'sale' => 'Sale',
+        'transfer' => 'Transfer',
+        'adjustment' => 'Adjustment',
+    ],
+
+    'egg_collection_shifts' => [
+        'morning' => 'Morning',
+        'afternoon' => 'Afternoon',
+        'evening' => 'Evening',
+        'all_day' => 'All day',
     ],
 
     'breeding_sections' => [

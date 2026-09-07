@@ -91,6 +91,15 @@
             @endforeach
         </select>
     </div>
+    <div class="dash-form-field">
+        <label for="flock_id">{{ __('Flock') }}</label>
+        <select name="flock_id" id="flock_id">
+            <option value="">{{ __('None') }}</option>
+            @foreach (($flocks ?? []) as $flock)
+                <option value="{{ $flock->id }}" @selected(old('flock_id', $schedule?->flock_id) == $flock->id)>{{ $flock->label() }}</option>
+            @endforeach
+        </select>
+    </div>
     <div class="dash-form-field dash-form-field--full">
         <label for="notes">Notes</label>
         <textarea name="notes" id="notes" rows="2">{{ old('notes', $schedule?->notes) }}</textarea>

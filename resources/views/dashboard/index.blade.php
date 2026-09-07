@@ -80,12 +80,12 @@
                     </div>
                     @include('modules.partials.stat-icon', ['icon' => 'customer', 'label' => 'Accounts receivable'])
                 </a>
-                <a href="{{ route('animals.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : []) }}" class="dash-stat-card dash-ops-kpi">
+                <a href="{{ ($dashboard['species'] ?? 'cattle') === 'poultry' ? route('flocks.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : []) : route('animals.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : []) }}" class="dash-stat-card dash-ops-kpi">
                     <div>
-                        <div class="dash-stat-label">{{ __('Animals') }}</div>
+                        <div class="dash-stat-label">{{ ($dashboard['species'] ?? 'cattle') === 'poultry' ? __('Birds on hand') : __('Animals') }}</div>
                         <div class="dash-stat-value">{{ number_format($live['total_animals'] ?? 0) }}</div>
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Animals'])
+                    @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Stock'])
                 </a>
                 <a href="{{ route('farms.index') }}" class="dash-stat-card dash-ops-kpi">
                     <div>
@@ -94,20 +94,37 @@
                     </div>
                     @include('modules.partials.stat-icon', ['icon' => 'farm', 'label' => 'Farms'])
                 </a>
-                <a href="{{ route('milk.overview') }}" class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">{{ __('Lactating') }}</div>
-                        <div class="dash-stat-value accent">{{ number_format($live['lactating'] ?? 0) }}</div>
-                    </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Lactating'])
-                </a>
-                <a href="{{ route('sales.overview') }}" class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">{{ __('For sale') }}</div>
-                        <div class="dash-stat-value">{{ number_format($live['for_sale'] ?? 0) }}</div>
-                    </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'For sale'])
-                </a>
+                @if (($dashboard['species'] ?? 'cattle') === 'poultry')
+                    <a href="{{ route('eggs.overview') }}" class="dash-stat-card dash-ops-kpi">
+                        <div>
+                            <div class="dash-stat-label">{{ __('Mortality %') }}</div>
+                            <div class="dash-stat-value accent">{{ number_format($live['mortality_percent'] ?? 0, 1) }}%</div>
+                        </div>
+                        @include('modules.partials.stat-icon', ['icon' => 'health', 'label' => 'Mortality'])
+                    </a>
+                    <a href="{{ route('eggs.overview') }}" class="dash-stat-card dash-ops-kpi">
+                        <div>
+                            <div class="dash-stat-label">{{ __('Eggs') }}</div>
+                            <div class="dash-stat-value">{{ number_format($live['eggs_period'] ?? 0) }}</div>
+                        </div>
+                        @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Eggs'])
+                    </a>
+                @else
+                    <a href="{{ route('milk.overview') }}" class="dash-stat-card dash-ops-kpi">
+                        <div>
+                            <div class="dash-stat-label">{{ __('Lactating') }}</div>
+                            <div class="dash-stat-value accent">{{ number_format($live['lactating'] ?? 0) }}</div>
+                        </div>
+                        @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Lactating'])
+                    </a>
+                    <a href="{{ route('sales.overview') }}" class="dash-stat-card dash-ops-kpi">
+                        <div>
+                            <div class="dash-stat-label">{{ __('For sale') }}</div>
+                            <div class="dash-stat-value">{{ number_format($live['for_sale'] ?? 0) }}</div>
+                        </div>
+                        @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'For sale'])
+                    </a>
+                @endif
             </div>
         </section>
 
@@ -117,7 +134,7 @@
                 <div class="dash-home-chart-wrap"><canvas id="chart-revenue-expenses" aria-label="Revenue vs expenses"></canvas></div>
             </div>
             <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Milk production') }}</h2>
+                <h2 class="dash-panel-title">{{ $charts['productionChartTitle'] ?? __('Milk production') }}</h2>
                 <div class="dash-home-chart-wrap"><canvas id="chart-milk-trend" aria-label="Milk production trend"></canvas></div>
             </div>
         </section>

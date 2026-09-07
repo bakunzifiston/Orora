@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -9,9 +10,12 @@ use App\Support\TenantStorageUrl;
 
 class Treatment extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'farm_id',
         'animal_id',
+        'flock_id',
         'health_record_id',
         'disease_name',
         'medicine_name',

@@ -50,6 +50,20 @@
                     @endforeach
                 </select>
             </div>
+            <div class="dash-form-field">
+                <label for="primary_species">{{ __('Farm type') }} <span class="dash-required">*</span></label>
+                <select name="primary_species" id="primary_species" required @disabled($farm?->speciesLocked())>
+                    @foreach (config('species.labels') as $key => $label)
+                        <option value="{{ $key }}" @selected(old('primary_species', $farm?->primary_species ?? 'cattle') === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @if ($farm?->speciesLocked())
+                    <input type="hidden" name="primary_species" value="{{ $farm->primary_species }}">
+                    <p class="dash-field-hint">{{ __('Farm type is locked after livestock, animals, or flocks are added.') }}</p>
+                @else
+                    <p class="dash-field-hint">{{ __('One type per farm. Create another farm if you also raise a different species.') }}</p>
+                @endif
+            </div>
         </div>
     @endcomponent
 

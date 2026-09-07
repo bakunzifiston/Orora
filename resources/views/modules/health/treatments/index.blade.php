@@ -33,8 +33,7 @@
                             <tr>
                                 <td>{{ $treatment->start_date->format('M j, Y') }}</td>
                                 <td>
-                                    <strong>{{ $treatment->animal->tag_number }}</strong>
-                                    <div style="font-size: 0.75rem; color: #808080;">{{ $treatment->animal->name }}</div>
+                                    <strong>{{ $treatment->stockLabel() }}</strong>
                                 </td>
                                 <td><strong>{{ $treatment->disease_name }}</strong></td>
                                 <td>

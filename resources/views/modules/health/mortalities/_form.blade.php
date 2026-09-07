@@ -7,16 +7,11 @@
         'description' => 'Record the animal and when death occurred.',
     ])
         <div class="dash-form-grid">
-            <div class="dash-form-field dash-form-field--full">
-                <label for="animal_id">Animal <span class="dash-required">*</span></label>
-                <select name="animal_id" id="animal_id" required>
-                    <option value="">Select animal</option>
-                    @foreach ($animals as $animal)
-                        <option value="{{ $animal->id }}" @selected(old('animal_id', $mortality?->animal_id) == $animal->id)>
-                            {{ $animal->tag_number }} — {{ $animal->name }} ({{ $animal->farm->name }})
-                        </option>
-                    @endforeach
-                </select>
+            @include('modules.partials.stock-picker', ['record' => $mortality])
+            <div class="dash-form-field">
+                <label for="deaths_count">{{ __('Birds lost') }}</label>
+                <input type="number" name="deaths_count" id="deaths_count" min="1" value="{{ old('deaths_count', $mortality?->deaths_count ?? 1) }}">
+                <p class="dash-field-hint">{{ __('Required for flocks. Cattle deaths are always one animal.') }}</p>
             </div>
             <div class="dash-form-field">
                 <label for="death_date">Death date <span class="dash-required">*</span></label>

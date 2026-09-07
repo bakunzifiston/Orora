@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\VetVisitRequest;
-use App\Models\Animal;
 use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\VetVisit;
@@ -18,24 +18,20 @@ class VetVisitController extends Controller
 {
     use HealthSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function __construct(private ExpenseService $expenseService) {}
 
     public function create(): View
     {
-        return view('modules.health.vet-visits.create', $this->healthSectionData('vet-visits', [
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
+        return view('modules.health.vet-visits.create', $this->healthSectionData('vet-visits', array_merge($this->stockOptions(), [
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        ])));
     }
 
     public function store(VetVisitRequest $request): RedirectResponse
     {
-        $animal = Animal::query()->findOrFail($request->input('animal_id'));
-
-        $vetVisit = VetVisit::create(array_merge($request->vetVisitAttributes(), [
-            'farm_id' => $animal->farm_id,
-        ]));
+        $vetVisit = VetVisit::create(array_merge($request->vetVisitAttributes(), $request->resolvedStockAttributes()));
 
         $this->storeAttachment($request, $vetVisit);
         $this->syncHealthRecord($vetVisit);
@@ -50,20 +46,15 @@ class VetVisitController extends Controller
     {
         $vetVisit->load(['animal', 'farm', 'expense.vendor']);
 
-        return view('modules.health.vet-visits.edit', $this->healthSectionData('vet-visits', [
+        return view('modules.health.vet-visits.edit', $this->healthSectionData('vet-visits', array_merge($this->stockOptions(), [
             'vetVisit' => $vetVisit,
-            'animals' => Animal::query()->with('farm')->orderBy('tag_number')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        ])));
     }
 
     public function update(VetVisitRequest $request, VetVisit $vetVisit): RedirectResponse
     {
-        $animal = Animal::query()->findOrFail($request->input('animal_id'));
-
-        $vetVisit->update(array_merge($request->vetVisitAttributes(), [
-            'farm_id' => $animal->farm_id,
-        ]));
+        $vetVisit->update(array_merge($request->vetVisitAttributes(), $request->resolvedStockAttributes()));
 
         $this->storeAttachment($request, $vetVisit);
         $vetVisit = $vetVisit->fresh();
@@ -106,7 +97,7 @@ class VetVisitController extends Controller
 
     private function syncHealthRecord(VetVisit $vetVisit): void
     {
-        $vetVisit->load('animal');
+        $vetVisit->load(['animal', 'flock']);
 
         $title = collect([$vetVisit->disease_name, $vetVisit->medicine_name])
             ->filter()
@@ -121,6 +112,7 @@ class VetVisitController extends Controller
         $healthData = [
             'farm_id' => $vetVisit->farm_id,
             'animal_id' => $vetVisit->animal_id,
+            'flock_id' => $vetVisit->flock_id,
             'record_type' => 'Vet visit',
             'recorded_on' => $vetVisit->start_date,
             'health_status' => $this->healthStatusForVisit($vetVisit),
@@ -147,7 +139,7 @@ class VetVisitController extends Controller
         return match ($vetVisit->status) {
             'Completed' => 'Recovering',
             'Ongoing' => 'Under treatment',
-            default => $vetVisit->animal->health_status,
+            default => $vetVisit->animal?->health_status ?? 'Under treatment',
         };
     }
 }

@@ -35,8 +35,8 @@
             <div class="dash-stat-value accent">{{ number_format($farm->livestock_count) }}</div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-label">{{ __('Animals') }}</div>
-            <div class="dash-stat-value">{{ number_format($farm->animals_count) }}</div>
+            <div class="dash-stat-label">{{ $farm->isPoultry() ? __('Birds on hand') : __('Animals') }}</div>
+            <div class="dash-stat-value">{{ $farm->isPoultry() ? number_format($farm->flocks->sum('current_count')) : number_format($farm->animals_count) }}</div>
         </div>
         <div class="dash-stat-card">
             <div class="dash-stat-label">{{ __('Registered') }}</div>

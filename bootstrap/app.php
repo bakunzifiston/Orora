@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             InitializeDefaultTenant::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\ResolveActiveFarm::class,
         ]);
 
         $middleware->appendToPriorityList(

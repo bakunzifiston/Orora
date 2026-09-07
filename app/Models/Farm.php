@@ -26,6 +26,7 @@ class Farm extends TenantModel
         'farm_size_hectares',
         'registration_date',
         'status',
+        'primary_species',
         'ownership_type',
         'owner_first_name',
         'owner_last_name',
@@ -64,6 +65,28 @@ class Farm extends TenantModel
     public function animals(): HasMany
     {
         return $this->hasMany(Animal::class);
+    }
+
+    public function flocks(): HasMany
+    {
+        return $this->hasMany(Flock::class);
+    }
+
+    public function isPoultry(): bool
+    {
+        return $this->primary_species === 'poultry';
+    }
+
+    public function isCattle(): bool
+    {
+        return ($this->primary_species ?: 'cattle') === 'cattle';
+    }
+
+    public function speciesLocked(): bool
+    {
+        return $this->livestock()->exists()
+            || $this->animals()->exists()
+            || $this->flocks()->exists();
     }
 
     public function feedings(): HasMany

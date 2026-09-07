@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SaleItem extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'sale_transaction_id',
         'customer_id',
         'item_type',
         'animal_id',
+        'flock_id',
         'livestock_id',
         'abattoir_return_id',
         'milk_storage_id',

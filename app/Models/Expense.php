@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -9,9 +10,12 @@ use App\Support\TenantStorageUrl;
 
 class Expense extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'farm_id',
         'animal_id',
+        'flock_id',
         'livestock_id',
         'expense_category_id',
         'expense_vendor_id',

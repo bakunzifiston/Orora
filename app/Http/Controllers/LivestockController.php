@@ -7,6 +7,7 @@ use App\Http\Requests\LivestockRequest;
 use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Livestock;
+use App\Services\Species\SpeciesProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -47,9 +48,7 @@ class LivestockController extends Controller
 
     public function create(): View
     {
-        $farms = Farm::query()->orderBy('name')->get();
-
-        return view('modules.livestock.create', $this->moduleViewData('livestock', compact('farms')));
+        return view('modules.livestock.create', $this->livestockFormData());
     }
 
     public function store(LivestockRequest $request): RedirectResponse
@@ -63,9 +62,7 @@ class LivestockController extends Controller
 
     public function edit(Livestock $livestock): View
     {
-        $farms = Farm::query()->orderBy('name')->get();
-
-        return view('modules.livestock.edit', $this->moduleViewData('livestock', compact('livestock', 'farms')));
+        return view('modules.livestock.edit', $this->livestockFormData(compact('livestock')));
     }
 
     public function update(LivestockRequest $request, Livestock $livestock): RedirectResponse
@@ -82,5 +79,23 @@ class LivestockController extends Controller
         $livestock->delete();
 
         return redirect()->route('livestock.index')->with('success', 'Livestock group removed successfully.');
+    }
+
+    private function livestockFormData(array $extra = []): array
+    {
+        $farms = Farm::query()->orderBy('name')->get();
+        $species = app(SpeciesProfile::class);
+        $selectedFarm = $extra['livestock']->farm ?? $farms->first();
+
+        return $this->moduleViewData('livestock', array_merge([
+            'farms' => $farms,
+            'catalogsByFarm' => $species->catalogsByFarm($farms),
+            'herdGroups' => $species->herdGroups($selectedFarm),
+            'livestockTypes' => $species->livestockTypes($selectedFarm),
+            'productionPurposes' => $species->productionPurposes($selectedFarm),
+            'farmingMethods' => $species->farmingMethods($selectedFarm),
+            'feedingMethods' => $species->feedingMethods($selectedFarm),
+            'groupCopy' => $species->copy($selectedFarm),
+        ], $extra));
     }
 }

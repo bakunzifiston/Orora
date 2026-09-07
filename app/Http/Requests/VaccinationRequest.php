@@ -3,12 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\LinkedExpenseRules;
+use App\Http\Requests\Concerns\ValidatesStockSubject;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class VaccinationRequest extends FormRequest
 {
     use LinkedExpenseRules;
+    use ValidatesStockSubject;
 
     public function authorize(): bool
     {
@@ -27,6 +29,7 @@ class VaccinationRequest extends FormRequest
             $merge['administration_method'] = null;
         }
 
+        $this->prepareStockSubject();
         $this->prepareLinkedExpenseValidation();
 
         if ($merge !== []) {
@@ -36,8 +39,7 @@ class VaccinationRequest extends FormRequest
 
     public function rules(): array
     {
-        return array_merge([
-            'animal_id' => ['required', 'exists:animals,id'],
+        return array_merge($this->stockSubjectRules(), [
             'vaccine_name' => ['required', 'string', 'max:255'],
             'vaccine_type' => ['nullable', Rule::in(config('modules.vaccine_types'))],
             'vaccine_type_other' => [

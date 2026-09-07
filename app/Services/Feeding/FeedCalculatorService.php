@@ -3,6 +3,7 @@
 namespace App\Services\Feeding;
 
 use App\Models\Animal;
+use App\Models\Flock;
 use App\Models\Livestock;
 use App\Models\MilkRecord;
 
@@ -69,6 +70,30 @@ class FeedCalculatorService
     public function calculateForHerd(Livestock $livestock): array
     {
         $livestock->loadMissing('farm');
+
+        if ($livestock->farm?->isPoultry()) {
+            $flocks = Flock::query()
+                ->where('farm_id', $livestock->farm_id)
+                ->where(function ($query) use ($livestock) {
+                    $query->where('livestock_id', $livestock->id)
+                        ->orWhereNull('livestock_id');
+                })
+                ->where('lifecycle_status', 'Active')
+                ->orderBy('name')
+                ->get();
+
+            if ($flocks->isEmpty()) {
+                $flocks = Flock::query()
+                    ->where('farm_id', $livestock->farm_id)
+                    ->where('lifecycle_status', 'Active')
+                    ->orderBy('name')
+                    ->get();
+            }
+
+            if ($flocks->isNotEmpty()) {
+                return $this->sumFlockResults($livestock, $flocks);
+            }
+        }
 
         $animals = Animal::query()
             ->where('livestock_id', $livestock->id)
@@ -160,6 +185,121 @@ class FeedCalculatorService
                 ],
             ],
         ];
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, Flock>  $flocks
+     * @return array<string, mixed>
+     */
+    private function sumFlockResults(Livestock $livestock, $flocks): array
+    {
+        $totalRoughage = 0.0;
+        $totalConcentrate = 0.0;
+        $totalSupplement = 0.0;
+        $totalFeed = 0.0;
+        $birdCount = 0;
+        $breakdown = [];
+
+        foreach ($flocks as $flock) {
+            $result = $this->calculateForFlock($flock);
+            if (! ($result['has_data'] ?? false)) {
+                continue;
+            }
+
+            $totalRoughage += $result['roughage_kg'];
+            $totalConcentrate += $result['concentrate_kg'];
+            $totalSupplement += $result['supplement_kg'];
+            $totalFeed += $result['total_feed_kg'];
+            $birdCount += $flock->current_count;
+
+            $breakdown[] = [
+                'tag_number' => $flock->flock_code,
+                'animal_name' => $flock->name,
+                'weight_kg' => null,
+                'production_status' => $flock->production_type,
+                'rule_label' => $result['explanation']['rule_label'] ?? '—',
+                'total_feed_kg' => $result['total_feed_kg'],
+                'roughage_kg' => $result['roughage_kg'],
+                'concentrate_kg' => $result['concentrate_kg'],
+                'supplement_kg' => $result['supplement_kg'],
+            ];
+        }
+
+        if ($breakdown === []) {
+            return $this->emptyResult('Could not calculate feed for any flocks.');
+        }
+
+        return [
+            'level' => 'herd',
+            'label' => collect([$livestock->name, 'poultry flocks'])->filter()->implode(' · '),
+            'farm_name' => $livestock->farm?->name,
+            'livestock_name' => $livestock->name,
+            'animal_type' => 'poultry',
+            'animal_count' => $birdCount,
+            'total_feed_kg' => round($totalFeed, 2),
+            'roughage_kg' => round($totalRoughage, 2),
+            'concentrate_kg' => round($totalConcentrate, 2),
+            'supplement_kg' => round($totalSupplement, 2),
+            'roughage_pct' => $totalFeed > 0 ? round($totalRoughage / $totalFeed * 100) : 0,
+            'concentrate_pct' => $totalFeed > 0 ? round($totalConcentrate / $totalFeed * 100) : 0,
+            'supplement_pct' => $totalFeed > 0 ? round($totalSupplement / $totalFeed * 100) : 0,
+            'per_animal_avg' => $birdCount > 0 ? round($totalFeed / $birdCount, 2) : 0,
+            'breakdown' => $breakdown,
+            'has_data' => true,
+            'reason' => null,
+            'warnings' => [],
+            'basis' => 'Poultry flock ration × current bird count',
+            'explanation' => [
+                'rule_label' => 'Flock poultry rules (g/bird × current count)',
+                'method_label' => 'Each flock is matched to a poultry rule, then totals are summed',
+            ],
+        ];
+    }
+
+    public function calculateForFlock(Flock $flock): array
+    {
+        $flock->loadMissing('farm');
+        $status = match ($flock->production_type) {
+            'layer', 'layers' => 'laying',
+            'broiler', 'broilers' => 'broiler',
+            'breeder', 'breeders' => 'breeding',
+            default => 'growing',
+        };
+        $ageMonths = $flock->placed_on ? max(0.1, $flock->placed_on->diffInMonths(now()) ?: $flock->placed_on->diffInDays(now()) / 30) : 2;
+        $rule = $this->poultryRule($status, $ageMonths);
+        $count = max(0, (int) $flock->current_count);
+
+        if ($count < 1) {
+            return $this->emptyResult('This flock has no birds on hand.');
+        }
+
+        $result = $this->buildResult(
+            rule: $rule,
+            weight: 0,
+            count: $count,
+            type: 'poultry',
+            label: $flock->label(),
+            level: 'flock',
+        );
+
+        $explanation = $this->buildExplanation(
+            rule: $rule,
+            type: 'poultry',
+            productionStatus: $flock->production_type,
+            normalizedStatus: $status,
+            ageMonths: $ageMonths,
+            weight: 0,
+            totalFeed: $result['total_feed_kg'],
+        );
+
+        return array_merge($result, [
+            'farm_name' => $flock->farm?->name,
+            'livestock_name' => $flock->name,
+            'animal_count' => $count,
+            'basis' => $this->basisLabel($rule, 0, 'poultry'),
+            'warnings' => [],
+            'explanation' => $explanation,
+        ]);
     }
 
     public static function rulesReference(): array

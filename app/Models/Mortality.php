@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Support\TenantStorageUrl;
 
 class Mortality extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'farm_id',
         'animal_id',
+        'flock_id',
+        'deaths_count',
         'health_record_id',
         'death_date',
         'cause_of_death',

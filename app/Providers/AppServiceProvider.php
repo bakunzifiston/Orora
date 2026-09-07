@@ -11,6 +11,7 @@ use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Stancl\Tenancy\Controllers\TenantAssetsController;
 
@@ -50,6 +51,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         TenantAssetsController::$tenancyMiddleware = InitializeTenancyForAssets::class;
+
+        View::composer(['layouts.dashboard', 'layouts.partials.dashboard-sidebar'], function ($view) {
+            if (! auth()->check()) {
+                return;
+            }
+
+            $species = app(\App\Services\Species\SpeciesProfile::class);
+            $view->with('navigationGroups', $species->navigationGroups());
+            $view->with('navigation', $species->navigation());
+        });
 
         Route::middleware('web')
             ->get('/tenancy/assets/{path?}', [TenantAssetsController::class, 'asset'])

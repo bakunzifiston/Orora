@@ -1,16 +1,11 @@
 @php $movement = $movement ?? null; @endphp
 
 <div class="dash-form-grid">
+    @include('modules.partials.stock-picker', ['record' => $movement])
     <div class="dash-form-field">
-        <label for="animal_id">Animal</label>
-        <select name="animal_id" id="animal_id" required>
-            <option value="">Select animal</option>
-            @foreach ($animals as $animal)
-                <option value="{{ $animal->id }}" @selected(old('animal_id', $movement?->animal_id) == $animal->id)>
-                    {{ $animal->tag_number }} — {{ $animal->farm->name }}
-                </option>
-            @endforeach
-        </select>
+        <label for="quantity">{{ __('Quantity') }}</label>
+        <input type="number" name="quantity" id="quantity" min="1" value="{{ old('quantity', $movement?->quantity ?? 1) }}">
+        <p class="dash-field-hint">{{ __('Heads moved. Use 1 for a single animal.') }}</p>
     </div>
     <div class="dash-form-field">
         <label for="movement_type">Movement type</label>

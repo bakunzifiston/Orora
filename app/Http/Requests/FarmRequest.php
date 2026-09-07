@@ -46,6 +46,10 @@ class FarmRequest extends FormRequest
             'farm_size_hectares' => ['required', 'numeric', 'min:0'],
             'registration_date' => ['required', 'date'],
             'status' => ['required', Rule::in(config('modules.farm_statuses'))],
+            'primary_species' => [
+                'required',
+                Rule::in(array_keys(config('species.labels', ['cattle' => 'Cattle', 'poultry' => 'Poultry']))),
+            ],
             'ownership_type' => ['required', Rule::in(array_keys(config('modules.ownership_types')))],
             'owner_first_name' => ['required', 'string', 'max:255'],
             'owner_last_name' => ['required', 'string', 'max:255'],
@@ -104,6 +108,11 @@ class FarmRequest extends FormRequest
             if ($this->requiresOrganization() && $this->memberRows() === []) {
                 $validator->errors()->add('members', 'At least one member is required for cooperatives and companies.');
             }
+
+            $farm = $this->route('farm');
+            if ($farm && $farm->speciesLocked() && $farm->primary_species !== $this->input('primary_species')) {
+                $validator->errors()->add('primary_species', 'Farm type cannot change after livestock, animals, or flocks have been added.');
+            }
         });
     }
 
@@ -134,6 +143,7 @@ class FarmRequest extends FormRequest
             'farm_size_hectares' => $this->input('farm_size_hectares'),
             'registration_date' => $this->input('registration_date'),
             'status' => $this->input('status'),
+            'primary_species' => $this->input('primary_species', 'cattle'),
             'ownership_type' => $this->input('ownership_type'),
             'owner_first_name' => $this->input('owner_first_name'),
             'owner_last_name' => $this->input('owner_last_name'),

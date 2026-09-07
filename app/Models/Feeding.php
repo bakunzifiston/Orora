@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Feeding extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'farm_id',
         'livestock_id',
         'animal_id',
+        'flock_id',
         'feed_type_id',
         'feed_inventory_id',
         'feeding_schedule_id',

@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesStockSubject;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class MortalityRequest extends FormRequest
 {
+    use ValidatesStockSubject;
+
     public function authorize(): bool
     {
         return true;
@@ -22,14 +25,24 @@ class MortalityRequest extends FormRequest
             $merge['disposal_method'] = null;
         }
 
+        if (! $this->filled('deaths_count')) {
+            $merge['deaths_count'] = $this->filled('flock_id') ? null : 1;
+        }
+
         $this->merge($merge);
+        $this->prepareStockSubject();
     }
 
     public function rules(): array
     {
-        return [
-            'animal_id' => ['required', 'exists:animals,id'],
+        return array_merge($this->stockSubjectRules(), [
             'death_date' => ['required', 'date'],
+            'deaths_count' => [
+                Rule::requiredIf(fn () => $this->filled('flock_id')),
+                'nullable',
+                'integer',
+                'min:1',
+            ],
             'cause_of_death' => ['nullable', 'string', 'max:255'],
             'reported_by' => ['nullable', 'string', 'max:255'],
             'veterinarian_name' => ['nullable', 'string', 'max:255'],
@@ -59,6 +72,10 @@ class MortalityRequest extends FormRequest
 
         if (($attributes['disposal_method'] ?? null) === 'Other') {
             $attributes['disposal_method'] = $this->input('disposal_method_other');
+        }
+
+        if (! $this->filled('flock_id')) {
+            $attributes['deaths_count'] = 1;
         }
 
         return $attributes;

@@ -62,8 +62,10 @@
                             <tr>
                                 <td>{{ $mortality->death_date->format('M j, Y') }}</td>
                                 <td>
-                                    <strong>{{ $mortality->animal->tag_number }}</strong>
-                                    <div style="font-size: 0.75rem; color: #808080;">{{ $mortality->animal->name }}</div>
+                                    <strong>{{ $mortality->stockLabel() }}</strong>
+                                    @if ($mortality->flock_id)
+                                        <div style="font-size: 0.75rem; color: #808080;">{{ number_format($mortality->deaths_count) }} {{ __('birds') }}</div>
+                                    @endif
                                 </td>
                                 <td>{{ $mortality->cause_of_death ?? '—' }}</td>
                                 <td>{{ $mortality->reported_by ?? '—' }}</td>

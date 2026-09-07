@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\FeedingSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\FeedingRecordRequest;
-use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Feeding;
 use App\Models\FeedingSchedule;
@@ -19,13 +19,14 @@ class FeedingController extends Controller
 {
     use FeedingSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function __construct(private FeedInventoryService $inventoryService) {}
 
     public function index(): View
     {
         $feedings = Feeding::query()
-            ->with(['farm', 'livestock', 'animal', 'feedType', 'feedInventory', 'feedingSchedule'])
+            ->with(['farm', 'livestock', 'animal', 'flock', 'feedType', 'feedInventory', 'feedingSchedule'])
             ->orderByDesc('fed_on')
             ->paginate(15);
 
@@ -48,6 +49,7 @@ class FeedingController extends Controller
             'feeding_schedule_id' => $request->input('feeding_schedule_id'),
             'livestock_id' => $request->input('livestock_id'),
             'animal_id' => $request->input('animal_id'),
+            'flock_id' => $request->input('flock_id'),
             'quantity' => $request->input('quantity'),
             'unit' => $inventory->unit,
             'fed_on' => $request->input('fed_on'),
@@ -84,6 +86,7 @@ class FeedingController extends Controller
             'feeding_schedule_id' => $request->input('feeding_schedule_id'),
             'livestock_id' => $request->input('livestock_id'),
             'animal_id' => $request->input('animal_id'),
+            'flock_id' => $request->input('flock_id'),
             'quantity' => $request->input('quantity'),
             'unit' => $inventory->unit,
             'fed_on' => $request->input('fed_on'),
@@ -107,7 +110,7 @@ class FeedingController extends Controller
             'inventories' => FeedInventory::query()->with(['farm', 'feedType'])->get(),
             'schedules' => FeedingSchedule::query()->where('status', 'active')->orderBy('farm_id')->get(),
             'livestockGroups' => Livestock::query()->orderBy('name')->get(),
-            'animals' => Animal::query()->orderBy('tag_number')->get(),
+            ...$this->stockOptions(),
         ];
     }
 }

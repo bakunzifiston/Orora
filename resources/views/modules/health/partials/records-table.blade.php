@@ -28,8 +28,7 @@
                     <tr>
                         <td>{{ $record->recorded_on->format('M j, Y') }}</td>
                         <td>
-                            <strong>{{ $record->animal->tag_number }}</strong>
-                            <div style="font-size: 0.75rem; color: #808080;">{{ $record->animal->name }}</div>
+                            <strong>{{ $record->stockLabel() }}</strong>
                         </td>
                         <td>{{ $record->record_type }}</td>
                         <td><span class="dash-badge">{{ $record->health_status }}</span></td>

@@ -28,7 +28,7 @@ abstract class TenantTestCase extends BaseTestCase
         $this->configureTestConnections();
 
         if (! static::$migrated) {
-            Artisan::call('migrate', ['--force' => true]);
+            Artisan::call('migrate:fresh', ['--force' => true]);
             static::$migrated = true;
         }
 
@@ -90,8 +90,12 @@ abstract class TenantTestCase extends BaseTestCase
         $database = env('TEST_DB_DATABASE', 'orora_test');
 
         config([
+            'database.default' => 'mysql',
             'database.connections.central.database' => $database,
             'database.connections.mysql.database' => $database,
         ]);
+
+        DB::purge('mysql');
+        DB::purge('central');
     }
 }

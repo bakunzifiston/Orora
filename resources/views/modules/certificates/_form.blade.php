@@ -10,15 +10,7 @@
             @endforeach
         </select>
     </div>
-    <div class="dash-form-field">
-        <label for="animal_id">Animal (optional)</label>
-        <select name="animal_id" id="animal_id">
-            <option value="">None</option>
-            @foreach ($animals as $animal)
-                <option value="{{ $animal->id }}" @selected(old('animal_id', $certificate?->animal_id) == $animal->id)>{{ $animal->tag_number }}</option>
-            @endforeach
-        </select>
-    </div>
+    @include('modules.partials.stock-picker', ['record' => $certificate, 'required' => false])
     <div class="dash-form-field">
         <label for="certificate_type">Certificate type</label>
         <select name="certificate_type" id="certificate_type" required>

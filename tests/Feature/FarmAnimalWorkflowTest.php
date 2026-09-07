@@ -21,7 +21,7 @@ class FarmAnimalWorkflowTest extends TenantTestCase
             'name' => 'Bella',
         ]);
 
-        $this->assertDatabaseHas('farms', ['id' => $farm->id, 'name' => $farm->name]);
+        $this->assertDatabaseHas('farms', ['id' => $farm->id, 'name' => $farm->name, 'primary_species' => 'cattle']);
         $this->assertDatabaseHas('livestock', ['id' => $livestock->id, 'farm_id' => $farm->id]);
         $this->assertDatabaseHas('animals', [
             'id' => $animal->id,

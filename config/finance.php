@@ -27,6 +27,7 @@ return [
         'milk_sale' => '4000',
         'animal_sale' => '4100',
         'meat_sale' => '4200',
+        'egg_sale' => '4250',
     ],
 
     'cash_accounts' => [

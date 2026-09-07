@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFlock;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Movement extends TenantModel
 {
+    use BelongsToFlock;
+
     protected $fillable = [
         'animal_id',
+        'flock_id',
+        'quantity',
         'from_farm_id',
         'to_farm_id',
         'movement_type',

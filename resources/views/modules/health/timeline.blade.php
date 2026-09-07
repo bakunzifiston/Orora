@@ -27,7 +27,7 @@
                                 <span class="dash-badge">{{ $record->record_type }}</span>
                                 <span class="dash-badge">{{ $record->health_status }}</span>
                             </div>
-                            <h3>{{ $record->animal->tag_number }} — {{ $record->animal->name }}</h3>
+                            <h3>{{ $record->stockLabel() }}</h3>
                             <p style="color: #808080; font-size: 0.8125rem; margin: 0 0 0.5rem;">{{ $record->farm->name }}</p>
                             @if ($record->title)
                                 <p style="margin: 0 0 0.35rem;"><strong>{{ $record->title }}</strong></p>

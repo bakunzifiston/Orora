@@ -22,8 +22,8 @@
                 </select>
             </div>
             <div class="dash-form-field">
-                <label for="livestock_id">Livestock <span class="dash-required">*</span></label>
-                <select name="livestock_id" id="livestock_id" required data-selected="{{ $selectedLivestockId }}">
+                <label for="livestock_id">{{ __('Livestock') }}</label>
+                <select name="livestock_id" id="livestock_id" data-selected="{{ $selectedLivestockId }}">
                     <option value="">Select livestock</option>
                     @foreach ($livestockGroups as $group)
                         <option value="{{ $group->id }}" @selected((string) $selectedLivestockId === (string) $group->id)>{{ $group->name }}</option>
@@ -31,10 +31,11 @@
                 </select>
             </div>
             <div class="dash-form-field dash-form-field--full">
-                <label for="animal_id">Animal <span class="dash-required">*</span></label>
-                <select name="animal_id" id="animal_id" required data-selected="{{ $selectedAnimalId }}">
-                    <option value="">Select animal</option>
-                </select>
+                @include('modules.partials.stock-picker', [
+                    'record' => $diseaseRecord,
+                    'required' => true,
+                    'fullWidth' => true,
+                ])
             </div>
         </div>
     @endcomponent

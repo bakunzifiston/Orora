@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
+use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\DiseaseRecordRequest;
 use App\Models\Animal;
 use App\Models\DiseaseRecord;
@@ -21,6 +22,7 @@ class DiseaseRecordController extends Controller
 {
     use HealthSectionViews;
     use ProvidesModuleNavigation;
+    use ProvidesStockOptions;
 
     public function __construct(
         private readonly DiseaseRecordService $diseaseRecords,
@@ -39,7 +41,7 @@ class DiseaseRecordController extends Controller
 
     public function store(DiseaseRecordRequest $request): RedirectResponse
     {
-        $diseaseRecord = DiseaseRecord::create(array_merge($request->diseaseRecordAttributes(), [
+        $diseaseRecord = DiseaseRecord::create(array_merge($this->diseasePayload($request), [
             'disease_code' => $this->diseaseRecords->generateDiseaseCode($request->input('diagnosis_date')),
             'created_by' => auth()->id(),
         ]));
@@ -75,7 +77,7 @@ class DiseaseRecordController extends Controller
 
     public function update(DiseaseRecordRequest $request, DiseaseRecord $diseaseRecord): RedirectResponse
     {
-        $diseaseRecord->update($request->diseaseRecordAttributes());
+        $diseaseRecord->update($this->diseasePayload($request));
 
         $this->storeAttachment($request, $diseaseRecord);
         $diseaseRecord = $diseaseRecord->fresh();
@@ -152,7 +154,24 @@ class DiseaseRecordController extends Controller
             'selectedFarmId' => $farmId,
             'selectedLivestockId' => $livestockId,
             'selectedAnimalId' => $diseaseRecord?->animal_id ?? old('animal_id'),
+            'selectedFlockId' => $diseaseRecord?->flock_id ?? old('flock_id'),
+            ...$this->stockOptions(),
         ];
+    }
+
+    private function diseasePayload(DiseaseRecordRequest $request): array
+    {
+        $attributes = $request->diseaseRecordAttributes();
+
+        if ($request->filled('flock_id')) {
+            $stock = $request->resolvedStockAttributes();
+            $attributes['farm_id'] = $stock['farm_id'];
+            $attributes['flock_id'] = $stock['flock_id'];
+            $attributes['animal_id'] = null;
+            $attributes['livestock_id'] = $attributes['livestock_id'] ?: $stock['livestock_id'];
+        }
+
+        return $attributes;
     }
 
     private function storeAttachment(DiseaseRecordRequest $request, DiseaseRecord $diseaseRecord): void
@@ -185,6 +204,7 @@ class DiseaseRecordController extends Controller
         $healthData = [
             'farm_id' => $diseaseRecord->farm_id,
             'animal_id' => $diseaseRecord->animal_id,
+            'flock_id' => $diseaseRecord->flock_id,
             'record_type' => 'Illness',
             'recorded_on' => $diseaseRecord->diagnosis_date,
             'health_status' => $this->healthStatusForRecord($diseaseRecord),

@@ -143,7 +143,7 @@
                     <li>
                         <div>
                             <strong>{{ $record->record_type }}</strong>
-                            <span class="dash-health-activity__meta">{{ $record->animal->tag_number }} · {{ $record->recorded_on->format('M j, Y') }}</span>
+                            <span class="dash-health-activity__meta">{{ $record->stockLabel() }} · {{ $record->recorded_on->format('M j, Y') }}</span>
                         </div>
                         <span class="dash-badge">{{ $record->health_status }}</span>
                     </li>

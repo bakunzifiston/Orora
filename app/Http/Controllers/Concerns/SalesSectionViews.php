@@ -8,7 +8,7 @@ trait SalesSectionViews
     {
         return array_merge($this->moduleViewData('sales', [
             'activeSalesSection' => $activeSection,
-            'salesSections' => config('modules.sale_sections'),
+            'salesSections' => app(\App\Services\Species\SpeciesProfile::class)->saleSections(),
         ]), $data);
     }
 }

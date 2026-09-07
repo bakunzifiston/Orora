@@ -30,7 +30,7 @@
                         @foreach ($movements as $movement)
                             <tr>
                                 <td>{{ $movement->moved_on->format('M j, Y') }}</td>
-                                <td><strong>{{ $movement->animal->tag_number }}</strong></td>
+                                <td><strong>{{ $movement->stockLabel() }}</strong></td>
                                 <td>{{ ucfirst($movement->movement_type) }}</td>
                                 <td>{{ $movement->fromFarm->name }}</td>
                                 <td>{{ $movement->toFarm?->name ?? '—' }}</td>

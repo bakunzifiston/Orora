@@ -42,7 +42,7 @@ class HealthController extends Controller
         ];
 
         $recentRecords = HealthRecord::query()
-            ->with(['animal', 'farm'])
+            ->with(['animal', 'farm', 'flock'])
             ->orderByDesc('recorded_on')
             ->limit(8)
             ->get();
@@ -55,7 +55,7 @@ class HealthController extends Controller
     public function vaccinations(): View
     {
         $vaccinations = Vaccination::query()
-            ->with(['farm', 'animal'])
+            ->with(['farm', 'animal', 'flock'])
             ->orderByDesc('vaccination_date')
             ->paginate(15);
 
@@ -65,7 +65,7 @@ class HealthController extends Controller
     public function treatments(): View
     {
         $treatments = Treatment::query()
-            ->with(['farm', 'animal'])
+            ->with(['farm', 'animal', 'flock'])
             ->orderByDesc('start_date')
             ->paginate(15);
 
@@ -78,7 +78,7 @@ class HealthController extends Controller
 
         $diseaseRecords = $diseaseReady
             ? DiseaseRecord::query()
-                ->with(['farm', 'livestock', 'animal'])
+                ->with(['farm', 'livestock', 'animal', 'flock'])
                 ->orderByDesc('diagnosis_date')
                 ->paginate(15)
             : new LengthAwarePaginator([], 0, 15);
@@ -89,7 +89,7 @@ class HealthController extends Controller
     public function vetVisits(): View
     {
         $vetVisits = VetVisit::query()
-            ->with(['farm', 'animal'])
+            ->with(['farm', 'animal', 'flock'])
             ->orderByDesc('start_date')
             ->paginate(15);
 
@@ -99,7 +99,7 @@ class HealthController extends Controller
     public function mortality(): View
     {
         $mortalities = Mortality::query()
-            ->with(['farm', 'animal'])
+            ->with(['farm', 'animal', 'flock'])
             ->orderByDesc('death_date')
             ->paginate(15);
 
@@ -119,7 +119,7 @@ class HealthController extends Controller
     public function timeline(): View
     {
         $healthRecords = HealthRecord::query()
-            ->with(['farm', 'animal'])
+            ->with(['farm', 'animal', 'flock'])
             ->orderByDesc('recorded_on')
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -132,7 +132,7 @@ class HealthController extends Controller
         $types = config("modules.health_section_record_types.{$section}", []);
 
         $healthRecords = HealthRecord::query()
-            ->with(['farm', 'animal'])
+            ->with(['farm', 'animal', 'flock'])
             ->when($types !== [], fn (Builder $query) => $query->whereIn('record_type', $types))
             ->orderByDesc('recorded_on')
             ->paginate(15);

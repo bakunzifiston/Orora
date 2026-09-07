@@ -1,6 +1,9 @@
-@php $livestock = $livestock ?? null; @endphp
+@php
+    $livestock = $livestock ?? null;
+    $groupCopy = $groupCopy ?? ['group_section' => __('Group / herd'), 'group_help' => __('Cattle group or herd classification — select all that apply.')];
+@endphp
 
-<div class="livestock-registration" data-livestock-form>
+<div class="livestock-registration" data-livestock-form data-catalogs="{{ json_encode($catalogsByFarm ?? []) }}">
     @component('modules.farms._form-section', [
         'number' => '1',
         'title' => __('Farm & herd'),
@@ -10,10 +13,10 @@
         <div class="dash-form-grid">
             <div class="dash-form-field dash-form-field--full">
                 <label for="farm_id">{{ __('Farm') }} <span class="dash-required">*</span></label>
-                <select name="farm_id" id="farm_id" required>
+                <select name="farm_id" id="farm_id" required data-livestock-farm>
                     <option value="">{{ __('Select farm') }}</option>
                     @foreach ($farms as $farm)
-                        <option value="{{ $farm->id }}" @selected(old('farm_id', $livestock?->farm_id) == $farm->id)>{{ $farm->name }}</option>
+                        <option value="{{ $farm->id }}" data-species="{{ $farm->primary_species ?? 'cattle' }}" @selected(old('farm_id', $livestock?->farm_id) == $farm->id)>{{ $farm->name }} ({{ config('species.labels.'.$farm->primary_species, $farm->primary_species ?: 'cattle') }})</option>
                     @endforeach
                 </select>
             </div>
@@ -49,7 +52,7 @@
         @include('modules.partials.checkbox-multi', [
             'name' => 'livestock_types',
             'label' => __('Livestock type'),
-            'options' => config('modules.livestock_types'),
+            'options' => $livestockTypes ?? config('modules.livestock_types'),
             'selected' => $livestock?->livestock_types,
             'otherName' => 'livestock_type_other',
             'otherValue' => $livestock?->livestock_type_other,
@@ -58,14 +61,14 @@
 
     @component('modules.farms._form-section', [
         'number' => '3',
-        'title' => __('Group / herd'),
-        'description' => __('Cattle group or herd classification — select all that apply.'),
+        'title' => $groupCopy['group_section'] ?? __('Group / herd'),
+        'description' => $groupCopy['group_help'] ?? __('Cattle group or herd classification — select all that apply.'),
         'id' => 'section-herd-groups',
     ])
         @include('modules.partials.checkbox-multi', [
             'name' => 'herd_groups',
-            'label' => __('Group / herd'),
-            'options' => config('modules.herd_groups'),
+            'label' => $groupCopy['group'] ?? __('Group / herd'),
+            'options' => $herdGroups ?? config('modules.herd_groups'),
             'selected' => $livestock?->herd_groups,
             'otherName' => 'herd_group_other',
             'otherValue' => $livestock?->herd_group_other,
@@ -81,7 +84,7 @@
         @include('modules.partials.checkbox-multi', [
             'name' => 'production_purposes',
             'label' => __('Production purpose'),
-            'options' => config('modules.production_purposes'),
+            'options' => $productionPurposes ?? config('modules.production_purposes'),
             'selected' => $livestock?->production_purposes,
             'otherName' => 'production_purpose_other',
             'otherValue' => $livestock?->production_purpose_other,
@@ -97,7 +100,7 @@
         @include('modules.partials.checkbox-multi', [
             'name' => 'farming_methods',
             'label' => __('Farming method'),
-            'options' => config('modules.farming_methods'),
+            'options' => $farmingMethods ?? config('modules.farming_methods'),
             'selected' => $livestock?->farming_methods,
             'otherName' => 'farming_method_other',
             'otherValue' => $livestock?->farming_method_other,
@@ -113,7 +116,7 @@
         @include('modules.partials.checkbox-multi', [
             'name' => 'feeding_methods',
             'label' => __('Feeding method'),
-            'options' => config('modules.feeding_methods'),
+            'options' => $feedingMethods ?? config('modules.feeding_methods'),
             'selected' => $livestock?->feeding_methods,
             'otherName' => 'feeding_method_other',
             'otherValue' => $livestock?->feeding_method_other,

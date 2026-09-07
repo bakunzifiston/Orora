@@ -19,7 +19,7 @@ class FarmController extends Controller
     public function index(): View
     {
         $farms = Farm::query()
-            ->withCount(['livestock', 'animals'])
+            ->withCount(['livestock', 'animals', 'flocks'])
             ->orderBy('name')
             ->paginate(12);
 
@@ -35,7 +35,11 @@ class FarmController extends Controller
 
     public function show(Farm $farm): View
     {
-        $farm->load('members')->loadCount(['livestock', 'animals']);
+        $farm->load('members')->loadCount(['livestock', 'animals', 'flocks']);
+
+        if ($farm->isPoultry()) {
+            $farm->load('flocks');
+        }
 
         return view('modules.farms.show', $this->moduleViewData('farms', compact('farm')));
     }

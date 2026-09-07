@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Farm;
+use App\Services\Species\SpeciesProfile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -34,9 +36,12 @@ class SaleTransactionRequest extends FormRequest
         $multiBuyerMilk = $type === 'milk_sale' && $this->boolean('multi_buyer');
         $mode = $this->input('customer_mode', 'existing');
 
+        $farm = Farm::query()->find($this->input('farm_id'));
+        $saleTypes = app(SpeciesProfile::class)->saleTypes($farm);
+
         $rules = [
             'farm_id' => ['required', 'exists:farms,id'],
-            'sale_type' => ['required', Rule::in(config('modules.sale_types'))],
+            'sale_type' => ['required', Rule::in($saleTypes ?: config('modules.sale_types'))],
             'sale_date' => ['required', 'date'],
             'customer_mode' => ['required', Rule::in(['existing', 'new', 'none'])],
             'pricing_method' => ['required', Rule::in(array_keys(config('modules.sale_pricing_methods')))],

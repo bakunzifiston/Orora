@@ -30,6 +30,7 @@ class FarmTestFixtures
             'farm_size_hectares' => 1.5,
             'registration_date' => now()->toDateString(),
             'status' => 'active',
+            'primary_species' => 'cattle',
             'ownership_type' => 'individual',
             'owner_first_name' => 'Test',
             'owner_last_name' => 'Owner',

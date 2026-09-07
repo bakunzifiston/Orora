@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Farm;
+use App\Services\Species\SpeciesProfile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,10 +16,12 @@ class LivestockRequest extends FormRequest
 
     public function rules(): array
     {
+        $profile = $this->speciesProfile();
+
         return [
             'farm_id' => ['required', 'exists:farms,id'],
             'herd_groups' => ['required', 'array', 'min:1'],
-            'herd_groups.*' => ['string', Rule::in(config('modules.herd_groups'))],
+            'herd_groups.*' => ['string', Rule::in($profile->herdGroups($this->selectedFarm()))],
             'herd_group_other' => [
                 Rule::requiredIf(fn () => $this->hasOther('herd_groups')),
                 'nullable',
@@ -25,7 +29,7 @@ class LivestockRequest extends FormRequest
                 'max:255',
             ],
             'livestock_types' => ['required', 'array', 'min:1'],
-            'livestock_types.*' => ['string', Rule::in(config('modules.livestock_types'))],
+            'livestock_types.*' => ['string', Rule::in($profile->livestockTypes($this->selectedFarm()))],
             'livestock_type_other' => [
                 Rule::requiredIf(fn () => $this->hasOther('livestock_types')),
                 'nullable',
@@ -33,7 +37,7 @@ class LivestockRequest extends FormRequest
                 'max:255',
             ],
             'production_purposes' => ['required', 'array', 'min:1'],
-            'production_purposes.*' => ['string', Rule::in(config('modules.production_purposes'))],
+            'production_purposes.*' => ['string', Rule::in($profile->productionPurposes($this->selectedFarm()))],
             'production_purpose_other' => [
                 Rule::requiredIf(fn () => $this->hasOther('production_purposes')),
                 'nullable',
@@ -41,7 +45,7 @@ class LivestockRequest extends FormRequest
                 'max:255',
             ],
             'farming_methods' => ['required', 'array', 'min:1'],
-            'farming_methods.*' => ['string', Rule::in(config('modules.farming_methods'))],
+            'farming_methods.*' => ['string', Rule::in($profile->farmingMethods($this->selectedFarm()))],
             'farming_method_other' => [
                 Rule::requiredIf(fn () => $this->hasOther('farming_methods')),
                 'nullable',
@@ -49,7 +53,7 @@ class LivestockRequest extends FormRequest
                 'max:255',
             ],
             'feeding_methods' => ['required', 'array', 'min:1'],
-            'feeding_methods.*' => ['string', Rule::in(config('modules.feeding_methods'))],
+            'feeding_methods.*' => ['string', Rule::in($profile->feedingMethods($this->selectedFarm()))],
             'feeding_method_other' => [
                 Rule::requiredIf(fn () => $this->hasOther('feeding_methods')),
                 'nullable',
@@ -126,5 +130,17 @@ class LivestockRequest extends FormRequest
     private function hasOther(string $field): bool
     {
         return in_array('Other', $this->input($field, []), true);
+    }
+
+    private function selectedFarm(): ?Farm
+    {
+        $id = $this->input('farm_id');
+
+        return $id ? Farm::query()->find($id) : null;
+    }
+
+    private function speciesProfile(): SpeciesProfile
+    {
+        return app(SpeciesProfile::class);
     }
 }
