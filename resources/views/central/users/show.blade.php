@@ -12,7 +12,7 @@
         };
         $ownershipLabel = config('modules.ownership_types')[$farm->ownership_type] ?? ucfirst(str_replace('_', ' ', (string) $farm->ownership_type));
         $backQuery = http_build_query(request()->only(['period', 'from', 'to', 'farm_id', 'province_code', 'district_code']));
-        $backUrl = route('central.users.index').($backQuery ? '?'.$backQuery : '');
+        $backUrl = route('central.farms.index').($backQuery ? '?'.$backQuery : '');
         $location = collect([$farm->district, $farm->province, $farm->country])->filter()->implode(', ');
     @endphp
 
@@ -32,7 +32,7 @@
                 </p>
             </div>
 
-            <form method="GET" action="{{ route('central.users.show', $farm) }}" class="admin-farm-page__filters" id="admin-farm-filters-form">
+            <form method="GET" action="{{ route('central.farms.show', $farm) }}" class="admin-farm-page__filters" id="admin-farm-filters-form">
                 <div class="dash-ops-field">
                     <label for="admin_farm_filter_period">Period</label>
                     <select name="period" id="admin_farm_filter_period">

@@ -35,7 +35,7 @@ class UserDirectoryController extends Controller
 
         if (! Schema::hasTable('farms')) {
             return view('central.users.index', [
-                'activeNav' => 'users',
+                'activeNav' => 'farms',
                 'filters' => $filters,
                 'filtersActive' => false,
                 'farmsReady' => false,
@@ -80,7 +80,7 @@ class UserDirectoryController extends Controller
         $totalFarms = Farm::query()->withoutGlobalScope('tenant')->count();
 
         return view('central.users.index', [
-            'activeNav' => 'users',
+            'activeNav' => 'farms',
             'filters' => $filters,
             'filtersActive' => $filtersActive,
             'farmsReady' => true,
@@ -138,7 +138,7 @@ class UserDirectoryController extends Controller
         $tenant = Tenant::query()->find($farm->tenant_id);
 
         return view('central.users.show', [
-            'activeNav' => 'users',
+            'activeNav' => 'farms',
             'filters' => $filters,
             'filtersActive' => $filtersActive,
             'farm' => $farm,

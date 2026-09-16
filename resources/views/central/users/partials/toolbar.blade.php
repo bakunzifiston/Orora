@@ -6,7 +6,7 @@
     $filtersActive = $filtersActive ?? false;
 @endphp
 
-<form method="GET" action="{{ route('central.users.index') }}" class="dash-ops-toolbar" id="admin-users-filters-form">
+<form method="GET" action="{{ route('central.farms.index') }}" class="dash-ops-toolbar" id="admin-users-filters-form">
     <div class="dash-ops-toolbar__brand">
         <h1 class="dash-welcome" style="margin: 0;">Farms</h1>
     </div>
@@ -60,7 +60,7 @@
         </div>
         <button type="submit" class="dash-btn-save dash-ops-apply">Apply</button>
         @if ($filtersActive)
-            <a href="{{ route('central.users.index') }}" class="dash-back-link" style="align-self: flex-end; padding-bottom: 0.45rem;">Clear</a>
+            <a href="{{ route('central.farms.index') }}" class="dash-back-link" style="align-self: flex-end; padding-bottom: 0.45rem;">Clear</a>
         @endif
     </div>
 </form>

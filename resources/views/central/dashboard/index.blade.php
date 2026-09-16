@@ -80,7 +80,7 @@
                                 @foreach ($recentFarms as $farm)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('central.users.show', $farm) }}" class="admin-farm-row-link">{{ $farm->name }}</a>
+                                            <a href="{{ route('central.farms.show', $farm) }}" class="admin-farm-row-link">{{ $farm->name }}</a>
                                         </td>
                                         <td>{{ collect([$farm->district, $farm->province])->filter()->implode(', ') ?: '—' }}</td>
                                         <td>{{ $farm->created_at?->format('M j, Y') }}</td>

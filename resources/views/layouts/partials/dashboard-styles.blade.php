@@ -1650,7 +1650,9 @@
         margin-bottom: 0.3rem;
     }
     .dash-ops-field select,
-    .dash-ops-field input[type="date"] {
+    .dash-ops-field input[type="date"],
+    .dash-ops-field input[type="search"],
+    .dash-ops-field input[type="text"] {
         font-size: 0.8125rem;
         padding: 0.45rem 0.65rem;
         border: 1px solid #e5e7eb;

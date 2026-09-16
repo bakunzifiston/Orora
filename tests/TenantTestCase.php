@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Models\Central\AdminUser;
 use App\Models\Tenant;
 use App\Models\TenantAccount;
 use App\Models\User;
@@ -71,6 +72,20 @@ abstract class TenantTestCase extends BaseTestCase
         $this->actingAs($user);
 
         return $user;
+    }
+
+    protected function actingAsAdmin(array $overrides = []): AdminUser
+    {
+        $admin = AdminUser::query()->create(array_merge([
+            'name' => 'Super Admin',
+            'email' => 'admin_'.Str::lower(Str::random(8)).'@example.com',
+            'password' => 'password',
+            'is_super_admin' => true,
+        ], $overrides));
+
+        $this->actingAs($admin, 'admin');
+
+        return $admin;
     }
 
     private function mysqlAvailable(): bool

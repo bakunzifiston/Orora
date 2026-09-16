@@ -63,7 +63,7 @@
                                     <td>
                                         <div class="dash-data-table__primary">
                                             <div class="dash-data-table__title-row">
-                                                <a href="{{ route('central.users.show', $farm).($farmQuery ? '?'.$farmQuery : '') }}" class="dash-data-table__link">{{ $farm->name }}</a>
+                                                <a href="{{ route('central.farms.show', $farm).($farmQuery ? '?'.$farmQuery : '') }}" class="dash-data-table__link">{{ $farm->name }}</a>
                                                 @if ($farm->status)
                                                     <span class="dash-data-table__badge {{ $statusBadge }}">{{ $farm->status }}</span>
                                                 @endif

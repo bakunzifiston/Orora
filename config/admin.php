@@ -3,7 +3,8 @@
 return [
     'navigation' => [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => 'central.dashboard', 'icon' => 'grid'],
-        ['key' => 'users', 'label' => 'Farms', 'route' => 'central.users.index', 'icon' => 'farm'],
+        ['key' => 'accounts', 'label' => 'Users', 'route' => 'central.accounts.index', 'icon' => 'customer'],
+        ['key' => 'farms', 'label' => 'Farms', 'route' => 'central.farms.index', 'icon' => 'farm'],
         ['key' => 'marketplace', 'label' => 'Marketplace', 'route' => 'central.marketplace.index', 'icon' => 'sale'],
         ['key' => 'contact', 'label' => 'Contact inbox', 'route' => 'central.contact-messages.index', 'icon' => 'mail'],
     ],

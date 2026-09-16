@@ -1,12 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\Central\AdminDashboardController;
 use App\Http\Controllers\Central\Auth\AdminLoginController;
 use App\Http\Controllers\Central\ContactMessageController;
 use App\Http\Controllers\Central\MarketplaceAdminController;
+use App\Http\Controllers\Central\PlatformUserController;
 use App\Http\Controllers\Central\TenantController;
 use App\Http\Controllers\Central\UserDirectoryController;
 use App\Http\Controllers\DashboardController;
@@ -61,8 +62,14 @@ $registerAppRoutes = function (): void {
             Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
             Route::post('/logout', [AdminLoginController::class, 'destroy'])->name('logout');
 
-            Route::get('/users', [UserDirectoryController::class, 'index'])->name('users.index');
-            Route::get('/users/farms/{farm}', [UserDirectoryController::class, 'show'])->name('users.show');
+            Route::get('/users', [PlatformUserController::class, 'index'])->name('accounts.index');
+            Route::get('/users/{user}', [PlatformUserController::class, 'show'])->name('accounts.show')->whereNumber('user');
+
+            Route::get('/farms', [UserDirectoryController::class, 'index'])->name('farms.index');
+            Route::get('/farms/{farm}', [UserDirectoryController::class, 'show'])->name('farms.show')->whereNumber('farm');
+            Route::get('/users/farms/{farm}', function (int $farm) {
+                return redirect()->route('central.farms.show', $farm);
+            })->whereNumber('farm')->name('users.farms.redirect');
 
             Route::prefix('api/rwanda')->name('api.rwanda.')->group(function () {
                 Route::get('districts', [RwandaLocationController::class, 'districts'])->name('districts');
