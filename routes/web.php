@@ -64,6 +64,7 @@ $registerAppRoutes = function (): void {
 
             Route::get('/users', [PlatformUserController::class, 'index'])->name('accounts.index');
             Route::get('/users/{user}', [PlatformUserController::class, 'show'])->name('accounts.show')->whereNumber('user');
+            Route::delete('/users/{user}', [PlatformUserController::class, 'destroy'])->name('accounts.destroy')->whereNumber('user');
 
             Route::get('/farms', [UserDirectoryController::class, 'index'])->name('farms.index');
             Route::get('/farms/{farm}', [UserDirectoryController::class, 'show'])->name('farms.show')->whereNumber('farm');

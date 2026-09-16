@@ -92,6 +92,35 @@
         border-color: var(--orora-button);
         color: var(--orora-black);
     }
+    .dash-data-table__actions {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+    }
+    .dash-data-table__actions form {
+        margin: 0;
+    }
+    .dash-data-table__delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.45rem;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        font-family: inherit;
+        line-height: inherit;
+    }
+    .dash-data-table__delete:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
     .dash-data-table td {
         padding: 0.9rem 1.15rem;
         border-bottom: 1px solid #f0f1f4;

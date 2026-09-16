@@ -83,6 +83,7 @@
                                 <th class="dash-data-table__num">Farms</th>
                                 <th>Status</th>
                                 <th>Joined</th>
+                                <th class="dash-data-table__action">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -110,6 +111,15 @@
                                         </span>
                                     </td>
                                     <td class="dash-data-table__muted">{{ $account->created_at?->format('M j, Y') ?? '—' }}</td>
+                                    <td class="dash-data-table__action">
+                                        <div class="dash-data-table__actions">
+                                            <a href="{{ route('central.accounts.show', $account) }}" class="dash-data-table__view">View</a>
+                                            @include('central.accounts.partials.delete-form', [
+                                                'user' => $account,
+                                                'confirm' => 'Delete '.$account->name.' and all related records (farms, animals, milk, sales, and the rest of this workspace)? This cannot be undone.',
+                                            ])
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

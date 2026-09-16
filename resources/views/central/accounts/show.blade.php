@@ -6,6 +6,9 @@
     @php
         $hasFarm = $farms->isNotEmpty();
         $statusClass = $hasFarm ? 'dash-farm-card__badge--active' : 'dash-farm-card__badge--pending';
+        $related = $related ?? [];
+        $relatedTotal = $relatedTotal ?? collect($related)->sum('count');
+        $countFor = fn (string $key) => (int) (collect($related)->firstWhere('key', $key)['count'] ?? 0);
     @endphp
 
     <div class="admin-farm-page">
@@ -18,23 +21,50 @@
                 </div>
                 <p class="admin-farm-page__meta">{{ $user->email }}</p>
             </div>
+            @include('central.accounts.partials.delete-form', [
+                'user' => $user,
+                'buttonClass' => 'dash-data-table__delete',
+                'label' => 'Delete user',
+                'confirm' => 'Delete '.$user->name.' and all related records (farms, animals, milk, sales, and the rest of this workspace)? This cannot be undone.',
+            ])
         </div>
 
         <section class="dash-ops-row" aria-label="User summary">
             <div class="dash-stats admin-kpis">
                 <div class="dash-stat-card dash-ops-kpi">
                     <div>
+                        <div class="dash-stat-label">Related records</div>
+                        <div class="dash-stat-value accent">{{ number_format($relatedTotal) }}</div>
+                    </div>
+                    @include('modules.partials.stat-icon', ['icon' => 'chart', 'label' => 'Related records'])
+                </div>
+                <div class="dash-stat-card dash-ops-kpi">
+                    <div>
                         <div class="dash-stat-label">Farms</div>
-                        <div class="dash-stat-value accent">{{ number_format($farms->count()) }}</div>
+                        <div class="dash-stat-value">{{ number_format($countFor('farms')) }}</div>
                     </div>
                     @include('modules.partials.stat-icon', ['icon' => 'farm', 'label' => 'Farms'])
                 </div>
                 <div class="dash-stat-card dash-ops-kpi">
                     <div>
                         <div class="dash-stat-label">Animals</div>
-                        <div class="dash-stat-value">{{ number_format($farms->sum('animals_count')) }}</div>
+                        <div class="dash-stat-value">{{ number_format($countFor('animals')) }}</div>
                     </div>
                     @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Animals'])
+                </div>
+                <div class="dash-stat-card dash-ops-kpi">
+                    <div>
+                        <div class="dash-stat-label">Sales</div>
+                        <div class="dash-stat-value">{{ number_format($countFor('sales')) }}</div>
+                    </div>
+                    @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Sales'])
+                </div>
+                <div class="dash-stat-card dash-ops-kpi">
+                    <div>
+                        <div class="dash-stat-label">Milk sessions</div>
+                        <div class="dash-stat-value">{{ number_format($countFor('milk')) }}</div>
+                    </div>
+                    @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Milk sessions'])
                 </div>
                 <div class="dash-stat-card dash-ops-kpi">
                     <div>
@@ -63,6 +93,38 @@
                     @include('modules.farms._detail-row', ['label' => 'Name', 'value' => $user->tenant?->name])
                     @include('modules.farms._detail-row', ['label' => 'ID', 'value' => $user->tenant_id])
                 </dl>
+            </div>
+        </div>
+
+        <div class="dash-panel dash-panel--flush">
+            <div class="admin-panel-head" style="padding: 1.25rem 1.25rem 0;">
+                <h2 class="dash-panel-title">Related records</h2>
+                <span class="admin-panel-meta">{{ number_format($relatedTotal) }} total</span>
+            </div>
+            <div class="dash-data-table-wrap">
+                <table class="dash-data-table">
+                    <thead>
+                        <tr>
+                            <th>Record</th>
+                            <th class="dash-data-table__num">Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($related as $item)
+                            <tr>
+                                <td>
+                                    <div class="dash-data-table__title-row" style="gap: 0.65rem;">
+                                        <span class="admin-related-icon">
+                                            @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
+                                        </span>
+                                        <span class="dash-data-table__text">{{ $item['label'] }}</span>
+                                    </div>
+                                </td>
+                                <td class="dash-data-table__num">{{ number_format($item['count']) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -117,3 +179,18 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .admin-related-icon {
+            display: inline-flex;
+            width: 1.1rem;
+            height: 1.1rem;
+            color: var(--orora-sidebar);
+        }
+        .admin-related-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+@endpush

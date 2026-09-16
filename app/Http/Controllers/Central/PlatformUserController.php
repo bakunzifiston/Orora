@@ -5,13 +5,20 @@ namespace App\Http\Controllers\Central;
 use App\Http\Controllers\Controller;
 use App\Models\Farm;
 use App\Models\User;
+use App\Services\PlatformUserWorkspaceService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use Throwable;
 
 class PlatformUserController extends Controller
 {
+    public function __construct(
+        private readonly PlatformUserWorkspaceService $workspace,
+    ) {}
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->input('q', ''));
@@ -86,6 +93,9 @@ class PlatformUserController extends Controller
             ->with('tenant')
             ->findOrFail($user);
 
+        $related = $this->workspace->relatedCounts($user);
+        $relatedTotal = collect($related)->sum('count');
+
         $farms = Schema::hasTable('farms')
             ? Farm::query()
                 ->withoutGlobalScope('tenant')
@@ -99,7 +109,28 @@ class PlatformUserController extends Controller
             'activeNav' => 'accounts',
             'user' => $user,
             'farms' => $farms,
+            'related' => $related,
+            'relatedTotal' => $relatedTotal,
         ]);
+    }
+
+    public function destroy(int $user): RedirectResponse
+    {
+        $user = User::query()
+            ->withoutGlobalScope('tenant')
+            ->findOrFail($user);
+
+        $name = $user->name;
+
+        try {
+            $this->workspace->purge($user);
+        } catch (Throwable) {
+            return back()->with('error', "Could not delete {$name}. Some related records could not be removed.");
+        }
+
+        return redirect()
+            ->route('central.accounts.index')
+            ->with('success', "{$name} and all related records were deleted.");
     }
 
     /**
