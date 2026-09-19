@@ -27,7 +27,10 @@ trait ParsesCsv
         }
 
         try {
-            $headerRow = fgetcsv($handle);
+            $delimiter = $this->detectCsvDelimiter($handle, $expectedHeaders);
+            rewind($handle);
+
+            $headerRow = fgetcsv($handle, 0, $delimiter, '"', '\\');
 
             if ($headerRow === false || $headerRow === [null]) {
                 throw new InvalidArgumentException('The CSV file is empty.');
@@ -50,7 +53,7 @@ trait ParsesCsv
             $rowNumber = 1;
             $dataRows = 0;
 
-            while (($row = fgetcsv($handle)) !== false) {
+            while (($row = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
                 $rowNumber++;
 
                 if ($this->csvRowIsEmpty($row)) {
@@ -89,6 +92,41 @@ trait ParsesCsv
         } finally {
             fclose($handle);
         }
+    }
+
+    /**
+     * Spreadsheet exports often use a regional separator, so pick the one that
+     * recognises the most expected columns instead of assuming a comma.
+     *
+     * @param  resource  $handle
+     * @param  list<string>  $expectedHeaders
+     */
+    protected function detectCsvDelimiter($handle, array $expectedHeaders): string
+    {
+        $line = fgets($handle);
+
+        if ($line === false) {
+            return ',';
+        }
+
+        $best = ',';
+        $bestScore = -1;
+
+        foreach ([',', "\t", ';', '|'] as $delimiter) {
+            $headers = array_map(
+                fn ($header) => $this->normalizeCsvHeader((string) $header),
+                str_getcsv($line, $delimiter, '"', '\\')
+            );
+
+            $score = count(array_intersect($expectedHeaders, $headers));
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $delimiter;
+            }
+        }
+
+        return $best;
     }
 
     protected function normalizeCsvHeader(string $header): string

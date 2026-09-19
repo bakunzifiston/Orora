@@ -45,11 +45,14 @@ class AnimalImportExportController extends Controller
 
         if ($result['failed'] > 0) {
             $message .= ' '.__(':count rows failed.', ['count' => $result['failed']]);
+        }
 
+        if ($result['failed'] > 0 || $result['warnings'] !== []) {
             return redirect()
                 ->route('animals.import')
                 ->with('success', $message)
-                ->with('import_errors', $result['errors']);
+                ->with('import_errors', $result['errors'])
+                ->with('import_warnings', $result['warnings']);
         }
 
         return redirect()
