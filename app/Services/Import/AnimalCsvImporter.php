@@ -82,9 +82,9 @@ class AnimalCsvImporter
     protected function attributesForRow(array $row): array
     {
         $farm = $this->resolveFarm($row['farm_name'] ?? null);
-        $livestock = $this->resolveLivestock($farm, $row['livestock_name'] ?? null);
-
         $warnings = [];
+        $livestock = $this->resolveLivestock($farm, $row, $warnings);
+
         $tagNumber = $row['tag_number'] ?? null;
 
         if ($tagNumber === null) {
@@ -222,6 +222,103 @@ class AnimalCsvImporter
         }
     }
 
+    /**
+     * @param  array<string, string|null>  $row
+     * @param  list<string>  $warnings
+     */
+    protected function resolveLivestock(Farm $farm, array $row, array &$warnings): Livestock
+    {
+        $livestockName = isset($row['livestock_name']) ? trim((string) $row['livestock_name']) : '';
+
+        if ($livestockName === '') {
+            throw new InvalidArgumentException('Livestock group name is required.');
+        }
+
+        $groups = Livestock::query()
+            ->where('farm_id', $farm->id)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($livestockName)])
+            ->get();
+
+        if ($groups->count() > 1) {
+            throw new InvalidArgumentException(
+                "Livestock group \"{$livestockName}\" matches more than one group on farm \"{$farm->name}\"."
+            );
+        }
+
+        if ($groups->isNotEmpty()) {
+            return $groups->first();
+        }
+
+        $group = $this->createLivestockGroup($farm, $livestockName, $row);
+        $warnings[] = __('Livestock group ":name" did not exist on :farm, so it was created.', [
+            'name' => $group->name,
+            'farm' => $farm->name,
+        ]);
+
+        return $group;
+    }
+
+    /**
+     * @param  array<string, string|null>  $row
+     */
+    protected function createLivestockGroup(Farm $farm, string $name, array $row): Livestock
+    {
+        $livestockType = $this->inferLivestockType($row['species'] ?? null, $farm);
+
+        return Livestock::create([
+            'farm_id' => $farm->id,
+            'name' => mb_substr($name, 0, 255),
+            'herd_groups' => ['Other'],
+            'herd_group_other' => mb_substr($name, 0, 255),
+            'livestock_types' => [$livestockType],
+            'production_purposes' => ['Other'],
+            'production_purpose_other' => 'Imported',
+            'farming_methods' => ['Other'],
+            'farming_method_other' => 'Imported',
+            'feeding_methods' => ['Other'],
+            'feeding_method_other' => 'Imported',
+            'breed' => isset($row['breed']) ? mb_substr(trim((string) $row['breed']), 0, 255) ?: null : null,
+            'head_count' => 0,
+            'status' => 'active',
+            'notes' => 'Created automatically during animal import.',
+        ]);
+    }
+
+    protected function inferLivestockType(?string $species, Farm $farm): string
+    {
+        $species = mb_strtolower(trim((string) $species));
+
+        $map = [
+            'cattle' => 'Cattle',
+            'cow' => 'Cattle',
+            'cows' => 'Cattle',
+            'bull' => 'Cattle',
+            'bulls' => 'Cattle',
+            'goat' => 'Goat',
+            'goats' => 'Goat',
+            'sheep' => 'Sheep',
+            'pig' => 'Pig',
+            'pigs' => 'Pig',
+            'poultry' => 'Poultry',
+            'chicken' => 'Poultry',
+            'chickens' => 'Poultry',
+            'layer' => 'Poultry',
+            'layers' => 'Poultry',
+        ];
+
+        if ($species !== '' && isset($map[$species])) {
+            return $map[$species];
+        }
+
+        return match ($farm->primary_species) {
+            'poultry' => 'Poultry',
+            'goats' => 'Goat',
+            'sheep' => 'Sheep',
+            'pigs' => 'Pig',
+            default => 'Cattle',
+        };
+    }
+
     protected function resolveFarm(?string $farmName): Farm
     {
         if ($farmName === null || $farmName === '') {
@@ -229,7 +326,7 @@ class AnimalCsvImporter
         }
 
         $farms = Farm::query()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower($farmName)])
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($farmName))])
             ->get();
 
         if ($farms->isEmpty()) {
@@ -241,31 +338,5 @@ class AnimalCsvImporter
         }
 
         return $farms->first();
-    }
-
-    protected function resolveLivestock(Farm $farm, ?string $livestockName): Livestock
-    {
-        if ($livestockName === null || $livestockName === '') {
-            throw new InvalidArgumentException('Livestock group name is required.');
-        }
-
-        $groups = Livestock::query()
-            ->where('farm_id', $farm->id)
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower($livestockName)])
-            ->get();
-
-        if ($groups->isEmpty()) {
-            throw new InvalidArgumentException(
-                "Livestock group \"{$livestockName}\" was not found on farm \"{$farm->name}\"."
-            );
-        }
-
-        if ($groups->count() > 1) {
-            throw new InvalidArgumentException(
-                "Livestock group \"{$livestockName}\" matches more than one group on farm \"{$farm->name}\"."
-            );
-        }
-
-        return $groups->first();
     }
 }

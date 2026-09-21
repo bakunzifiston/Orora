@@ -149,6 +149,38 @@ class AnimalCsvImportTest extends TenantTestCase
         ]);
     }
 
+    public function test_it_creates_a_missing_livestock_group(): void
+    {
+        FarmTestFixtures::farm(['name' => 'Nandi farm']);
+
+        $result = $this->importRows("\t", [
+            $this->row([
+                'farm_name' => 'Nandi farm',
+                'livestock_name' => 'Dairy herd',
+                'tag_number' => '2044169',
+                'name' => 'Mariza',
+                'health_status' => 'Healthy',
+                'production_status' => 'pregnancy cow',
+                'species' => 'Cattle',
+            ]),
+        ]);
+
+        $this->assertSame(1, $result['created'], json_encode($result['errors']));
+        $this->assertDatabaseHas('livestock', [
+            'name' => 'Dairy herd',
+        ]);
+        $this->assertDatabaseHas('animals', [
+            'tag_number' => '2044169',
+            'name' => 'Mariza',
+            'health_status' => 'Pregnant',
+            'production_status' => 'Gestating',
+        ]);
+
+        $messages = collect($result['warnings'])->pluck('message')->implode(' ');
+        $this->assertStringContainsString('Dairy herd', $messages);
+        $this->assertStringContainsString('created', strtolower($messages));
+    }
+
     /**
      * @param  array<string, string>  $overrides
      * @return array<string, string>

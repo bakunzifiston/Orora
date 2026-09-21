@@ -20,7 +20,7 @@
                 <a href="{{ route('animals.import.template') }}" class="dash-btn-save">{{ __('Download CSV template') }}</a>
             </div>
             <ul class="dash-import-tips">
-                <li>{{ __('Farm and livestock group names must already exist.') }}</li>
+                <li>{{ __('Farm names must already exist. Livestock groups are created automatically when missing.') }}</li>
                 <li>{{ __('Gender: male, female, or unknown.') }}</li>
                 <li>{{ __('Columns may be separated by commas, tabs, semicolons, or pipes.') }}</li>
                 <li>{{ __('Dates may be YYYY-MM-DD or DD/MM/YYYY, and a spreadsheet using MM/DD/YYYY is detected automatically.') }}</li>
