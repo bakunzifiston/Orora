@@ -1,50 +1,71 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Movement')
+@section('title', __('Movement'))
 
 @section('content')
-    @include('modules.partials.header', [
-        'title' => 'Movement',
-        'subtitle' => 'Transfers and relocations between farms.',
-        'createRoute' => 'movements.create',
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Movement'),
+            'createRoute' => 'movements.create',
+            'createLabel' => '+ '.__('Record movement'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-panel">
         @if ($movements->isEmpty())
-            <p class="dash-empty">No movement records. <a href="{{ route('movements.create') }}">Record movement</a>.</p>
+            <div class="dash-panel dash-entity-empty">
+                <div class="dash-entity-empty__icon" aria-hidden="true">
+                    @include('layouts.partials.dashboard-nav-icon', ['icon' => 'movement'])
+                </div>
+                <p class="dash-empty">{{ __('No movement records yet.') }}</p>
+                <a href="{{ route('movements.create') }}" class="dash-btn-save">{{ __('Record movement') }}</a>
+            </div>
         @else
-            <div class="dash-table-wrap">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Animal</th>
-                            <th>Type</th>
-                            <th>From</th>
-                            <th>To</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($movements as $movement)
+            <div class="dash-panel health-page__table-panel">
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
                             <tr>
-                                <td>{{ $movement->moved_on->format('M j, Y') }}</td>
-                                <td><strong>{{ $movement->stockLabel() }}</strong></td>
-                                <td>{{ ucfirst($movement->movement_type) }}</td>
-                                <td>{{ $movement->fromFarm->name }}</td>
-                                <td>{{ $movement->toFarm?->name ?? '—' }}</td>
-                                <td>
-                                    @include('modules.partials.row-actions', [
-                                        'model' => $movement,
-                                        'editRoute' => 'movements.edit',
-                                        'destroyRoute' => 'movements.destroy',
-                                    ])
-                                </td>
+                                <th>{{ __('Movement') }}</th>
+                                <th>{{ __('Animal') }}</th>
+                                <th>{{ __('From') }}</th>
+                                <th>{{ __('To') }}</th>
+                                <th class="health-table__actions">{{ __('Actions') }}</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach ($movements as $movement)
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'movement', 'tone' => 'default'])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ ucfirst($movement->movement_type) }}</span>
+                                                <span class="health-table__meta">{{ $movement->moved_on->format('M j, Y') }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $movement->stockLabel() }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $movement->fromFarm->name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $movement->toFarm?->name ?? '—' }}</span>
+                                    </td>
+                                    <td class="health-table__actions">
+                                        @include('modules.health.partials.table-actions', [
+                                            'model' => $movement,
+                                            'editRoute' => 'movements.edit',
+                                            'destroyRoute' => 'movements.destroy',
+                                            'deleteConfirm' => __('Delete this movement?'),
+                                        ])
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="dash-pagination">{{ $movements->links() }}</div>
         @endif

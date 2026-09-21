@@ -20,10 +20,18 @@ class FlockController extends Controller
 
     public function index(Request $request): View
     {
+        $farmId = $request->filled('farm_id') ? $request->integer('farm_id') : null;
+        $productionType = $request->string('production_type')->toString();
+        $types = array_keys(config('modules.flock_production_types', []));
+
+        if ($productionType !== '' && ! in_array($productionType, $types, true)) {
+            $productionType = '';
+        }
+
         $flocks = Flock::query()
             ->with(['farm', 'livestock'])
-            ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
-            ->when($request->filled('production_type'), fn ($q) => $q->where('production_type', $request->string('production_type')))
+            ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
+            ->when($productionType !== '', fn ($q) => $q->where('production_type', $productionType))
             ->orderByDesc('placed_on')
             ->paginate(12)
             ->withQueryString();
@@ -35,10 +43,15 @@ class FlockController extends Controller
             'placed' => (int) Flock::query()->sum('placed_count'),
         ];
 
+        $filtersActive = $farmId !== null || $productionType !== '';
+
         return view('modules.flocks.index', $this->moduleViewData('flocks', [
             'flocks' => $flocks,
             'farms' => Farm::query()->where('primary_species', 'poultry')->orderBy('name')->get(),
             'stats' => $stats,
+            'farmId' => $farmId,
+            'productionType' => $productionType,
+            'filtersActive' => $filtersActive,
         ]));
     }
 

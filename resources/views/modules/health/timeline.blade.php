@@ -1,54 +1,97 @@
 @extends('layouts.health-module')
 
-@section('title', 'Health — Timeline')
+@section('title', __('Health — Timeline'))
 
 @section('health-content')
-    @include('modules.partials.header', [
-        'title' => 'Timeline',
-        'subtitle' => 'Chronological view of all health events.',
-        'createRoute' => 'health.records.create',
-        'createRouteParams' => ['section' => 'timeline'],
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Timeline'),
+            'createRoute' => 'health.records.create',
+            'createRouteParams' => ['section' => 'timeline'],
+            'createLabel' => '+ '.__('Log health record'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-panel">
         @if ($healthRecords->isEmpty())
-            <p class="dash-empty">No health events yet. <a href="{{ route('health.records.create', ['section' => 'timeline']) }}">Log a record</a>.</p>
+            <div class="dash-panel dash-entity-empty">
+                <div class="dash-entity-empty__icon" aria-hidden="true">
+                    @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])
+                </div>
+                <p class="dash-empty">{{ __('No health events yet.') }}</p>
+                <a href="{{ route('health.records.create', ['section' => 'timeline']) }}" class="dash-btn-save">{{ __('Log a record') }}</a>
+            </div>
         @else
-            <div class="dash-health-timeline">
-                @foreach ($healthRecords as $record)
-                    <article class="dash-health-timeline__item">
-                        <div class="dash-health-timeline__date">
-                            <strong>{{ $record->recorded_on->format('M j, Y') }}</strong>
-                            <span>{{ $record->recorded_on->format('D') }}</span>
-                        </div>
-                        <div class="dash-health-timeline__body">
-                            <div class="dash-health-timeline__meta">
-                                <span class="dash-badge">{{ $record->record_type }}</span>
-                                <span class="dash-badge">{{ $record->health_status }}</span>
-                            </div>
-                            <h3>{{ $record->stockLabel() }}</h3>
-                            <p style="color: #808080; font-size: 0.8125rem; margin: 0 0 0.5rem;">{{ $record->farm->name }}</p>
-                            @if ($record->title)
-                                <p style="margin: 0 0 0.35rem;"><strong>{{ $record->title }}</strong></p>
-                            @endif
-                            @if ($record->treatment || $record->medication)
-                                <p style="margin: 0; font-size: 0.875rem;">
-                                    @if ($record->treatment) Treatment: {{ $record->treatment }} @endif
-                                    @if ($record->medication) · Meds: {{ $record->medication }} @endif
-                                </p>
-                            @endif
-                            <div class="dash-table-actions" style="margin-top: 0.75rem; justify-content: flex-start;">
-                                @include('modules.partials.row-actions', [
-                                    'model' => $record,
-                                    'editRoute' => 'health.records.edit',
-                                    'destroyRoute' => 'health.records.destroy',
-                                    'section' => 'timeline',
-                                ])
-                            </div>
-                        </div>
-                    </article>
-                @endforeach
+            <div class="dash-panel health-page__table-panel">
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Event') }}</th>
+                                <th>{{ __('Animal') }}</th>
+                                <th>{{ __('Farm') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th class="health-table__actions">{{ __('Actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($healthRecords as $record)
+                                @php
+                                    $statusTone = match ($record->health_status) {
+                                        'Healthy', 'Recovered' => 'ok',
+                                        'Recovering', 'Under treatment', 'Pregnant' => 'warn',
+                                        'Sick', 'Quarantined', 'Deceased' => 'bad',
+                                        default => 'muted',
+                                    };
+                                    $eventIcon = match ($record->record_type) {
+                                        'Vaccination' => 'shield',
+                                        'Treatment', 'Deworming' => 'health',
+                                        'Vet visit' => 'employee',
+                                        'Illness', 'Injury', 'Quarantine' => 'certificate',
+                                        'Mortality' => 'animal',
+                                        default => 'health',
+                                    };
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => $eventIcon, 'tone' => $statusTone])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ $record->record_type }}</span>
+                                                <span class="health-table__meta">
+                                                    {{ $record->recorded_on->format('M j, Y') }}
+                                                    @if ($record->title)
+                                                        <span aria-hidden="true">·</span> {{ $record->title }}
+                                                    @elseif ($record->treatment || $record->medication)
+                                                        <span aria-hidden="true">·</span>
+                                                        {{ $record->treatment ?: $record->medication }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $record->stockLabel() }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $record->farm->name ?? '—' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--{{ $statusTone }}">{{ $record->health_status }}</span>
+                                    </td>
+                                    <td class="health-table__actions">
+                                        @include('modules.health.partials.table-actions', [
+                                            'model' => $record,
+                                            'editRoute' => 'health.records.edit',
+                                            'destroyRoute' => 'health.records.destroy',
+                                            'section' => 'timeline',
+                                            'deleteConfirm' => __('Delete this health record?'),
+                                        ])
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="dash-pagination">{{ $healthRecords->links() }}</div>
         @endif

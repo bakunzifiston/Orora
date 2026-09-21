@@ -1,52 +1,85 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Certificates')
+@section('title', __('Certificates'))
 
 @section('content')
-    @include('modules.partials.header', [
-        'title' => 'Certificates',
-        'subtitle' => 'Health, vaccination, and compliance documents.',
-        'createRoute' => 'certificates.create',
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Certificates'),
+            'createRoute' => 'certificates.create',
+            'createLabel' => '+ '.__('Add certificate'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-panel">
         @if ($certificates->isEmpty())
-            <p class="dash-empty">No certificates. <a href="{{ route('certificates.create') }}">Add certificate</a>.</p>
+            <div class="dash-panel dash-entity-empty">
+                <div class="dash-entity-empty__icon" aria-hidden="true">
+                    @include('layouts.partials.dashboard-nav-icon', ['icon' => 'certificate'])
+                </div>
+                <p class="dash-empty">{{ __('No certificates yet.') }}</p>
+                <a href="{{ route('certificates.create') }}" class="dash-btn-save">{{ __('Add certificate') }}</a>
+            </div>
         @else
-            <div class="dash-table-wrap">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Number</th>
-                            <th>Farm</th>
-                            <th>Issued</th>
-                            <th>Expires</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($certificates as $certificate)
+            <div class="dash-panel health-page__table-panel">
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
                             <tr>
-                                <td><strong>{{ ucfirst($certificate->certificate_type) }}</strong></td>
-                                <td>{{ $certificate->certificate_number ?? '—' }}</td>
-                                <td>{{ $certificate->farm->name }}</td>
-                                <td>{{ $certificate->issued_on->format('M j, Y') }}</td>
-                                <td>{{ $certificate->expires_on?->format('M j, Y') ?? '—' }}</td>
-                                <td><span class="dash-badge">{{ ucfirst($certificate->status) }}</span></td>
-                                <td>
-                                    @include('modules.partials.row-actions', [
-                                        'model' => $certificate,
-                                        'editRoute' => 'certificates.edit',
-                                        'destroyRoute' => 'certificates.destroy',
-                                    ])
-                                </td>
+                                <th>{{ __('Certificate') }}</th>
+                                <th>{{ __('Farm') }}</th>
+                                <th>{{ __('Issued') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th class="health-table__actions">{{ __('Actions') }}</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach ($certificates as $certificate)
+                                @php
+                                    $statusTone = match (strtolower((string) $certificate->status)) {
+                                        'valid', 'active' => 'ok',
+                                        'expiring', 'pending' => 'warn',
+                                        'expired', 'revoked' => 'bad',
+                                        default => 'muted',
+                                    };
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'certificate', 'tone' => $statusTone])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ ucfirst($certificate->certificate_type) }}</span>
+                                                <span class="health-table__meta">
+                                                    {{ $certificate->certificate_number ?: __('No number') }}
+                                                    @if ($certificate->expires_on)
+                                                        <span aria-hidden="true">·</span>
+                                                        {{ __('Expires') }} {{ $certificate->expires_on->format('M j, Y') }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $certificate->farm->name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $certificate->issued_on->format('M j, Y') }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--{{ $statusTone }}">{{ ucfirst($certificate->status) }}</span>
+                                    </td>
+                                    <td class="health-table__actions">
+                                        @include('modules.health.partials.table-actions', [
+                                            'model' => $certificate,
+                                            'editRoute' => 'certificates.edit',
+                                            'destroyRoute' => 'certificates.destroy',
+                                            'deleteConfirm' => __('Delete this certificate?'),
+                                        ])
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="dash-pagination">{{ $certificates->links() }}</div>
         @endif

@@ -3,93 +3,139 @@
 @section('title', __('Expenses — Overview'))
 
 @section('expense-content')
-    @include('modules.partials.header', [
-        'title' => __('Expenses overview'),
-        'subtitle' => __('Feed, health, farm operations, and general costs this month.'),
-        'createRoute' => 'expenses.records.create',
-        'createLabel' => '+ '. __('Add expense'),
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page expenses-page">
+        @include('modules.partials.header', [
+            'title' => __('Expenses'),
+            'createRoute' => 'expenses.records.create',
+            'createLabel' => '+ '. __('Add expense'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Total this month') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['month_total'], 0) }} RWF</div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <div class="farm-kpi farm-kpi--expense">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'expense'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Total this month') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['month_total'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'chart'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Records') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['record_count']) }}</div>
+                    </div>
+                </div>
+                <a href="{{ route('expenses.records', ['group' => 'feed']) }}" class="farm-kpi farm-kpi--production">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'feeding'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Feed') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['feed'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="{{ route('expenses.records', ['group' => 'health']) }}" class="farm-kpi farm-kpi--health">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Health') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['health'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="{{ route('expenses.records', ['group' => 'farm_operations']) }}" class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Farm operations') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['farm_operations'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="{{ route('expenses.records', ['group' => 'general']) }}" class="farm-kpi farm-kpi--sales">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('General') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['general'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
             </div>
-            @include('modules.partials.stat-icon', ['icon' => 'expense'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Records') }}</div>
-                <div class="dash-stat-value accent">{{ number_format($stats['record_count']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'chart'])
-        </div>
-        <a href="{{ route('expenses.records', ['group' => 'feed']) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Feed expenses') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['feed'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'feeding'])
-        </a>
-        <a href="{{ route('expenses.records', ['group' => 'health']) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Health expenses') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['health'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'health'])
-        </a>
-        <a href="{{ route('expenses.records', ['group' => 'farm_operations']) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Farm operations') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['farm_operations'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'farm'])
-        </a>
-        <a href="{{ route('expenses.records', ['group' => 'general']) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('General / other') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['general'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'sale'])
-        </a>
-    </div>
+        </section>
 
-    <div class="dash-health-grid">
-        <div class="dash-panel">
-            <div class="dash-panel-title">{{ __('Recent expenses') }}</div>
-            @if ($recentExpenses->isEmpty())
-                <p class="dash-empty">{{ __('No expenses logged yet.') }}</p>
-            @else
-                <ul class="dash-health-activity">
-                    @foreach ($recentExpenses as $expense)
-                        <li>
-                            <div>
-                                <strong>{{ $expense->category->name }}</strong>
-                                <span style="color: #808080;">{{ $expense->expense_date->format('M j') }}</span>
-                            </div>
-                            <span>{{ number_format($expense->amount, 0) }} {{ $expense->currency }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
+        <div class="farm-dash__charts farm-dash__charts--2">
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Recent expenses') }}</h2>
+                    </div>
+                </header>
+                <div class="farm-panel__body">
+                    @if ($recentExpenses->isEmpty())
+                        <p class="dash-empty">{{ __('No expenses logged yet.') }}</p>
+                    @else
+                        <ul class="farm-activity">
+                            @foreach ($recentExpenses as $expense)
+                                <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                    <div class="farm-activity__body">
+                                        <span class="farm-activity__title">{{ $expense->category->name }}</span>
+                                        <span class="farm-activity__meta">{{ $expense->expense_date->format('M j, Y') }}</span>
+                                    </div>
+                                    <span class="farm-activity__count">
+                                        {{ number_format($expense->amount, 0) }} {{ $expense->currency }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </section>
 
-        <div class="dash-panel">
-            <div class="dash-panel-title">{{ __('Top categories (this month)') }}</div>
-            @if ($topCategories->isEmpty())
-                <p class="dash-empty">{{ __('No data yet.') }}</p>
-            @else
-                <ul class="dash-health-activity">
-                    @foreach ($topCategories as $row)
-                        <li>
-                            <strong>{{ $row->name }}</strong>
-                            <span>{{ number_format($row->total, 0) }} RWF</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Top categories') }}</h2>
+                    </div>
+                </header>
+                <div class="farm-panel__body">
+                    @if ($topCategories->isEmpty())
+                        <p class="dash-empty">{{ __('No data yet.') }}</p>
+                    @else
+                        <ul class="farm-activity">
+                            @foreach ($topCategories as $row)
+                                <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                    <div class="farm-activity__body">
+                                        <span class="farm-activity__title">{{ $row->name }}</span>
+                                    </div>
+                                    <span class="farm-activity__count">{{ number_format($row->total, 0) }} RWF</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </section>
         </div>
     </div>
 @endsection

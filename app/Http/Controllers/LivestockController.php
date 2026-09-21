@@ -18,16 +18,37 @@ class LivestockController extends Controller
 
     public function index(Request $request): View
     {
+        $search = trim((string) $request->input('q', ''));
+        $farmId = $request->filled('farm_id') ? $request->integer('farm_id') : null;
+        $status = $request->string('status')->toString();
+
+        $statuses = config('modules.record_statuses', []);
+
+        if ($status !== '' && ! in_array($status, $statuses, true)) {
+            $status = '';
+        }
+
         $livestock = Livestock::query()
             ->with('farm')
             ->withCount('animals')
-            ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->when($search !== '', function ($query) use ($search) {
+                $like = '%'.$search.'%';
+
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('name', 'like', $like)
+                        ->orWhere('breed', 'like', $like)
+                        ->orWhere('notes', 'like', $like)
+                        ->orWhereHas('farm', fn ($farm) => $farm->where('name', 'like', $like));
+                });
+            })
+            ->when($farmId, fn ($query) => $query->where('farm_id', $farmId))
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->orderByDesc('created_at')
             ->paginate(12)
             ->withQueryString();
 
         $farms = Farm::query()->orderBy('name')->get();
+        $filtersActive = $search !== '' || $farmId !== null || $status !== '';
 
         $stats = [
             'total' => Livestock::query()->count(),
@@ -36,7 +57,15 @@ class LivestockController extends Controller
             'animals' => Animal::query()->count(),
         ];
 
-        return view('modules.livestock.index', $this->moduleViewData('livestock', compact('livestock', 'farms', 'stats')));
+        return view('modules.livestock.index', $this->moduleViewData('livestock', compact(
+            'livestock',
+            'farms',
+            'stats',
+            'search',
+            'farmId',
+            'status',
+            'filtersActive',
+        )));
     }
 
     public function show(Livestock $livestock): View

@@ -21,29 +21,70 @@ class EmployeeController extends Controller
 
     public function directory(Request $request): View
     {
+        $search = trim((string) $request->input('q', ''));
+        $role = $request->string('role')->toString();
+        $status = $request->string('status')->toString();
+        $farmId = $request->filled('farm') ? $request->integer('farm') : null;
+
+        $roles = array_keys(config('modules.employee_job_roles', []));
+        $statuses = config('modules.employee_statuses', []);
+
+        if ($role !== '' && ! in_array($role, $roles, true)) {
+            $role = '';
+        }
+
+        if ($status !== '' && ! in_array($status, $statuses, true)) {
+            $status = '';
+        }
+
         $employees = Employee::query()
             ->with(['profile', 'primaryFarm', 'payroll'])
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')))
-            ->when($request->filled('role'), fn ($q) => $q->where('job_role', $request->input('role')))
-            ->when($request->filled('farm'), fn ($q) => $q->where('primary_farm_id', $request->input('farm')))
-            ->when($request->filled('q'), fn ($q) => $q->where(function ($query) use ($request) {
-                $term = '%'.$request->input('q').'%';
-                $query->where('display_name', 'like', $term)
-                    ->orWhere('employee_code', 'like', $term)
-                    ->orWhereHas('profile', fn ($p) => $p->where('phone', 'like', $term)
-                        ->orWhere('national_id', 'like', $term));
-            }))
+            ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($role !== '', fn ($q) => $q->where('job_role', $role))
+            ->when($farmId, fn ($q) => $q->where('primary_farm_id', $farmId))
+            ->when($search !== '', function ($q) use ($search) {
+                $term = '%'.$search.'%';
+                $q->where(function ($query) use ($term) {
+                    $query->where('display_name', 'like', $term)
+                        ->orWhere('employee_code', 'like', $term)
+                        ->orWhereHas('profile', fn ($p) => $p->where('phone', 'like', $term)
+                            ->orWhere('national_id', 'like', $term));
+                });
+            })
             ->orderBy('display_name')
             ->paginate(15)
             ->withQueryString();
 
+        $filtersActive = $search !== '' || $role !== '' || $status !== '' || $farmId !== null;
+
+        $stats = [
+            'total' => Employee::query()->count(),
+            'active' => Employee::query()->where('status', 'active')->count(),
+            'on_leave' => Employee::query()->where('status', 'on_leave')->count(),
+            'monthly_payroll' => (float) Employee::query()
+                ->join('employee_payroll', 'employees.id', '=', 'employee_payroll.employee_id')
+                ->where('employees.status', 'active')
+                ->where('employee_payroll.pay_frequency', 'monthly')
+                ->sum('employee_payroll.base_salary'),
+        ];
+
+        $byRole = Employee::query()
+            ->where('status', 'active')
+            ->selectRaw('job_role, COUNT(*) as total')
+            ->groupBy('job_role')
+            ->orderByDesc('total')
+            ->get();
+
         return view('modules.employees.directory', $this->employeeSectionData('directory', [
             'employees' => $employees,
             'farms' => Farm::query()->orderBy('name')->get(),
-            'filterStatus' => $request->input('status'),
-            'filterRole' => $request->input('role'),
-            'filterFarm' => $request->input('farm'),
-            'filterQuery' => $request->input('q'),
+            'stats' => $stats,
+            'byRole' => $byRole,
+            'search' => $search,
+            'role' => $role,
+            'status' => $status,
+            'farmId' => $farmId,
+            'filtersActive' => $filtersActive,
         ]));
     }
 

@@ -1,72 +1,107 @@
 @extends('layouts.customers-module')
 
-@section('title', 'Customers — Communications')
+@section('title', __('Customers — Communications'))
 
 @section('customer-content')
-    @include('modules.partials.header', [
-        'title' => 'Communications log',
-        'subtitle' => 'Calls, visits, and follow-ups across all customers.',
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page customers-page">
+        @include('modules.partials.header', [
+            'title' => __('Communications'),
+        ])
+        @include('modules.partials.flash')
 
-    <form method="GET" action="{{ route('customers.communications') }}" class="dash-index-toolbar" style="margin-bottom: 1rem;">
-        <div class="dash-form-grid" style="align-items: end;">
-            <div class="dash-form-field">
-                <label for="filter_type">Type</label>
-                <select name="type" id="filter_type">
-                    <option value="">All types</option>
-                    @foreach (config('modules.customer_communication_types') as $value => $label)
-                        <option value="{{ $value }}" @selected($filterType === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="dash-form-field">
-                <label class="dash-checkbox">
-                    <input type="checkbox" name="follow_up" value="1" @checked($filterFollowUp)>
-                    <span>Pending follow-ups only</span>
-                </label>
-            </div>
-            <div class="dash-form-field">
-                <button type="submit" class="dash-btn-save">Filter</button>
-            </div>
-        </div>
-    </form>
+        @php
+            $filtersActive = filled($filterType) || $filterFollowUp;
+        @endphp
 
-    <div class="dash-panel">
-        @if ($communications->isEmpty())
-            <p class="dash-empty">No communications logged yet.</p>
-        @else
-            <div class="dash-table-wrap">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Type</th>
-                            <th>Subject</th>
-                            <th>Summary</th>
-                            <th>Follow-up</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($communications as $comm)
-                            <tr>
-                                <td>{{ $comm->communication_date->format('M j, Y') }}</td>
-                                <td><a href="{{ route('customers.show', $comm->customer) }}">{{ $comm->customer->display_name }}</a></td>
-                                <td>{{ config('modules.customer_communication_types.'.$comm->communication_type, $comm->communication_type) }}</td>
-                                <td>{{ $comm->subject ?? '—' }}</td>
-                                <td>{{ Str::limit($comm->summary, 80) }}</td>
-                                <td>
-                                    @if ($comm->follow_up_required)
-                                        {{ $comm->follow_up_date?->format('M j') ?? 'Required' }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                            </tr>
+        <form method="GET" action="{{ route('customers.communications') }}" class="dash-ops-toolbar farms-page__toolbar">
+            <div class="dash-ops-toolbar__controls farms-page__filters">
+                <div class="dash-ops-field">
+                    <label for="filter_type">{{ __('Type') }}</label>
+                    <select name="type" id="filter_type" onchange="this.form.submit()">
+                        <option value="">{{ __('All types') }}</option>
+                        @foreach (config('modules.customer_communication_types') as $value => $label)
+                            <option value="{{ $value }}" @selected($filterType === $value)>{{ $label }}</option>
                         @endforeach
-                    </tbody>
-                </table>
+                    </select>
+                </div>
+                <div class="dash-ops-field">
+                    <label class="dash-checkbox" for="filter_follow_up" style="margin-top: 1.4rem;">
+                        <input type="checkbox" name="follow_up" id="filter_follow_up" value="1" @checked($filterFollowUp) onchange="this.form.submit()">
+                        <span>{{ __('Pending follow-ups only') }}</span>
+                    </label>
+                </div>
+                <button type="submit" class="dash-btn-save dash-ops-apply">{{ __('Apply') }}</button>
+                @if ($filtersActive)
+                    <a href="{{ route('customers.communications') }}" class="dash-btn-cancel">{{ __('Clear') }}</a>
+                @endif
+            </div>
+        </form>
+
+        @if ($communications->isEmpty())
+            <div class="dash-panel dash-entity-empty">
+                <div class="dash-entity-empty__icon" aria-hidden="true">
+                    @include('layouts.partials.dashboard-nav-icon', ['icon' => 'customer'])
+                </div>
+                @if ($filtersActive)
+                    <p class="dash-empty">{{ __('No communications match your filters.') }}</p>
+                    <a href="{{ route('customers.communications') }}" class="dash-btn-cancel">{{ __('Clear filters') }}</a>
+                @else
+                    <p class="dash-empty">{{ __('No communications logged yet.') }}</p>
+                @endif
+            </div>
+        @else
+            <div class="dash-panel health-page__table-panel">
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Communication') }}</th>
+                                <th>{{ __('Customer') }}</th>
+                                <th>{{ __('Type') }}</th>
+                                <th>{{ __('Follow-up') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($communications as $comm)
+                                @php
+                                    $followTone = $comm->follow_up_required ? 'warn' : 'muted';
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'customer', 'tone' => $followTone])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ $comm->subject ?? __('Untitled') }}</span>
+                                                <span class="health-table__meta">
+                                                    {{ $comm->communication_date->format('M j, Y') }}
+                                                    @if ($comm->summary)
+                                                        <span aria-hidden="true">·</span>
+                                                        {{ Str::limit($comm->summary, 60) }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('customers.show', $comm->customer) }}" class="health-table__title health-table__title--link">{{ $comm->customer->display_name }}</a>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ config('modules.customer_communication_types.'.$comm->communication_type, $comm->communication_type) }}</span>
+                                    </td>
+                                    <td>
+                                        @if ($comm->follow_up_required)
+                                            <span class="health-table__pill health-table__pill--warn">
+                                                {{ $comm->follow_up_date?->format('M j, Y') ?? __('Required') }}
+                                            </span>
+                                        @else
+                                            <span class="health-table__meta">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="dash-pagination">{{ $communications->links() }}</div>
         @endif

@@ -3,90 +3,170 @@
 @section('title', __('Finance — Overview'))
 
 @section('finance-content')
-    @include('modules.partials.header', [
-        'title' => __('Finance overview'),
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Finance'),
+            'secondaryLinks' => [
+                [
+                    'route' => 'finance.transactions',
+                    'params' => request()->only(['from', 'to', 'farm_id', 'livestock_id']),
+                    'label' => __('Transactions'),
+                    'class' => 'dash-farm-card__btn',
+                ],
+                [
+                    'route' => 'finance.reports.profit_loss',
+                    'params' => request()->only(['from', 'to', 'farm_id', 'livestock_id']),
+                    'label' => __('P&L'),
+                    'class' => 'dash-farm-card__btn',
+                ],
+            ],
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
-        <a href="{{ route('finance.reports.profit_loss', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Revenue') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['revenue'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'sale'])
-        </a>
-        <a href="{{ route('finance.reports.profit_loss', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Expenses') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['expenses'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'expense'])
-        </a>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Net income') }}</div>
-                <div class="dash-stat-value accent">{{ number_format($stats['net_income'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'chart'])
-        </div>
-        <a href="{{ route('finance.reports.cash_flow', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Cash change') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['cash_change'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'finance'])
-        </a>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Accounts receivable') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['accounts_receivable'], 0) }} RWF</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'customer'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Ledger entries') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['transaction_count']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'finance'])
-        </div>
-    </div>
-
-    <div class="dash-panel" style="margin-bottom: 1.25rem;">
-        <p style="margin: 0 0 1rem; color: #808080; font-size: 0.875rem;">{{ __('Auto-posted from completed sales and paid expenses.') }}</p>
         @include('modules.finance.partials.filters')
-    </div>
 
-    <div class="dash-panel">
-        <div class="dash-panel-title">{{ __('Recent ledger entries') }}</div>
-        @if ($recent->isEmpty())
-            <p class="dash-empty">{{ __('No finance entries yet. Complete a sale or mark an expense as paid. For existing data run:') }} <code>php artisan tenants:run finance:backfill</code></p>
-        @else
-            <table class="dash-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('Date') }}</th>
-                        <th>{{ __('Code') }}</th>
-                        <th>{{ __('Description') }}</th>
-                        <th>{{ __('Farm') }}</th>
-                        <th>{{ __('Type') }}</th>
-                        <th>{{ __('Amount') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($recent as $entry)
-                        <tr>
-                            <td>{{ $entry->transaction_date->format('M j, Y') }}</td>
-                            <td>{{ $entry->transaction_code }}</td>
-                            <td>{{ $entry->description }}</td>
-                            <td>{{ $entry->farm?->name ?? 'All / —' }}</td>
-                            <td>{{ ucfirst($entry->transaction_type) }}</td>
-                            <td>{{ number_format($entry->net_amount, 0) }} {{ $entry->currency }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <a href="{{ route('finance.reports.profit_loss', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="farm-kpi farm-kpi--revenue">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Revenue') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['revenue'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="{{ route('finance.reports.profit_loss', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="farm-kpi farm-kpi--expense">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'expense'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Expenses') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['expenses'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="farm-kpi farm-kpi--profit {{ $stats['net_income'] < 0 ? 'farm-kpi--negative' : '' }}">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'chart'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Net income') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['net_income'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('finance.reports.cash_flow', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'finance'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Cash change') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['cash_change'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'customer'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Receivable') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['accounts_receivable'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('finance.transactions', request()->only(['from', 'to', 'farm_id', 'livestock_id'])) }}" class="farm-kpi farm-kpi--sales">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'finance'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Ledger entries') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['transaction_count']) }}</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="farm-panel">
+            <header class="farm-panel__head">
+                <div>
+                    <h2 class="farm-panel__title">{{ __('Recent ledger entries') }}</h2>
+                    <p class="farm-panel__desc">{{ __('Auto-posted from completed sales and paid expenses') }}</p>
+                </div>
+            </header>
+
+            @if ($recent->isEmpty())
+                <div class="dash-panel dash-entity-empty" style="border: 0; box-shadow: none;">
+                    <div class="dash-entity-empty__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'finance'])
+                    </div>
+                    <p class="dash-empty">{{ __('No finance entries yet.') }}</p>
+                </div>
+            @else
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Entry') }}</th>
+                                <th>{{ __('Farm') }}</th>
+                                <th>{{ __('Type') }}</th>
+                                <th>{{ __('Amount') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($recent as $entry)
+                                @php
+                                    $typeTone = match (strtolower((string) $entry->transaction_type)) {
+                                        'income', 'revenue', 'receipt' => 'ok',
+                                        'expense', 'payment' => 'warn',
+                                        'reversal' => 'bad',
+                                        default => 'muted',
+                                    };
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'finance', 'tone' => $typeTone])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ $entry->description }}</span>
+                                                <span class="health-table__meta">
+                                                    {{ $entry->transaction_date->format('M j, Y') }}
+                                                    <span aria-hidden="true">·</span>
+                                                    {{ $entry->transaction_code }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $entry->farm?->name ?? '—' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--{{ $typeTone }}">{{ ucfirst($entry->transaction_type) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">
+                                            {{ number_format($entry->net_amount, 0) }}
+                                            <span class="health-table__meta">{{ $entry->currency }}</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
     </div>
 @endsection

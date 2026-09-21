@@ -1,51 +1,91 @@
 @extends('layouts.finance-module')
 
-@section('title', 'Finance — Cash flow')
+@section('title', __('Finance — Cash flow'))
 
 @section('finance-content')
-    @include('modules.partials.header', [
-        'title' => 'Cash flow',
-        'subtitle' => 'Movements on cash and bank accounts.',
-    ])
-    @include('modules.partials.flash')
-    @include('modules.finance.partials.filters')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Cash flow'),
+            'secondaryLinks' => [
+                [
+                    'route' => 'finance.reports.profit_loss',
+                    'params' => request()->only(['from', 'to', 'farm_id', 'livestock_id']),
+                    'label' => __('P&L'),
+                    'class' => 'dash-farm-card__btn',
+                ],
+            ],
+        ])
+        @include('modules.partials.flash')
+        @include('modules.finance.partials.filters')
 
-    <div class="dash-stat-card" style="margin-bottom: 1.25rem; max-width: 320px;">
-        <div>
-            <div class="dash-stat-label">Net cash change</div>
-            <div class="dash-stat-value accent">{{ number_format($report['net_cash_change'], 0) }} RWF</div>
-        </div>
-        @include('modules.partials.stat-icon', ['icon' => 'finance'])
-    </div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--3">
+                <div class="farm-kpi farm-kpi--{{ $report['net_cash_change'] >= 0 ? 'profit' : 'expense' }} {{ $report['net_cash_change'] < 0 ? 'farm-kpi--negative' : '' }}">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'finance'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Net cash change') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ ($report['net_cash_change'] >= 0 ? '+' : '').number_format($report['net_cash_change'], 0) }}
+                            <span class="farm-kpi__unit">RWF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <div class="dash-panel">
         @if ($report['movements']->isEmpty())
-            <p class="dash-empty">No cash movements in this period.</p>
+            <div class="dash-panel dash-entity-empty">
+                <div class="dash-entity-empty__icon" aria-hidden="true">
+                    @include('layouts.partials.dashboard-nav-icon', ['icon' => 'finance'])
+                </div>
+                <p class="dash-empty">{{ __('No cash movements in this period.') }}</p>
+            </div>
         @else
-            <table class="dash-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Code</th>
-                        <th>Description</th>
-                        <th>Account</th>
-                        <th>Change</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($report['movements'] as $row)
-                        <tr>
-                            <td>{{ \Carbon\Carbon::parse($row['date'])->format('M j, Y') }}</td>
-                            <td>{{ $row['code'] }}</td>
-                            <td>{{ $row['description'] }}</td>
-                            <td>{{ $row['account'] }}</td>
-                            <td style="color: {{ $row['amount'] >= 0 ? 'inherit' : '#b45309' }};">
-                                {{ $row['amount'] >= 0 ? '+' : '' }}{{ number_format($row['amount'], 0) }} RWF
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="dash-panel health-page__table-panel">
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Movement') }}</th>
+                                <th>{{ __('Account') }}</th>
+                                <th>{{ __('Change') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($report['movements'] as $row)
+                                @php
+                                    $tone = $row['amount'] >= 0 ? 'ok' : 'warn';
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'finance', 'tone' => $tone])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ $row['description'] }}</span>
+                                                <span class="health-table__meta">
+                                                    {{ \Carbon\Carbon::parse($row['date'])->format('M j, Y') }}
+                                                    <span aria-hidden="true">·</span>
+                                                    {{ $row['code'] }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $row['account'] }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--{{ $tone }}">
+                                            {{ ($row['amount'] >= 0 ? '+' : '').number_format($row['amount'], 0) }} RWF
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         @endif
     </div>
 @endsection

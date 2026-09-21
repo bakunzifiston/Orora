@@ -1,55 +1,88 @@
 @extends('layouts.milk-module')
 
-@section('title', 'Milk — Storage')
+@section('title', __('Milk — Storage'))
 
 @section('milk-content')
-    @include('modules.partials.header', [
-        'title' => 'Milk storage',
-        'subtitle' => 'Tanks and containers. Stock increases when sessions complete.',
-        'createRoute' => 'milk.storage.create',
-        'createLabel' => '+ Add container',
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Milk storage'),
+            'createRoute' => 'milk.storage.create',
+            'createLabel' => '+ '.__('Add container'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-panel">
         @if ($storageUnits->isEmpty())
-            <p class="dash-empty">No storage containers yet. <a href="{{ route('milk.storage.create') }}">Add one</a>.</p>
+            <div class="dash-panel dash-entity-empty">
+                <div class="dash-entity-empty__icon" aria-hidden="true">
+                    @include('layouts.partials.dashboard-nav-icon', ['icon' => 'box'])
+                </div>
+                <p class="dash-empty">{{ __('No storage containers yet.') }}</p>
+                <a href="{{ route('milk.storage.create') }}" class="dash-btn-save">{{ __('Add container') }}</a>
+            </div>
         @else
-            <div class="dash-table-wrap">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Farm</th>
-                            <th>Container</th>
-                            <th>Type</th>
-                            <th>Quantity</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($storageUnits as $unit)
+            <div class="dash-panel health-page__table-panel">
+                <div class="dash-table-wrap">
+                    <table class="health-table">
+                        <thead>
                             <tr>
-                                <td>{{ $unit->farm->name }}</td>
-                                <td><strong>{{ $unit->container_name }}</strong><div style="font-size:0.75rem;color:#808080;">{{ $unit->storage_code }}</div></td>
-                                <td>{{ ucfirst(str_replace('_', ' ', $unit->container_type)) }}</td>
-                                <td>
-                                    <strong @if($unit->isLowCapacity()) style="color:#b45309;" @endif>
-                                        {{ number_format($unit->current_quantity_liters, 2) }} / {{ number_format($unit->capacity_liters, 2) }} L
-                                    </strong>
-                                </td>
-                                <td><span class="dash-badge">{{ ucfirst(str_replace('_', ' ', $unit->status)) }}</span></td>
-                                <td>
-                                    @include('modules.partials.row-actions', [
-                                        'model' => $unit,
-                                        'editRoute' => 'milk.storage.edit',
-                                        'destroyRoute' => 'milk.storage.destroy',
-                                    ])
-                                </td>
+                                <th>{{ __('Container') }}</th>
+                                <th>{{ __('Farm') }}</th>
+                                <th>{{ __('Type') }}</th>
+                                <th>{{ __('Quantity') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th class="health-table__actions">{{ __('Actions') }}</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach ($storageUnits as $unit)
+                                @php
+                                    $statusTone = match (strtolower((string) $unit->status)) {
+                                        'available', 'in_use' => 'ok',
+                                        'maintenance' => 'warn',
+                                        'full' => 'muted',
+                                        default => 'muted',
+                                    };
+                                    if ($unit->isLowCapacity() && $statusTone === 'ok') {
+                                        $statusTone = 'warn';
+                                    }
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'box', 'tone' => $statusTone])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ $unit->container_name }}</span>
+                                                <span class="health-table__meta">{{ $unit->storage_code }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $unit->farm->name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ ucfirst(str_replace('_', ' ', $unit->container_type)) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">
+                                            {{ number_format($unit->current_quantity_liters, 2) }} / {{ number_format($unit->capacity_liters, 2) }} L
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--{{ $statusTone }}">{{ ucfirst(str_replace('_', ' ', $unit->status)) }}</span>
+                                    </td>
+                                    <td class="health-table__actions">
+                                        @include('modules.health.partials.table-actions', [
+                                            'model' => $unit,
+                                            'editRoute' => 'milk.storage.edit',
+                                            'destroyRoute' => 'milk.storage.destroy',
+                                            'deleteConfirm' => __('Delete this storage container?'),
+                                        ])
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="dash-pagination">{{ $storageUnits->links() }}</div>
         @endif

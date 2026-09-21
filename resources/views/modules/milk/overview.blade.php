@@ -1,21 +1,21 @@
 @extends('layouts.milk-module')
 
-@section('title', 'Milk — Overview')
+@section('title', __('Milk — Overview'))
 
 @section('milk-content')
-    @include('modules.partials.header', [
-        'title' => __('Milk overview'),
-        'createRoute' => 'milk.sessions.create',
-        'createLabel' => '+ '. __('Open session'),
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Milk'),
+            'createRoute' => 'milk.sessions.create',
+            'createLabel' => '+ '. __('Open session'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="milk-overview">
-        <form method="GET" action="{{ route('milk.overview') }}" class="dash-ops-toolbar">
+        <form method="GET" action="{{ route('milk.overview') }}" class="dash-ops-toolbar farms-page__toolbar">
             <div class="dash-ops-toolbar__brand">
-                <span class="admin-panel-meta">{{ __($periodLabel) }}</span>
+                <span class="farm-dash__toolbar-meta">{{ __($periodLabel) }}</span>
             </div>
-            <div class="dash-ops-toolbar__controls">
+            <div class="dash-ops-toolbar__controls farms-page__filters">
                 @include('modules.milk.partials.farm-filter', [
                     'farms' => $farms,
                     'selectedFarm' => $selectedFarm,
@@ -32,47 +32,66 @@
             </div>
         </form>
 
-        <section class="dash-ops-row" aria-label="Milk summary">
-            <div class="dash-stats milk-overview__kpis">
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">{{ __('Yield') }}</div>
-                        <div class="dash-stat-value accent">{{ number_format($stats['period_total'], 0) }} <span class="dash-home-stat__suffix">L</span></div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <div class="farm-kpi farm-kpi--production">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => __('Yield')])
-                </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">{{ __('Sessions') }}</div>
-                        <div class="dash-stat-value">{{ number_format($stats['period_sessions']) }}</div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Yield') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['period_total'], 0) }}
+                            <span class="farm-kpi__unit">L</span>
+                        </div>
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'chart', 'label' => __('Sessions')])
                 </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">{{ __('Animals') }}</div>
-                        <div class="dash-stat-value">{{ number_format($stats['animals_milked']) }}</div>
+                <a href="{{ route('milk.sessions') }}" class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'chart'])
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => __('Animals')])
-                </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">{{ __('Avg / session') }}</div>
-                        <div class="dash-stat-value">{{ number_format($stats['avg_per_session'], 0) }} <span class="dash-home-stat__suffix">L</span></div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Sessions') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['period_sessions']) }}</div>
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'movement', 'label' => __('Avg / session')])
+                </a>
+                <div class="farm-kpi farm-kpi--health">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Animals') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['animals_milked']) }}</div>
+                    </div>
                 </div>
-                @include('modules.milk.partials.cost-per-litre-card', [
-                    'label' => __('Cost / L'),
-                    'cost' => $costCurrent,
-                    'compareDelta' => ($period ?? 'all') === 'all' ? null : $costCompareDelta,
-                    'compareLabel' => match ($period ?? 'all') {
-                        'today' => __('yesterday'),
-                        'monthly' => __('Last month'),
-                        'yearly' => __('Last year'),
-                        default => __('previous'),
-                    },
-                ])
+                <div class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'movement'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Avg / session') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ number_format($stats['avg_per_session'], 0) }}
+                            <span class="farm-kpi__unit">L</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="farm-kpi farm-kpi--expense">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'expense'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Cost / L') }}</div>
+                        <div class="farm-kpi__value">
+                            @if ($costCurrent['has_data'] ?? false)
+                                {{ number_format($costCurrent['cost_per_litre'], 0) }}
+                                <span class="farm-kpi__unit">{{ $costCurrent['currency'] ?? 'RWF' }}</span>
+                            @else
+                                —
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -84,178 +103,191 @@
             ])
         @endif
 
-        <div class="dash-health-grid milk-overview__charts-2">
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Cost trend') }}</h2>
-                @if (collect($costTrend)->where('has_data', true)->isEmpty())
-                    <p class="dash-empty">{{ __('Not enough data yet.') }}</p>
-                @else
-                    <div class="milk-overview__chart"><canvas id="milk-cost-trend-chart" aria-label="Cost per litre trend"></canvas></div>
-                @endif
+        <section class="farm-dash__section" aria-label="{{ __('Milk charts') }}">
+            <div class="farm-dash__charts farm-dash__charts--2">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Cost trend') }}</h2>
+                        </div>
+                    </header>
+                    @if (collect($costTrend)->where('has_data', true)->isEmpty())
+                        <p class="dash-empty">{{ __('Not enough data yet.') }}</p>
+                    @else
+                        <div class="farm-panel__chart farm-panel__chart--sm">
+                            <canvas id="milk-cost-trend-chart" aria-label="{{ __('Cost per litre trend') }}"></canvas>
+                        </div>
+                    @endif
+                </article>
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Expenses') }}</h2>
+                        </div>
+                    </header>
+                    @if (empty($expenseBreakdown['values']))
+                        <p class="dash-empty">{{ __('No paid expenses in this period.') }}</p>
+                    @else
+                        <div class="farm-panel__chart farm-panel__chart--sm health-page__chart--donut">
+                            <canvas id="milk-expense-pie-chart" aria-label="{{ __('Expense breakdown') }}"></canvas>
+                        </div>
+                    @endif
+                </article>
             </div>
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Expenses') }}</h2>
-                @if (empty($expenseBreakdown['values']))
-                    <p class="dash-empty">{{ __('No paid expenses in this period.') }}</p>
-                @else
-                    <div class="milk-overview__chart milk-overview__chart--pie"><canvas id="milk-expense-pie-chart" aria-label="Expense breakdown pie chart"></canvas></div>
-                @endif
-            </div>
-        </div>
+        </section>
 
-        <div class="dash-health-grid">
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Yield per animal') }}</h2>
+        <div class="farm-dash__charts farm-dash__charts--2">
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Yield per animal') }}</h2>
+                    </div>
+                </header>
                 @if (empty($charts['animalsCompare']))
                     <p class="dash-empty">{{ __('No completed sessions yet.') }}</p>
                 @else
-                    <table class="dash-table">
-                        <thead><tr><th>{{ __('Animal') }}</th><th style="text-align:right;">{{ __('Litres') }}</th></tr></thead>
-                        <tbody>
-                            @foreach ($charts['animalsCompare'] as $row)
+                    <div class="dash-table-wrap">
+                        <table class="health-table">
+                            <thead>
                                 <tr>
-                                    <td><strong>{{ $row['tag'] }}</strong>@if($row['name'])<div class="milk-overview__sub">{{ $row['name'] }}</div>@endif</td>
-                                    <td style="text-align:right;">{{ number_format($row['liters'], 0) }} L</td>
+                                    <th>{{ __('Animal') }}</th>
+                                    <th>{{ __('Litres') }}</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($charts['animalsCompare'] as $row)
+                                    <tr>
+                                        <td>
+                                            <div class="health-table__primary">
+                                                @include('modules.health.partials.table-icon', ['icon' => 'animal', 'tone' => 'default'])
+                                                <div class="health-table__stack">
+                                                    <span class="health-table__title">{{ $row['tag'] }}</span>
+                                                    @if ($row['name'])
+                                                        <span class="health-table__meta">{{ $row['name'] }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="health-table__value">{{ number_format($row['liters'], 0) }} L</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
-            </div>
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Yield per herd') }}</h2>
+            </section>
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Yield per herd') }}</h2>
+                    </div>
+                </header>
                 @if (empty($charts['herdsCompare']))
                     <p class="dash-empty">{{ __('No herd data yet.') }}</p>
                 @else
-                    <table class="dash-table">
-                        <thead><tr><th>{{ __('Herd') }}</th><th style="text-align:right;">{{ __('Litres') }}</th></tr></thead>
-                        <tbody>
-                            @foreach ($charts['herdsCompare'] as $row)
+                    <div class="dash-table-wrap">
+                        <table class="health-table">
+                            <thead>
                                 <tr>
-                                    <td>{{ $row['name'] }}</td>
-                                    <td style="text-align:right;">{{ number_format($row['liters'], 0) }} L</td>
+                                    <th>{{ __('Herd') }}</th>
+                                    <th>{{ __('Litres') }}</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($charts['herdsCompare'] as $row)
+                                    <tr>
+                                        <td>
+                                            <div class="health-table__primary">
+                                                @include('modules.health.partials.table-icon', ['icon' => 'livestock', 'tone' => 'default'])
+                                                <div class="health-table__stack">
+                                                    <span class="health-table__title">{{ $row['name'] }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="health-table__value">{{ number_format($row['liters'], 0) }} L</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
-            </div>
+            </section>
         </div>
 
-        <div class="dash-health-grid">
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Recent sessions') }}</h2>
+        <div class="farm-dash__charts farm-dash__charts--2">
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Recent sessions') }}</h2>
+                    </div>
+                </header>
                 @if ($recentSessions->isEmpty())
-                    <p class="dash-empty">{{ __('No sessions yet.') }} <a href="{{ route('milk.sessions.create') }}">{{ __('Open a session') }}</a>.</p>
+                    <p class="dash-empty">{{ __('No sessions yet.') }}</p>
                 @else
-                    <ul class="dash-health-activity">
+                    <ul class="farm-activity">
                         @foreach ($recentSessions as $session)
-                            <li>
-                                <div>
-                                    <a href="{{ route('milk.sessions.edit', $session) }}"><strong>{{ $session->session_code }}</strong></a>
-                                    <span class="milk-overview__meta">{{ $session->session_date->format('M j') }} · {{ $session->shiftLabel() }}</span>
+                            <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                <div class="farm-activity__body">
+                                    <a href="{{ route('milk.sessions.edit', $session) }}" class="farm-activity__title">{{ $session->session_code }}</a>
+                                    <span class="farm-activity__meta">{{ $session->session_date->format('M j') }} · {{ $session->shiftLabel() }}</span>
                                 </div>
-                                <span>{{ number_format($session->total_yield_liters, 0) }} L</span>
+                                <span class="farm-activity__count">{{ number_format($session->total_yield_liters, 0) }} L</span>
                             </li>
                         @endforeach
                     </ul>
                 @endif
-            </div>
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('Top producers') }}</h2>
+            </section>
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Top producers') }}</h2>
+                    </div>
+                </header>
                 @if ($topProducers->isEmpty())
                     <p class="dash-empty">{{ __('No production data yet.') }}</p>
                 @else
-                    <ul class="dash-health-activity">
+                    <ul class="farm-activity">
                         @foreach ($topProducers as $row)
-                            <li>
-                                <div><strong>{{ $row->tag_number }}</strong>@if($row->name)<span class="milk-overview__meta">{{ $row->name }}</span>@endif</div>
-                                <span>{{ number_format($row->total, 0) }} L</span>
+                            <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                <div class="farm-activity__body">
+                                    <span class="farm-activity__title">{{ $row->tag_number }}</span>
+                                    @if ($row->name)
+                                        <span class="farm-activity__meta">{{ $row->name }}</span>
+                                    @endif
+                                </div>
+                                <span class="farm-activity__count">{{ number_format($row->total, 0) }} L</span>
                             </li>
                         @endforeach
                     </ul>
                 @endif
-            </div>
+            </section>
         </div>
 
         @if ($byShift->isNotEmpty())
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">{{ __('By shift') }}</h2>
-                <ul class="dash-health-activity milk-overview__shift-list">
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('By shift') }}</h2>
+                    </div>
+                </header>
+                <ul class="farm-activity">
                     @foreach ($byShift as $shift => $total)
-                        <li>
-                            <strong>{{ config('modules.milk_session_shift_labels')[$shift] ?? ucfirst($shift) }}</strong>
-                            <span>{{ number_format($total, 0) }} L</span>
+                        <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                            <div class="farm-activity__body">
+                                <span class="farm-activity__title">{{ config('modules.milk_session_shift_labels')[$shift] ?? ucfirst($shift) }}</span>
+                            </div>
+                            <span class="farm-activity__count">{{ number_format($total, 0) }} L</span>
                         </li>
                     @endforeach
                 </ul>
-            </div>
+            </section>
         @endif
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        .milk-overview {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-        .milk-overview .dash-ops-toolbar,
-        .milk-overview .dash-ops-row,
-        .milk-overview .dash-health-grid,
-        .milk-overview .dash-panel { margin: 0; }
-        .milk-overview .dash-panel-title { margin-bottom: 1rem; }
-        .milk-overview__kpis {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 1rem;
-            margin: 0;
-        }
-        .milk-overview__chart {
-            height: 220px;
-            position: relative;
-        }
-        .milk-overview__chart--pie {
-            max-width: 280px;
-            margin-inline: auto;
-        }
-        .milk-overview__charts-2 {
-            grid-template-columns: 1.2fr 1fr;
-        }
-        @media (max-width: 900px) {
-            .milk-overview__charts-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-        .milk-overview__sub,
-        .milk-overview__meta {
-            font-size: 0.75rem;
-            color: #808080;
-        }
-        .milk-overview__meta { margin-left: 0.35rem; }
-        .milk-overview__shift-list {
-            padding: 0 1.25rem 1rem;
-        }
-        .milk-overview .dash-stat-card--cost .dash-cost-details__summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 0.75rem;
-            width: 100%;
-        }
-        @media (max-width: 1100px) {
-            .milk-overview__kpis {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-        @media (max-width: 640px) {
-            .milk-overview__kpis {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-@endpush
 
 @if (collect($costTrend)->where('has_data', true)->isNotEmpty() || ! empty($expenseBreakdown['values']))
     @push('scripts')

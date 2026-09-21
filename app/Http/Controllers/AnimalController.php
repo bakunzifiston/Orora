@@ -7,6 +7,7 @@ use App\Http\Requests\AnimalRequest;
 use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Livestock;
+use App\Services\DashboardAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,34 +17,99 @@ class AnimalController extends Controller
 {
     use ProvidesModuleNavigation;
 
-    public function index(Request $request): View
+    public function index(Request $request, DashboardAnalyticsService $analytics): View
     {
+        $search = trim((string) $request->input('q', ''));
+        $farmId = $request->filled('farm_id') ? $request->integer('farm_id') : null;
+        $livestockId = $request->filled('livestock_id') ? $request->integer('livestock_id') : null;
+        $gender = $request->string('gender')->toString();
+        $lifecycleStatus = $request->string('lifecycle_status')->toString();
+        $healthStatus = $request->string('health_status')->toString();
+
+        $genders = array_keys(config('modules.animal_genders', []));
+        $lifecycleStatuses = config('modules.lifecycle_statuses', []);
+        $healthStatuses = config('modules.health_statuses', []);
+
+        if ($gender !== '' && ! in_array($gender, $genders, true)) {
+            $gender = '';
+        }
+
+        if ($lifecycleStatus !== '' && ! in_array($lifecycleStatus, $lifecycleStatuses, true)) {
+            $lifecycleStatus = '';
+        }
+
+        if ($healthStatus !== '' && ! in_array($healthStatus, $healthStatuses, true)) {
+            $healthStatus = '';
+        }
+
         $animals = Animal::query()
             ->with(['farm', 'livestock'])
-            ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
-            ->when($request->filled('livestock_id'), fn ($q) => $q->where('livestock_id', $request->integer('livestock_id')))
-            ->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->string('gender')))
-            ->when($request->filled('lifecycle_status'), fn ($q) => $q->where('lifecycle_status', $request->string('lifecycle_status')))
-            ->when($request->filled('health_status'), fn ($q) => $q->where('health_status', $request->string('health_status')))
+            ->when($search !== '', function ($query) use ($search) {
+                $like = '%'.$search.'%';
+
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('tag_number', 'like', $like)
+                        ->orWhere('name', 'like', $like)
+                        ->orWhere('breed', 'like', $like)
+                        ->orWhere('species', 'like', $like)
+                        ->orWhereHas('farm', fn ($farm) => $farm->where('name', 'like', $like))
+                        ->orWhereHas('livestock', fn ($group) => $group->where('name', 'like', $like));
+                });
+            })
+            ->when($farmId, fn ($query) => $query->where('farm_id', $farmId))
+            ->when($livestockId, fn ($query) => $query->where('livestock_id', $livestockId))
+            ->when($gender !== '', fn ($query) => $query->where('gender', $gender))
+            ->when($lifecycleStatus !== '', fn ($query) => $query->where('lifecycle_status', $lifecycleStatus))
+            ->when($healthStatus !== '', fn ($query) => $query->where('health_status', $healthStatus))
             ->orderByDesc('created_at')
-            ->paginate(12)
+            ->paginate(15)
             ->withQueryString();
 
         $farms = Farm::query()->orderBy('name')->get();
-        $livestockGroups = Livestock::query()->with('farm')->orderBy('name')->get();
+        $livestockGroups = Livestock::query()
+            ->with('farm')
+            ->withCount(['animals' => function ($query) use ($farmId) {
+                $query->when($farmId, fn ($inner) => $inner->where('farm_id', $farmId));
+            }])
+            ->when($farmId, fn ($query) => $query->where('farm_id', $farmId))
+            ->orderBy('name')
+            ->get();
+
+        $filtersActive = $search !== ''
+            || $farmId !== null
+            || $livestockId !== null
+            || $gender !== ''
+            || $lifecycleStatus !== ''
+            || $healthStatus !== '';
+
+        $statsQuery = Animal::query()->when($farmId, fn ($query) => $query->where('farm_id', $farmId));
 
         $stats = [
-            'total' => Animal::query()->count(),
-            'active' => Animal::query()->where('lifecycle_status', 'Active')->count(),
-            'female' => Animal::query()->where('gender', 'female')->count(),
-            'lactating' => Animal::query()->where('production_status', 'Lactating')->count(),
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->where('lifecycle_status', 'Active')->count(),
+            'female' => (clone $statsQuery)->where('gender', 'female')->count(),
+            'male' => (clone $statsQuery)->where('gender', 'male')->count(),
+            'lactating' => (clone $statsQuery)->where('production_status', 'Lactating')->count(),
         ];
+
+        $moduleKpis = collect($analytics->operationModuleKpis($farmId))
+            ->reject(fn (array $kpi) => ($kpi['key'] ?? '') === 'health')
+            ->values()
+            ->all();
 
         return view('modules.animals.index', $this->moduleViewData('animals', compact(
             'animals',
             'farms',
             'livestockGroups',
             'stats',
+            'moduleKpis',
+            'search',
+            'farmId',
+            'livestockId',
+            'gender',
+            'lifecycleStatus',
+            'healthStatus',
+            'filtersActive',
         )));
     }
 

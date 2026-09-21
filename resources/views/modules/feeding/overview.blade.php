@@ -1,97 +1,129 @@
 @extends('layouts.feeding-module')
 
-@section('title', 'Feeding — Overview')
+@section('title', __('Feeding — Overview'))
 
 @section('feeding-content')
-    @include('modules.partials.header', [
-        'title' => __('Feeding overview'),
-        'subtitle' => __('Supplier → feed type → inventory → feeding records, with schedules and stock movements.'),
-        'createRoute' => 'feeding.records.create',
-        'createLabel' => '+ '. __('Log feeding'),
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Feeding'),
+            'createRoute' => 'feeding.records.create',
+            'createLabel' => '+ '. __('Log feeding'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Suppliers') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['suppliers']) }}</div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <a href="{{ route('feeding.suppliers') }}" class="farm-kpi farm-kpi--farms">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Suppliers') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['suppliers']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('feeding.feed-types') }}" class="farm-kpi farm-kpi--feeding">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'feeding'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Feed types') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['feed_types']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('feeding.inventory') }}" class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'box'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Inventory items') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['inventory_items']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('feeding.inventory') }}" class="farm-kpi farm-kpi--sales">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'movement'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Low stock') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['low_stock']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('feeding.schedules') }}" class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'certificate'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Active schedules') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['active_schedules']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('feeding.records') }}" class="farm-kpi farm-kpi--production">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'chart'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Records this month') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['records_this_month']) }}</div>
+                    </div>
+                </a>
             </div>
-            @include('modules.partials.stat-icon', ['icon' => 'farm'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Feed types') }}</div>
-                <div class="dash-stat-value accent">{{ number_format($stats['feed_types']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'feeding'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Inventory items') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['inventory_items']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'box'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Low stock') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['low_stock']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'movement'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Active schedules') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['active_schedules']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'certificate'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Records this month') }}</div>
-                <div class="dash-stat-value">{{ number_format($stats['records_this_month']) }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'chart'])
-        </div>
-    </div>
+        </section>
 
-    <div class="dash-health-grid">
-        <div class="dash-panel">
-            <div class="dash-panel-title">{{ __('Recent feeding records') }}</div>
-            @if ($recentFeedings->isEmpty())
-                <p class="dash-empty">{{ __('No feeding records yet.') }}</p>
-            @else
-                <ul class="dash-health-activity">
-                    @foreach ($recentFeedings as $feeding)
-                        <li>
-                            <div>
-                                <strong>{{ $feeding->feedType?->name }}</strong> — {{ $feeding->farm->name }}
-                                <span style="color: #808080;">{{ $feeding->fed_on->format('M j, Y') }}</span>
-                            </div>
-                            <span>{{ $feeding->quantity }} {{ $feeding->unit }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
+        <section class="farm-dash__section" aria-label="{{ __('Recent lists') }}">
+            <div class="farm-dash__charts farm-dash__charts--2">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Recent feeding records') }}</h2>
+                            @if ($recentFeedings->isNotEmpty())
+                                <p class="farm-panel__desc">{{ $recentFeedings->count() }} {{ __('records') }}</p>
+                            @endif
+                        </div>
+                    </header>
+                    @if ($recentFeedings->isEmpty())
+                        <p class="dash-empty">{{ __('No feeding records yet.') }}</p>
+                    @else
+                        <ul class="farm-activity">
+                            @foreach ($recentFeedings as $feeding)
+                                <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                    <div class="farm-activity__body">
+                                        <span class="farm-activity__title">{{ $feeding->feedType?->name }}</span>
+                                        <span class="farm-activity__meta">{{ $feeding->farm->name }} · {{ $feeding->fed_on->format('M j, Y') }}</span>
+                                    </div>
+                                    <span class="health-table__pill health-table__pill--muted">{{ $feeding->quantity }} {{ $feeding->unit }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </article>
 
-        <div class="dash-panel">
-            <div class="dash-panel-title">{{ __('Low stock alerts') }}</div>
-            @if ($lowStockItems->isEmpty())
-                <p class="dash-empty">{{ __('No low-stock items.') }}</p>
-            @else
-                <ul class="dash-health-activity">
-                    @foreach ($lowStockItems as $item)
-                        <li>
-                            <div>
-                                <strong>{{ $item->feedType->name }}</strong> — {{ $item->farm->name }}
-                            </div>
-                            <span>{{ $item->quantity_on_hand }} {{ $item->unit }} {{ __('left') }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Low stock alerts') }}</h2>
+                            @if ($lowStockItems->isNotEmpty())
+                                <p class="farm-panel__desc">{{ $lowStockItems->count() }} {{ __('items') }}</p>
+                            @endif
+                        </div>
+                    </header>
+                    @if ($lowStockItems->isEmpty())
+                        <p class="dash-empty">{{ __('No low-stock items.') }}</p>
+                    @else
+                        <ul class="farm-activity">
+                            @foreach ($lowStockItems as $item)
+                                <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                    <div class="farm-activity__body">
+                                        <span class="farm-activity__title">{{ $item->feedType->name }}</span>
+                                        <span class="farm-activity__meta">{{ $item->farm->name }}</span>
+                                    </div>
+                                    <span class="health-table__pill health-table__pill--warn">{{ $item->quantity_on_hand }} {{ $item->unit }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </article>
+            </div>
+        </section>
     </div>
 @endsection

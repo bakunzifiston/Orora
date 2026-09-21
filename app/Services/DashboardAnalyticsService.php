@@ -92,6 +92,39 @@ class DashboardAnalyticsService
     }
 
     /**
+     * Flattened module KPIs for list pages (excludes feeding).
+     *
+     * @return list<array{key: string, label: string, route: string, icon: string, value: string}>
+     */
+    public function operationModuleKpis(?int $farmId = null): array
+    {
+        $farm = $farmId ? Farm::query()->find($farmId) : null;
+        $isPoultry = app(SpeciesProfile::class)->isPoultry($farm);
+        $from = now()->startOfYear()->toDateString();
+        $to = now()->toDateString();
+
+        $kpis = [];
+
+        foreach ($this->moduleStrips($from, $to, $farmId, $isPoultry) as $group) {
+            if (($group['key'] ?? '') === 'feeding') {
+                continue;
+            }
+
+            foreach ($group['metrics'] ?? [] as $metric) {
+                $kpis[] = [
+                    'key' => (string) ($group['key'] ?? 'module'),
+                    'label' => (string) ($metric['label'] ?? ''),
+                    'value' => (string) ($metric['value'] ?? '0'),
+                    'route' => (string) ($group['route'] ?? ''),
+                    'icon' => (string) ($group['icon'] ?? 'grid'),
+                ];
+            }
+        }
+
+        return $kpis;
+    }
+
+    /**
      * @return array{period: string, farm_id: ?int, from: string, to: string, label: string}
      */
     public function resolveFilters(Request $request): array

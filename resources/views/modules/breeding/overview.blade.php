@@ -1,152 +1,171 @@
 @extends('layouts.breeding-module')
 
-@section('title', 'Breeding — Overview')
+@section('title', __('Breeding — Overview'))
 
 @section('breeding-content')
-    @include('modules.partials.header', [
-        'title' => __('Breeding overview'),
-        'subtitle' => __('Track matings, pregnancy checks, and calving.'),
-        'createRoute' => 'breeding.records.create',
-        'createLabel' => '+ '. __('Record breeding'),
-    ])
-    @include('modules.partials.flash')
+    <div class="farm-dash farms-page health-page">
+        @include('modules.partials.header', [
+            'title' => __('Breeding'),
+            'createRoute' => 'breeding.records.create',
+            'createLabel' => '+ '. __('Record breeding'),
+        ])
+        @include('modules.partials.flash')
 
-    <div class="dash-health-stats" style="margin-bottom: 1.25rem;">
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Active breedings') }}</div>
-                <div class="dash-stat-value">{{ $stats['active_breedings'] }}</div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <a href="{{ route('breeding.records') }}" class="farm-kpi farm-kpi--breeding">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'breeding'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Active breedings') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['active_breedings']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('breeding.records', ['status' => 'confirmed_pregnant']) }}" class="farm-kpi farm-kpi--health">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Confirmed pregnant') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['confirmed_pregnant']) }}</div>
+                    </div>
+                </a>
+                <div class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'certificate'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Due this month') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['due_this_month']) }}</div>
+                    </div>
+                </div>
+                <a href="{{ route('breeding.births') }}" class="farm-kpi farm-kpi--production">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Births this month') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['births_this_month']) }}</div>
+                    </div>
+                </a>
+                <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}" class="farm-kpi farm-kpi--sales">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'shield'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Pregnancy checks due') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['pregnancy_checks_due'] ?? 0) }}</div>
+                    </div>
+                </a>
             </div>
-            @include('modules.partials.stat-icon', ['icon' => 'breeding'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Confirmed pregnant') }}</div>
-                <div class="dash-stat-value accent">{{ $stats['confirmed_pregnant'] }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'health'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Due this month') }}</div>
-                <div class="dash-stat-value">{{ $stats['due_this_month'] }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'certificate'])
-        </div>
-        <div class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Births this month') }}</div>
-                <div class="dash-stat-value">{{ $stats['births_this_month'] }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'animal'])
-        </div>
-        <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}" class="dash-stat-card">
-            <div>
-                <div class="dash-stat-label">{{ __('Pregnancy checks due') }}</div>
-                <div class="dash-stat-value @if(($stats['pregnancy_checks_due'] ?? 0) > 0) alert @endif">{{ $stats['pregnancy_checks_due'] ?? 0 }}</div>
-            </div>
-            @include('modules.partials.stat-icon', ['icon' => 'health'])
-        </a>
-    </div>
+        </section>
 
-    <div class="dash-panel" id="pregnancy-check-due" style="margin-bottom: 1.25rem;">
-        <div class="dash-panel-title">
-            {{ __('Pregnancy checks due') }} ({{ config('modules.breeding_pregnancy_check_due_days', 35) }}+ {{ __('days after breeding') }})
-        </div>
-        @if ($pregnancyChecksDue->isEmpty())
-            <p class="dash-empty">{{ __('No pregnancy checks due right now.') }}</p>
-        @else
-            <div class="dash-table-wrap">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Female</th>
-                            <th>Bred on</th>
-                            <th>Due on</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pregnancyChecksDue as $record)
-                            <tr>
-                                <td><a href="{{ route('breeding.records.edit', $record) }}">{{ $record->breeding_code }}</a></td>
-                                <td>{{ $record->femaleAnimal->tag_number }}</td>
-                                <td>{{ $record->breeding_date->format('M j, Y') }}</td>
-                                <td>{{ $record->pregnancy_check_due_on?->format('M j, Y') ?? '—' }}</td>
-                                <td>
-                                    <a href="{{ route('breeding.checks.create', ['breeding_record_id' => $record->id]) }}" class="dash-btn-save" style="padding: 0.35rem 0.75rem; font-size: 0.8125rem;">Record check</a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <p style="margin: 0.75rem 0 0; font-size: 0.8125rem;">
-                <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}">{{ __('View all due breedings') }} →</a>
-            </p>
-        @endif
-    </div>
-
-    <div class="dash-form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-        <div class="dash-panel">
-            <div class="dash-panel-title">{{ __('Upcoming calvings') }}</div>
-            @if ($upcomingCalvings->isEmpty())
-                <p class="dash-empty">{{ __('No confirmed pregnancies with expected dates.') }}</p>
+        <section class="farm-panel" id="pregnancy-check-due">
+            <header class="farm-panel__head">
+                <div>
+                    <h2 class="farm-panel__title">{{ __('Pregnancy checks due') }}</h2>
+                    <p class="farm-panel__desc">
+                        {{ config('modules.breeding_pregnancy_check_due_days', 35) }}+ {{ __('days after breeding') }}
+                    </p>
+                </div>
+            </header>
+            @if ($pregnancyChecksDue->isEmpty())
+                <p class="dash-empty">{{ __('No pregnancy checks due right now.') }}</p>
             @else
                 <div class="dash-table-wrap">
-                    <table class="dash-table">
+                    <table class="health-table">
                         <thead>
                             <tr>
-                                <th>Female</th>
-                                <th>Expected</th>
-                                <th>Farm</th>
+                                <th>{{ __('Breeding') }}</th>
+                                <th>{{ __('Female') }}</th>
+                                <th>{{ __('Bred on') }}</th>
+                                <th>{{ __('Due on') }}</th>
+                                <th class="health-table__actions">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($upcomingCalvings as $record)
+                            @foreach ($pregnancyChecksDue as $record)
                                 <tr>
                                     <td>
-                                        <a href="{{ route('breeding.records.edit', $record) }}">{{ $record->femaleAnimal->tag_number }}</a>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'breeding', 'tone' => 'warn'])
+                                            <div class="health-table__stack">
+                                                <a href="{{ route('breeding.records.edit', $record) }}" class="health-table__title health-table__title--link">{{ $record->breeding_code }}</a>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td>{{ $record->expected_calving_date?->format('M j, Y') ?? '—' }}</td>
-                                    <td>{{ $record->farm->name }}</td>
+                                    <td>
+                                        <span class="health-table__value">{{ $record->femaleAnimal->tag_number }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $record->breeding_date->format('M j, Y') }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--warn">{{ $record->pregnancy_check_due_on?->format('M j, Y') ?? '—' }}</span>
+                                    </td>
+                                    <td class="health-table__actions">
+                                        <div class="health-table__action-btns">
+                                            <a href="{{ route('breeding.checks.create', ['breeding_record_id' => $record->id]) }}" class="dash-btn-save dash-btn-save--sm">{{ __('Record check') }}</a>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+                <p class="farm-panel__desc" style="margin-top: 0.75rem;">
+                    <a href="{{ route('breeding.records', ['pregnancy_check_due' => 1]) }}">{{ __('View all due breedings') }} →</a>
+                </p>
             @endif
-        </div>
+        </section>
 
-        <div class="dash-panel">
-            <div class="dash-panel-title">{{ __('Recent breedings') }}</div>
-            @if ($recentBreedings->isEmpty())
-                <p class="dash-empty">{{ __('No breeding records yet.') }}</p>
-            @else
-                <div class="dash-table-wrap">
-                    <table class="dash-table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Female</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($recentBreedings as $record)
-                                <tr>
-                                    <td><a href="{{ route('breeding.records.edit', $record) }}">{{ $record->breeding_code }}</a></td>
-                                    <td>{{ $record->femaleAnimal->tag_number }}</td>
-                                    <td>{{ $record->breeding_date->format('M j, Y') }}</td>
-                                    <td>{{ $record->statusLabel() }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
+        <div class="farm-dash__charts farm-dash__charts--2">
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Upcoming calvings') }}</h2>
+                    </div>
+                </header>
+                @if ($upcomingCalvings->isEmpty())
+                    <p class="dash-empty">{{ __('No confirmed pregnancies with expected dates.') }}</p>
+                @else
+                    <ul class="farm-activity">
+                        @foreach ($upcomingCalvings as $record)
+                            <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                <div class="farm-activity__body">
+                                    <a href="{{ route('breeding.records.edit', $record) }}" class="farm-activity__title">{{ $record->femaleAnimal->tag_number }}</a>
+                                    <span class="farm-activity__meta">{{ $record->farm->name }}</span>
+                                </div>
+                                <span class="farm-activity__count">{{ $record->expected_calving_date?->format('M j, Y') ?? '—' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </section>
+
+            <section class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Recent breedings') }}</h2>
+                    </div>
+                </header>
+                @if ($recentBreedings->isEmpty())
+                    <p class="dash-empty">{{ __('No breeding records yet.') }}</p>
+                @else
+                    <ul class="farm-activity">
+                        @foreach ($recentBreedings as $record)
+                            <li class="farm-activity__item farm-activity__item--plain farm-activity__item--split">
+                                <div class="farm-activity__body">
+                                    <a href="{{ route('breeding.records.edit', $record) }}" class="farm-activity__title">{{ $record->breeding_code }}</a>
+                                    <span class="farm-activity__meta">{{ $record->femaleAnimal->tag_number }} · {{ $record->breeding_date->format('M j, Y') }}</span>
+                                </div>
+                                <span class="employees-table__pill employees-table__pill--muted">{{ $record->statusLabel() }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </section>
         </div>
     </div>
 @endsection

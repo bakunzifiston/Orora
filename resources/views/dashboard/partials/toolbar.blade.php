@@ -6,9 +6,9 @@
         : null;
 @endphp
 
-<form method="GET" action="{{ route('dashboard') }}" class="dash-ops-toolbar" id="dash-filters-form">
+<form method="GET" action="{{ route('dashboard') }}" class="dash-ops-toolbar farm-dash__toolbar" id="dash-filters-form">
     <div class="dash-ops-toolbar__brand">
-        <h1 class="dash-welcome" style="margin: 0;">
+        <h1 class="dash-welcome farm-dash__welcome" style="margin: 0;">
             @if ($welcomeName)
                 {{ __('Welcome, :name', ['name' => $welcomeName]) }}
             @else
@@ -16,14 +16,14 @@
             @endif
         </h1>
         @if (! empty($filters['label']))
-            <p class="admin-panel-meta" style="margin: 0.25rem 0 0;">{{ __($filters['label']) }}</p>
+            <p class="farm-dash__toolbar-meta">{{ __($filters['label']) }}</p>
         @endif
     </div>
     <div class="dash-ops-toolbar__controls">
         <div class="dash-ops-field">
             <label for="filter_farm">{{ __('Farm') }}</label>
             <select name="farm_id" id="filter_farm">
-                <option value="">{{ __('All') }}</option>
+                <option value="">{{ __('All farms') }}</option>
                 @foreach ($farms as $farm)
                     <option value="{{ $farm->id }}" @selected(($filters['farm_id'] ?? null) == $farm->id)>{{ $farm->name }}</option>
                 @endforeach
@@ -43,9 +43,9 @@
         <div class="dash-ops-field dash-ops-field--dates @if(($filters['period'] ?? 'this_year') !== 'custom') dash-ops-field--muted @endif" id="dash-custom-dates">
             <label>{{ __('Range') }}</label>
             <div class="dash-ops-dates">
-                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
+                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="{{ __('From date') }}">
                 <span class="dash-ops-dates__sep">→</span>
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('To date') }}">
             </div>
         </div>
         <button type="submit" class="dash-btn-save dash-ops-apply">{{ __('Apply') }}</button>
