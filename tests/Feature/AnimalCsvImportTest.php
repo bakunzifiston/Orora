@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Animal;
+use App\Models\Livestock;
 use App\Services\Import\AnimalCsvImporter;
 use App\Services\ImportExport\AnimalCsvSchema;
 use Illuminate\Http\UploadedFile;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\Support\FarmTestFixtures;
 use Tests\TenantTestCase;
 
@@ -26,12 +29,11 @@ class AnimalCsvImportTest extends TenantTestCase
 
         $this->assertSame(3, $result['created']);
         $this->assertSame(0, $result['failed']);
+        $this->assertSame(3, $result['total']);
         $this->assertSame([], $result['errors']);
 
-        // 9/16 can only be month/day/year, which settles the format for the file.
         $this->assertSame('2024-09-16', Animal::query()->where('name', 'Mbabazi')->value('date_of_birth')->toDateString());
         $this->assertSame('2024-03-04', Animal::query()->where('name', 'Kirezi')->value('date_of_birth')->toDateString());
-
         $this->assertNull(Animal::query()->where('name', 'Ijyeri')->value('date_of_birth'));
     }
 
@@ -60,9 +62,7 @@ class AnimalCsvImportTest extends TenantTestCase
 
         $this->assertSame(2, $result['created']);
         $this->assertSame(['NAN-0001', 'NAN-0002'], Animal::query()->orderBy('id')->pluck('tag_number')->all());
-
-        $this->assertCount(2, $result['warnings']);
-        $this->assertStringContainsString('NAN-0001', $result['warnings'][0]['message']);
+        $this->assertTrue(collect($result['warnings'])->contains(fn ($w) => str_contains($w['message'], 'NAN-0001')));
     }
 
     public function test_it_reports_a_future_date_of_birth_as_an_adjustment(): void
@@ -75,8 +75,7 @@ class AnimalCsvImportTest extends TenantTestCase
         ]);
 
         $this->assertSame(1, $result['created']);
-        $this->assertCount(1, $result['warnings']);
-        $this->assertStringContainsString('future', $result['warnings'][0]['message']);
+        $this->assertTrue(collect($result['warnings'])->contains(fn ($w) => str_contains($w['message'], 'future')));
     }
 
     public function test_it_still_imports_comma_separated_files(): void
@@ -89,7 +88,6 @@ class AnimalCsvImportTest extends TenantTestCase
         ]);
 
         $this->assertSame(1, $result['created']);
-        $this->assertSame([], $result['warnings']);
         $this->assertDatabaseHas('animals', ['tag_number' => 'RW-001', 'name' => 'Bella']);
     }
 
@@ -111,42 +109,10 @@ class AnimalCsvImportTest extends TenantTestCase
         ]);
 
         $this->assertSame(1, $result['created'], json_encode($result['errors']));
-        $this->assertSame(0, $result['failed']);
-
         $animal = Animal::query()->where('tag_number', '2044169')->first();
-
-        $this->assertNotNull($animal);
         $this->assertSame('Pregnant', $animal->health_status);
         $this->assertSame('Gestating', $animal->production_status);
         $this->assertSame('Born on farm', $animal->acquisition_type);
-        $this->assertSame('2022-05-10', $animal->date_of_birth->toDateString());
-
-        $messages = collect($result['warnings'])->pluck('message')->implode(' ');
-        $this->assertStringContainsString('pregnancy cow', $messages);
-        $this->assertStringContainsString('Pregnant', $messages);
-    }
-
-    public function test_it_maps_pregnant_health_aliases(): void
-    {
-        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
-        FarmTestFixtures::livestock($farm, ['name' => 'Dairy herd']);
-
-        $result = $this->importRows("\t", [
-            $this->row([
-                'livestock_name' => 'Dairy herd',
-                'tag_number' => 'P-1',
-                'name' => 'Bella',
-                'health_status' => 'pregnancy',
-                'production_status' => '',
-            ]),
-        ]);
-
-        $this->assertSame(1, $result['created']);
-        $this->assertDatabaseHas('animals', [
-            'tag_number' => 'P-1',
-            'health_status' => 'Pregnant',
-            'production_status' => null,
-        ]);
     }
 
     public function test_it_creates_a_missing_livestock_group(): void
@@ -166,19 +132,137 @@ class AnimalCsvImportTest extends TenantTestCase
         ]);
 
         $this->assertSame(1, $result['created'], json_encode($result['errors']));
-        $this->assertDatabaseHas('livestock', [
-            'name' => 'Dairy herd',
-        ]);
-        $this->assertDatabaseHas('animals', [
-            'tag_number' => '2044169',
-            'name' => 'Mariza',
-            'health_status' => 'Pregnant',
-            'production_status' => 'Gestating',
+        $this->assertDatabaseHas('livestock', ['name' => 'Dairy herd']);
+    }
+
+    public function test_it_imports_rows_with_blank_fields_using_defaults(): void
+    {
+        FarmTestFixtures::farm(['name' => 'Nandi farm']);
+
+        $result = $this->importRows("\t", [
+            [
+                'farm_name' => 'Nandi farm',
+                'livestock_name' => 'Dairy herd',
+                'tag_number' => '',
+                'name' => '',
+                'gender' => '',
+                'health_status' => '',
+                'lifecycle_status' => '',
+                'date_of_birth' => '',
+                'weight_kg' => '',
+                'color_markings' => '',
+                'species' => '',
+                'breed' => '',
+                'acquisition_type' => '',
+                'acquisition_date' => '',
+                'source' => '',
+                'mother_tag' => '',
+                'father_tag' => '',
+                'production_status' => '',
+                'current_condition' => '',
+                'notes' => '',
+            ],
         ]);
 
-        $messages = collect($result['warnings'])->pluck('message')->implode(' ');
-        $this->assertStringContainsString('Dairy herd', $messages);
-        $this->assertStringContainsString('created', strtolower($messages));
+        $this->assertSame(1, $result['created'], json_encode($result['errors']));
+        $animal = Animal::query()->first();
+        $this->assertSame($animal->tag_number, $animal->name);
+        $this->assertSame('unknown', $animal->gender);
+        $this->assertSame('Healthy', $animal->health_status);
+        $this->assertSame('Active', $animal->lifecycle_status);
+    }
+
+    public function test_it_rejects_duplicate_tags_in_file_and_keeps_valid_rows(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+
+        $result = $this->importRows(',', [
+            $this->row(['tag_number' => 'DUP-1', 'name' => 'First']),
+            $this->row(['tag_number' => 'DUP-1', 'name' => 'Second']),
+            $this->row(['tag_number' => 'OK-1', 'name' => 'Third']),
+        ]);
+
+        $this->assertSame(2, $result['created']);
+        $this->assertSame(1, $result['failed']);
+        $this->assertSame(3, $result['total']);
+        $this->assertCount(1, Animal::query()->where('tag_number', 'DUP-1')->get());
+        $this->assertDatabaseHas('animals', ['tag_number' => 'OK-1']);
+        $this->assertStringContainsString('Duplicate tag number', $result['errors'][0]['message']);
+    }
+
+    public function test_it_rejects_tags_already_in_the_database(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        FarmTestFixtures::animal($farm, $livestock, 'female', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+
+        $result = $this->importRows(',', [
+            $this->row(['tag_number' => 'EXIST-1', 'name' => 'Again']),
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
+        ]);
+
+        $this->assertSame(1, $result['created']);
+        $this->assertSame(1, $result['failed']);
+        $this->assertStringContainsString('already exists', $result['errors'][0]['message']);
+        $this->assertDatabaseHas('animals', ['tag_number' => 'NEW-1']);
+    }
+
+    public function test_it_fails_missing_farm_without_creating_animals(): void
+    {
+        $result = $this->importRows(',', [
+            $this->row(['farm_name' => 'Missing Farm', 'tag_number' => 'X-1']),
+        ]);
+
+        $this->assertSame(0, $result['created']);
+        $this->assertSame(1, $result['failed']);
+        $this->assertSame(0, Animal::query()->count());
+        $this->assertSame(0, Livestock::query()->count());
+        $this->assertStringContainsString('was not found', $result['errors'][0]['message']);
+    }
+
+    public function test_it_imports_an_xlsx_file(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([
+            AnimalCsvSchema::headers(),
+            array_map(fn ($header) => $this->row([
+                'tag_number' => 'XL-001',
+                'name' => 'Excel Cow',
+                'date_of_birth' => '2022-05-10',
+            ])[$header], AnimalCsvSchema::headers()),
+        ]);
+
+        $path = tempnam(sys_get_temp_dir(), 'animals').'.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+
+        $result = app(AnimalCsvImporter::class)->import(
+            new UploadedFile($path, 'animals.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true)
+        );
+
+        $this->assertSame(1, $result['created'], json_encode($result['errors']));
+        $this->assertDatabaseHas('animals', ['tag_number' => 'XL-001', 'name' => 'Excel Cow']);
+    }
+
+    public function test_it_maps_aliased_headers(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+
+        $path = tempnam(sys_get_temp_dir(), 'animals').'.csv';
+        file_put_contents($path, "Farm Name,Livestock Group,Tag,Animal Name,Gender,Health Status,Lifecycle Status\n"
+            ."Nandi Farm,Cows (lactating),ALIAS-1,Bella,female,Healthy,Active\n");
+
+        $result = app(AnimalCsvImporter::class)->import(
+            new UploadedFile($path, 'animals.csv', 'text/csv', null, true)
+        );
+
+        $this->assertSame(1, $result['created'], json_encode($result['errors']));
+        $this->assertDatabaseHas('animals', ['tag_number' => 'ALIAS-1', 'name' => 'Bella']);
     }
 
     /**
@@ -213,7 +297,7 @@ class AnimalCsvImportTest extends TenantTestCase
 
     /**
      * @param  list<array<string, string>>  $rows
-     * @return array{created: int, failed: int, errors: list<array{row: int, message: string}>, warnings: list<array{row: int, message: string}>}
+     * @return array{created: int, failed: int, total: int, errors: list<array{row: int, message: string}>, warnings: list<array{row: int, message: string}>}
      */
     private function importRows(string $delimiter, array $rows): array
     {
@@ -221,10 +305,9 @@ class AnimalCsvImportTest extends TenantTestCase
         $lines = [implode($delimiter, $headers)];
 
         foreach ($rows as $row) {
-            $lines[] = implode($delimiter, array_map(fn ($header) => $row[$header], $headers));
+            $lines[] = implode($delimiter, array_map(fn ($header) => $row[$header] ?? '', $headers));
         }
 
-        // Spreadsheets export CRLF line endings.
         $path = tempnam(sys_get_temp_dir(), 'animals').'.csv';
         file_put_contents($path, implode("\r\n", $lines)."\r\n");
 

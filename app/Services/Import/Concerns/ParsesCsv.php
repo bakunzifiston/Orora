@@ -10,10 +10,17 @@ trait ParsesCsv
 {
     /**
      * @param  list<string>  $expectedHeaders
+     * @param  list<string>|null  $requiredHeaders
+     * @param  array<string, string>  $headerAliases
      * @return \Generator<int, array<string, string|null>>
      */
-    protected function parseCsvRows(UploadedFile $file, array $expectedHeaders, int $maxRows = 2000): \Generator
-    {
+    protected function parseCsvRows(
+        UploadedFile $file,
+        array $expectedHeaders,
+        int $maxRows = 2000,
+        ?array $requiredHeaders = null,
+        array $headerAliases = [],
+    ): \Generator {
         $path = $file->getRealPath();
 
         if ($path === false) {
@@ -26,8 +33,10 @@ trait ParsesCsv
             throw new RuntimeException('Unable to open the uploaded CSV file.');
         }
 
+        $requiredHeaders ??= $expectedHeaders;
+
         try {
-            $delimiter = $this->detectCsvDelimiter($handle, $expectedHeaders);
+            $delimiter = $this->detectCsvDelimiter($handle, $expectedHeaders, $headerAliases);
             rewind($handle);
 
             $headerRow = fgetcsv($handle, 0, $delimiter, '"', '\\');
@@ -36,13 +45,19 @@ trait ParsesCsv
                 throw new InvalidArgumentException('The CSV file is empty.');
             }
 
-            $headers = array_map(fn ($header) => $this->normalizeCsvHeader((string) $header), $headerRow);
+            $headers = [];
 
-            if ($headers === [] || $headers[0] === '') {
+            foreach ($headerRow as $index => $header) {
+                $normalized = $this->normalizeCsvHeader((string) $header);
+                $headers[$index] = $headerAliases[$normalized] ?? $normalized;
+            }
+
+            if ($headers === [] || ($headers[0] ?? '') === '') {
                 throw new InvalidArgumentException('The CSV file is missing a header row.');
             }
 
-            $missing = array_values(array_diff($expectedHeaders, $headers));
+            $present = array_values(array_unique(array_filter($headers)));
+            $missing = array_values(array_diff($requiredHeaders, $present));
 
             if ($missing !== []) {
                 throw new InvalidArgumentException(
@@ -76,11 +91,18 @@ trait ParsesCsv
                     }
 
                     $value = $row[$index] ?? null;
-                    $assoc[$header] = is_string($value) ? trim($value) : $value;
 
-                    if ($assoc[$header] === '') {
-                        $assoc[$header] = null;
+                    if (is_string($value)) {
+                        $value = method_exists($this, 'normalizeImportCell')
+                            ? $this->normalizeImportCell($value)
+                            : trim($value);
                     }
+
+                    $assoc[$header] = ($value === null || $value === '') ? null : $value;
+                }
+
+                foreach ($expectedHeaders as $header) {
+                    $assoc[$header] ??= null;
                 }
 
                 yield $rowNumber => $assoc;
@@ -95,13 +117,11 @@ trait ParsesCsv
     }
 
     /**
-     * Spreadsheet exports often use a regional separator, so pick the one that
-     * recognises the most expected columns instead of assuming a comma.
-     *
      * @param  resource  $handle
      * @param  list<string>  $expectedHeaders
+     * @param  array<string, string>  $headerAliases
      */
-    protected function detectCsvDelimiter($handle, array $expectedHeaders): string
+    protected function detectCsvDelimiter($handle, array $expectedHeaders, array $headerAliases = []): string
     {
         $line = fgets($handle);
 
@@ -113,10 +133,12 @@ trait ParsesCsv
         $bestScore = -1;
 
         foreach ([',', "\t", ';', '|'] as $delimiter) {
-            $headers = array_map(
-                fn ($header) => $this->normalizeCsvHeader((string) $header),
-                str_getcsv($line, $delimiter, '"', '\\')
-            );
+            $headers = [];
+
+            foreach (str_getcsv($line, $delimiter, '"', '\\') as $header) {
+                $normalized = $this->normalizeCsvHeader((string) $header);
+                $headers[] = $headerAliases[$normalized] ?? $normalized;
+            }
 
             $score = count(array_intersect($expectedHeaders, $headers));
 
@@ -132,8 +154,10 @@ trait ParsesCsv
     protected function normalizeCsvHeader(string $header): string
     {
         $header = preg_replace('/^\xEF\xBB\xBF/', '', $header) ?? $header;
+        $header = strtolower(trim($header));
+        $header = preg_replace('/\s+/u', ' ', $header) ?? $header;
 
-        return strtolower(trim($header));
+        return $header;
     }
 
     /**

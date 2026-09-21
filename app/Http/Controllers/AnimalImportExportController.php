@@ -34,23 +34,38 @@ class AnimalImportExportController extends Controller
     {
         $result = $importer->import($request->file('file'));
 
+        $summary = [
+            'created' => $result['created'],
+            'failed' => $result['failed'],
+            'total' => $result['total'],
+        ];
+
         if ($result['created'] === 0 && $result['failed'] > 0) {
             return redirect()
                 ->route('animals.import')
-                ->with('error', __('No animals were imported. Fix the errors below and try again.'))
-                ->with('import_errors', $result['errors']);
+                ->with('error', __('No animals were imported. :failed of :total rows failed. Fix the errors below and try again.', [
+                    'failed' => $result['failed'],
+                    'total' => max($result['total'], $result['failed']),
+                ]))
+                ->with('import_summary', $summary)
+                ->with('import_errors', $result['errors'])
+                ->with('import_warnings', $result['warnings']);
         }
 
-        $message = __(':count animals imported.', ['count' => $result['created']]);
+        $message = __(':created of :total animals imported successfully.', [
+            'created' => $result['created'],
+            'total' => $result['total'],
+        ]);
 
         if ($result['failed'] > 0) {
-            $message .= ' '.__(':count rows failed.', ['count' => $result['failed']]);
+            $message .= ' '.__(':failed rows failed.', ['failed' => $result['failed']]);
         }
 
         if ($result['failed'] > 0 || $result['warnings'] !== []) {
             return redirect()
                 ->route('animals.import')
                 ->with('success', $message)
+                ->with('import_summary', $summary)
                 ->with('import_errors', $result['errors'])
                 ->with('import_warnings', $result['warnings']);
         }

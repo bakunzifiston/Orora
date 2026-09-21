@@ -7,9 +7,9 @@ use App\Models\Farm;
 use App\Models\Livestock;
 use App\Services\Import\Concerns\NormalizesAnimalStatuses;
 use App\Services\Import\Concerns\NormalizesDates;
-use App\Services\Import\Concerns\ParsesCsv;
-use App\Services\ImportExport\AnimalCsvSchema;
+use App\Services\Import\Concerns\ParsesAnimalImportFile;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
@@ -19,25 +19,41 @@ class AnimalCsvImporter
 {
     use NormalizesAnimalStatuses;
     use NormalizesDates;
-    use ParsesCsv;
+    use ParsesAnimalImportFile;
 
     public const MAX_ROWS = 2000;
 
+    /** @var array<string, Farm> */
+    protected array $farmCache = [];
+
+    /** @var array<string, Livestock> */
+    protected array $livestockCache = [];
+
+    /** @var array<string, int> tag keys already accepted in this import file */
+    protected array $seenTags = [];
+
     /**
-     * @return array{created: int, failed: int, errors: list<array{row: int, message: string}>, warnings: list<array{row: int, message: string}>}
+     * @return array{
+     *     created: int,
+     *     failed: int,
+     *     total: int,
+     *     errors: list<array{row: int, message: string, messages: list<string>}>,
+     *     warnings: list<array{row: int, message: string}>
+     * }
      */
     public function import(UploadedFile $file): array
     {
+        $this->farmCache = [];
+        $this->livestockCache = [];
+        $this->seenTags = [];
+
         $created = 0;
         $failed = 0;
         $errors = [];
         $warnings = [];
 
         try {
-            // Parsing errors surface lazily, so the rows have to be pulled
-            // inside the try. Reading them up front also lets the date
-            // convention be settled from the file as a whole.
-            $rows = iterator_to_array($this->parseCsvRows($file, AnimalCsvSchema::headers(), self::MAX_ROWS));
+            [, $rows] = $this->readAnimalImportRows($file, self::MAX_ROWS);
 
             $this->detectImportDateConvention(
                 array_merge(
@@ -49,50 +65,137 @@ class AnimalCsvImporter
             return [
                 'created' => 0,
                 'failed' => 1,
-                'errors' => [['row' => 0, 'message' => $e->getMessage()]],
+                'total' => 0,
+                'errors' => [[
+                    'row' => 0,
+                    'message' => $e->getMessage(),
+                    'messages' => [$e->getMessage()],
+                ]],
                 'warnings' => [],
             ];
         }
 
+        $total = count($rows);
+
         foreach ($rows as $rowNumber => $row) {
             try {
-                [$attributes, $rowWarnings] = $this->attributesForRow($row);
-                Animal::create($attributes);
+                $result = DB::transaction(function () use ($row, $rowNumber) {
+                    return $this->importRow($row, $rowNumber);
+                });
+
                 $created++;
 
-                foreach ($rowWarnings as $message) {
+                foreach ($result['warnings'] as $message) {
                     $warnings[] = ['row' => $rowNumber, 'message' => $message];
                 }
-            } catch (Throwable $e) {
+            } catch (InvalidArgumentException $e) {
                 $failed++;
+                $messages = array_values(array_filter(array_map('trim', explode("\n", $e->getMessage()))));
+
+                if ($messages === []) {
+                    $messages = [$e->getMessage()];
+                }
+
                 $errors[] = [
                     'row' => $rowNumber,
-                    'message' => $e->getMessage(),
+                    'message' => implode(' ', $messages),
+                    'messages' => $messages,
                 ];
+            } catch (Throwable $e) {
+                $failed++;
+                $message = 'Unexpected error while saving this row.';
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'message' => $message,
+                    'messages' => [$message],
+                ];
+                report($e);
             }
         }
 
-        return compact('created', 'failed', 'errors', 'warnings');
+        return compact('created', 'failed', 'total', 'errors', 'warnings');
     }
 
     /**
      * @param  array<string, string|null>  $row
-     * @return array{0: array<string, mixed>, 1: list<string>}
+     * @return array{warnings: list<string>}
      */
-    protected function attributesForRow(array $row): array
+    protected function importRow(array $row, int $rowNumber): array
     {
-        $farm = $this->resolveFarm($row['farm_name'] ?? null);
         $warnings = [];
-        $livestock = $this->resolveLivestock($farm, $row, $warnings);
+        $messages = [];
 
-        $tagNumber = $row['tag_number'] ?? null;
+        $farmName = trim((string) ($row['farm_name'] ?? ''));
+        $livestockName = trim((string) ($row['livestock_name'] ?? ''));
+
+        if ($farmName === '') {
+            $messages[] = 'Farm name is required.';
+        }
+
+        if ($livestockName === '') {
+            $messages[] = 'Livestock group name is required.';
+        }
+
+        if ($messages !== []) {
+            throw new InvalidArgumentException(implode("\n", $messages));
+        }
+
+        $farm = $this->resolveFarm($farmName);
+        $livestock = $this->resolveLivestock($farm, $livestockName, $row, $warnings);
+
+        $tagNumber = filled($row['tag_number'] ?? null) ? trim((string) $row['tag_number']) : null;
 
         if ($tagNumber === null) {
             $tagNumber = $this->generateTagNumber($farm, $livestock);
             $warnings[] = __('Tag number was blank, so :tag was assigned.', ['tag' => $tagNumber]);
         }
 
+        $tagKey = $livestock->id.'|'.mb_strtolower($tagNumber);
+
+        if (isset($this->seenTags[$tagKey])) {
+            throw new InvalidArgumentException(
+                "Duplicate tag number \"{$tagNumber}\" in this file (also on row {$this->seenTags[$tagKey]})."
+            );
+        }
+
+        $exists = Animal::query()
+            ->where('livestock_id', $livestock->id)
+            ->where('tag_number', $tagNumber)
+            ->exists();
+
+        if ($exists) {
+            throw new InvalidArgumentException(
+                "An animal with tag number \"{$tagNumber}\" already exists in group \"{$livestock->name}\"."
+            );
+        }
+
+        $name = trim((string) ($row['name'] ?? ''));
+
+        if ($name === '') {
+            $name = $tagNumber;
+            $warnings[] = __('Name was blank, so the tag number was used as the name.');
+        }
+
+        $rawGender = trim((string) ($row['gender'] ?? ''));
+        $gender = match (strtolower($rawGender)) {
+            'm', 'male' => 'male',
+            'f', 'female' => 'female',
+            'u', 'unknown', '' => 'unknown',
+            default => 'unknown',
+        };
+
+        if ($rawGender === '') {
+            $warnings[] = __('Gender was blank, so unknown was used.');
+        } elseif (! in_array(strtolower($rawGender), ['male', 'female', 'unknown', 'm', 'f', 'u'], true)) {
+            $warnings[] = __('Gender ":from" was not recognised, so unknown was used.', ['from' => $rawGender]);
+        }
+
         $dateOfBirth = $this->normalizeImportDate($row['date_of_birth'] ?? null);
+
+        if ($dateOfBirth !== null && ! $this->isNormalizedDate($dateOfBirth)) {
+            $warnings[] = __('Date of birth ":date" was not recognised, so it was left blank.', ['date' => $dateOfBirth]);
+            $dateOfBirth = null;
+        }
 
         if ($this->isNormalizedDate($dateOfBirth) && $dateOfBirth > now()->toDateString()) {
             $warnings[] = __('Date of birth :date is in the future, so it was left blank.', ['date' => $dateOfBirth]);
@@ -103,56 +206,105 @@ class AnimalCsvImporter
         $rawProduction = $row['production_status'] ?? null;
         [$healthStatus, $productionStatus] = $this->normalizeHealthAndProduction($rawHealth, $rawProduction);
 
-        if ($rawProduction !== null && $rawProduction !== '' && $productionStatus !== null && $rawProduction !== $productionStatus) {
-            $warnings[] = __('Production status ":from" was mapped to :to.', [
-                'from' => $rawProduction,
-                'to' => $productionStatus,
-            ]);
-        }
-
-        if (
+        if ($healthStatus === null || ! in_array($healthStatus, config('modules.health_statuses'), true)) {
+            $warnings[] = filled($rawHealth)
+                ? __('Health status ":from" was not recognised, so Healthy was used.', ['from' => $rawHealth])
+                : __('Health status was blank, so Healthy was used.');
+            $healthStatus = 'Healthy';
+        } elseif (
             $productionStatus === 'Gestating'
             && $healthStatus === 'Pregnant'
             && in_array($this->aliasKey((string) ($rawHealth ?? '')), ['', 'healthy'], true)
         ) {
             $warnings[] = __('Health status was set to Pregnant so pregnancy filters can find this animal.');
-        } elseif ($rawHealth !== null && $rawHealth !== '' && $healthStatus !== null && $rawHealth !== $healthStatus) {
+        } elseif (filled($rawHealth) && $rawHealth !== $healthStatus) {
             $warnings[] = __('Health status ":from" was mapped to :to.', [
                 'from' => $rawHealth,
                 'to' => $healthStatus,
             ]);
         }
 
+        if ($productionStatus !== null && ! in_array($productionStatus, config('modules.production_statuses'), true)) {
+            $warnings[] = __('Production status ":from" was not recognised, so it was left blank.', [
+                'from' => $rawProduction ?? $productionStatus,
+            ]);
+            $productionStatus = null;
+        } elseif (filled($rawProduction) && $productionStatus !== null && $rawProduction !== $productionStatus) {
+            $warnings[] = __('Production status ":from" was mapped to :to.', [
+                'from' => $rawProduction,
+                'to' => $productionStatus,
+            ]);
+        }
+
+        $rawLifecycle = $row['lifecycle_status'] ?? null;
+        $lifecycleStatus = $this->normalizeLifecycleStatus($rawLifecycle);
+
+        if ($lifecycleStatus === null || ! in_array($lifecycleStatus, config('modules.lifecycle_statuses'), true)) {
+            $warnings[] = filled($rawLifecycle)
+                ? __('Lifecycle status ":from" was not recognised, so Active was used.', ['from' => $rawLifecycle])
+                : __('Lifecycle status was blank, so Active was used.');
+            $lifecycleStatus = 'Active';
+        }
+
         $rawAcquisition = $row['acquisition_type'] ?? null;
         $acquisitionType = $this->normalizeAcquisitionType($rawAcquisition);
 
-        if ($rawAcquisition !== null && $rawAcquisition !== '' && $acquisitionType !== null && $rawAcquisition !== $acquisitionType) {
+        if ($acquisitionType !== null && ! in_array($acquisitionType, config('modules.acquisition_types'), true)) {
+            $warnings[] = __('Acquisition type ":from" was not recognised, so it was left blank.', [
+                'from' => $rawAcquisition ?? $acquisitionType,
+            ]);
+            $acquisitionType = null;
+        } elseif (filled($rawAcquisition) && $acquisitionType !== null && $rawAcquisition !== $acquisitionType) {
             $warnings[] = __('Acquisition type ":from" was mapped to :to.', [
                 'from' => $rawAcquisition,
                 'to' => $acquisitionType,
             ]);
         }
 
+        $rawCondition = $row['current_condition'] ?? null;
+        $currentCondition = $this->normalizeCurrentCondition($rawCondition);
+
+        if ($currentCondition !== null && ! in_array($currentCondition, config('modules.current_conditions'), true)) {
+            $warnings[] = __('Current condition ":from" was not recognised, so it was left blank.', [
+                'from' => $rawCondition ?? $currentCondition,
+            ]);
+            $currentCondition = null;
+        }
+
+        $acquisitionDate = $this->normalizeImportDate($row['acquisition_date'] ?? null);
+
+        if ($acquisitionDate !== null && ! $this->isNormalizedDate($acquisitionDate)) {
+            $warnings[] = __('Acquisition date ":date" was not recognised, so it was left blank.', ['date' => $acquisitionDate]);
+            $acquisitionDate = null;
+        }
+
+        $weight = $row['weight_kg'] ?? null;
+
+        if ($weight !== null && $weight !== '' && ! is_numeric($weight)) {
+            $warnings[] = __('Weight ":weight" was not a number, so it was left blank.', ['weight' => $weight]);
+            $weight = null;
+        }
+
         $payload = [
             'farm_id' => $farm->id,
             'livestock_id' => $livestock->id,
             'tag_number' => $tagNumber,
-            'name' => $row['name'] ?? null,
-            'gender' => isset($row['gender']) ? strtolower((string) $row['gender']) : null,
+            'name' => $name,
+            'gender' => $gender,
             'health_status' => $healthStatus,
-            'lifecycle_status' => $this->normalizeLifecycleStatus($row['lifecycle_status'] ?? null),
+            'lifecycle_status' => $lifecycleStatus,
             'date_of_birth' => $dateOfBirth,
-            'weight_kg' => $row['weight_kg'] ?? null,
+            'weight_kg' => $weight === '' ? null : $weight,
             'color_markings' => $row['color_markings'] ?? null,
             'species' => $row['species'] ?? null,
             'breed' => $row['breed'] ?? null,
             'acquisition_type' => $acquisitionType,
-            'acquisition_date' => $this->normalizeImportDate($row['acquisition_date'] ?? null),
+            'acquisition_date' => $acquisitionDate,
             'source' => $row['source'] ?? null,
             'mother_tag' => $row['mother_tag'] ?? null,
             'father_tag' => $row['father_tag'] ?? null,
             'production_status' => $productionStatus,
-            'current_condition' => $this->normalizeCurrentCondition($row['current_condition'] ?? null),
+            'current_condition' => $currentCondition,
             'notes' => $row['notes'] ?? null,
         ];
 
@@ -162,13 +314,7 @@ class AnimalCsvImporter
                 'required',
                 Rule::exists('livestock', 'id')->where(fn ($query) => $query->where('farm_id', $farm->id)),
             ],
-            'tag_number' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('animals', 'tag_number')
-                    ->where(fn ($query) => $query->where('livestock_id', $livestock->id)),
-            ],
+            'tag_number' => ['required', 'string', 'max:100'],
             'name' => ['required', 'string', 'max:255'],
             'gender' => ['required', Rule::in(array_keys(config('modules.animal_genders')))],
             'date_of_birth' => ['nullable', 'date', 'before_or_equal:today'],
@@ -189,32 +335,33 @@ class AnimalCsvImporter
         ]);
 
         if ($validator->fails()) {
-            throw new InvalidArgumentException($validator->errors()->first());
+            throw new InvalidArgumentException(implode("\n", $validator->errors()->all()));
         }
 
-        return [$validator->validated(), $warnings];
+        Animal::create($validator->validated());
+
+        $this->seenTags[$tagKey] = $rowNumber;
+
+        return ['warnings' => $warnings];
     }
 
-    /**
-     * Tag numbers are required and unique per livestock group, so rows without
-     * one get the next free sequence number for that group.
-     */
     protected function generateTagNumber(Farm $farm, Livestock $livestock): string
     {
         $letters = preg_replace('/[^A-Za-z]/', '', (string) $farm->name) ?? '';
         $prefix = $letters === '' ? 'ANM' : strtoupper(substr($letters, 0, 3));
-
         $sequence = Animal::query()->where('livestock_id', $livestock->id)->count() + 1;
 
         while (true) {
             $candidate = sprintf('%s-%04d', $prefix, $sequence);
+            $tagKey = $livestock->id.'|'.mb_strtolower($candidate);
 
-            $taken = Animal::query()
+            $takenInFile = isset($this->seenTags[$tagKey]);
+            $takenInDb = Animal::query()
                 ->where('livestock_id', $livestock->id)
                 ->where('tag_number', $candidate)
                 ->exists();
 
-            if (! $taken) {
+            if (! $takenInFile && ! $takenInDb) {
                 return $candidate;
             }
 
@@ -226,12 +373,12 @@ class AnimalCsvImporter
      * @param  array<string, string|null>  $row
      * @param  list<string>  $warnings
      */
-    protected function resolveLivestock(Farm $farm, array $row, array &$warnings): Livestock
+    protected function resolveLivestock(Farm $farm, string $livestockName, array $row, array &$warnings): Livestock
     {
-        $livestockName = isset($row['livestock_name']) ? trim((string) $row['livestock_name']) : '';
+        $cacheKey = $farm->id.'|'.mb_strtolower($livestockName);
 
-        if ($livestockName === '') {
-            throw new InvalidArgumentException('Livestock group name is required.');
+        if (isset($this->livestockCache[$cacheKey])) {
+            return $this->livestockCache[$cacheKey];
         }
 
         $groups = Livestock::query()
@@ -246,7 +393,7 @@ class AnimalCsvImporter
         }
 
         if ($groups->isNotEmpty()) {
-            return $groups->first();
+            return $this->livestockCache[$cacheKey] = $groups->first();
         }
 
         $group = $this->createLivestockGroup($farm, $livestockName, $row);
@@ -255,7 +402,7 @@ class AnimalCsvImporter
             'farm' => $farm->name,
         ]);
 
-        return $group;
+        return $this->livestockCache[$cacheKey] = $group;
     }
 
     /**
@@ -319,14 +466,16 @@ class AnimalCsvImporter
         };
     }
 
-    protected function resolveFarm(?string $farmName): Farm
+    protected function resolveFarm(string $farmName): Farm
     {
-        if ($farmName === null || $farmName === '') {
-            throw new InvalidArgumentException('Farm name is required.');
+        $key = mb_strtolower($farmName);
+
+        if (isset($this->farmCache[$key])) {
+            return $this->farmCache[$key];
         }
 
         $farms = Farm::query()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($farmName))])
+            ->whereRaw('LOWER(name) = ?', [$key])
             ->get();
 
         if ($farms->isEmpty()) {
@@ -337,6 +486,6 @@ class AnimalCsvImporter
             throw new InvalidArgumentException("Farm name \"{$farmName}\" matches more than one farm.");
         }
 
-        return $farms->first();
+        return $this->farmCache[$key] = $farms->first();
     }
 }
