@@ -113,7 +113,7 @@ return [
                 'Growing',
                 'Breeding',
                 'Fattening',
-                'Gestating',
+                'Pregnancy',
                 'Not applicable',
             ],
             'labels' => [

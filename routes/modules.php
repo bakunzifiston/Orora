@@ -1,13 +1,12 @@
 <?php
 
+use App\Http\Controllers\AbattoirDispatchController;
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\AnimalImportExportController;
-use App\Http\Controllers\AbattoirDispatchController;
+use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\BirthRecordController;
 use App\Http\Controllers\BreedingModuleController;
 use App\Http\Controllers\BreedingRecordController;
-use App\Http\Controllers\PregnancyCheckController;
-use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CustomerAddressController;
 use App\Http\Controllers\CustomerCommunicationController;
@@ -16,6 +15,9 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerCreditController;
 use App\Http\Controllers\CustomerImportExportController;
 use App\Http\Controllers\CustomerModuleController;
+use App\Http\Controllers\DiseaseRecordController;
+use App\Http\Controllers\EggCollectionController;
+use App\Http\Controllers\EggModuleController;
 use App\Http\Controllers\EmployeeAddressController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeDocumentController;
@@ -28,11 +30,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseModuleController;
 use App\Http\Controllers\ExpenseVendorController;
-use App\Http\Controllers\EggCollectionController;
-use App\Http\Controllers\EggModuleController;
 use App\Http\Controllers\FarmController;
-use App\Http\Controllers\FlockController;
-use App\Http\Controllers\FinanceModuleController;
 use App\Http\Controllers\FeedCalculatorController;
 use App\Http\Controllers\FeedingController;
 use App\Http\Controllers\FeedingModuleController;
@@ -40,7 +38,8 @@ use App\Http\Controllers\FeedingScheduleController;
 use App\Http\Controllers\FeedInventoryController;
 use App\Http\Controllers\FeedSupplierController;
 use App\Http\Controllers\FeedTypeController;
-use App\Http\Controllers\DiseaseRecordController;
+use App\Http\Controllers\FinanceModuleController;
+use App\Http\Controllers\FlockController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
@@ -50,11 +49,13 @@ use App\Http\Controllers\MilkSessionController;
 use App\Http\Controllers\MilkStorageController;
 use App\Http\Controllers\MortalityController;
 use App\Http\Controllers\MovementController;
+use App\Http\Controllers\PregnancyCheckController;
 use App\Http\Controllers\SalesModuleController;
 use App\Http\Controllers\SaleTransactionController;
 use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\VaccinationController;
 use App\Http\Controllers\VetVisitController;
+use App\Http\Middleware\EnsureSpeciesModule;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -68,11 +69,16 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('farms', FarmController::class);
     Route::resource('livestock', LivestockController::class);
-    Route::middleware(\App\Http\Middleware\EnsureSpeciesModule::class)->group(function () {
+    Route::middleware(EnsureSpeciesModule::class)->group(function () {
         Route::get('animals/export', [AnimalImportExportController::class, 'export'])->name('animals.export');
         Route::get('animals/import/template', [AnimalImportExportController::class, 'template'])->name('animals.import.template');
         Route::get('animals/import', [AnimalImportExportController::class, 'create'])->name('animals.import');
         Route::post('animals/import', [AnimalImportExportController::class, 'store'])->name('animals.import.store');
+        Route::get('animals/import/preview', [AnimalImportExportController::class, 'preview'])->name('animals.import.preview');
+        Route::post('animals/import/confirm', [AnimalImportExportController::class, 'confirm'])->name('animals.import.confirm');
+        Route::get('animals/import/confirm-replace', [AnimalImportExportController::class, 'confirmReplace'])->name('animals.import.confirm-replace');
+        Route::post('animals/import/execute-replace', [AnimalImportExportController::class, 'executeReplace'])->name('animals.import.execute-replace');
+        Route::post('animals/import/cancel', [AnimalImportExportController::class, 'cancel'])->name('animals.import.cancel');
         Route::resource('animals', AnimalController::class);
         Route::resource('flocks', FlockController::class);
         Route::prefix('eggs')->name('eggs.')->group(function () {
@@ -139,7 +145,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/records', [ExpenseController::class, 'index'])->name('records');
         Route::resource('records', ExpenseController::class)->except(['show', 'index'])->parameters(['records' => 'expense']);
     });
-    Route::middleware(\App\Http\Middleware\EnsureSpeciesModule::class)->group(function () {
+    Route::middleware(EnsureSpeciesModule::class)->group(function () {
         Route::prefix('milk')->name('milk.')->group(function () {
             Route::get('/', [MilkModuleController::class, 'overview'])->name('overview');
             Route::redirect('/index', '/milk');
@@ -189,11 +195,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/transactions/{transaction}/confirm', [SaleTransactionController::class, 'confirm'])->name('transactions.confirm');
         Route::post('/transactions/{transaction}/complete', [SaleTransactionController::class, 'complete'])->name('transactions.complete');
         Route::post('/transactions/{transaction}/cancel', [SaleTransactionController::class, 'cancel'])->name('transactions.cancel');
-        Route::get('/abattoir', [AbattoirDispatchController::class, 'index'])->name('abattoir')->middleware(\App\Http\Middleware\EnsureSpeciesModule::class);
-        Route::get('/abattoir/create', [AbattoirDispatchController::class, 'create'])->name('abattoir.create')->middleware(\App\Http\Middleware\EnsureSpeciesModule::class);
-        Route::post('/abattoir', [AbattoirDispatchController::class, 'store'])->name('abattoir.store')->middleware(\App\Http\Middleware\EnsureSpeciesModule::class);
-        Route::get('/abattoir/{abattoirDispatch}', [AbattoirDispatchController::class, 'show'])->name('abattoir.show')->middleware(\App\Http\Middleware\EnsureSpeciesModule::class);
-        Route::post('/abattoir/{abattoirDispatch}/returns', [AbattoirDispatchController::class, 'storeReturn'])->name('abattoir.returns.store')->middleware(\App\Http\Middleware\EnsureSpeciesModule::class);
+        Route::get('/abattoir', [AbattoirDispatchController::class, 'index'])->name('abattoir')->middleware(EnsureSpeciesModule::class);
+        Route::get('/abattoir/create', [AbattoirDispatchController::class, 'create'])->name('abattoir.create')->middleware(EnsureSpeciesModule::class);
+        Route::post('/abattoir', [AbattoirDispatchController::class, 'store'])->name('abattoir.store')->middleware(EnsureSpeciesModule::class);
+        Route::get('/abattoir/{abattoirDispatch}', [AbattoirDispatchController::class, 'show'])->name('abattoir.show')->middleware(EnsureSpeciesModule::class);
+        Route::post('/abattoir/{abattoirDispatch}/returns', [AbattoirDispatchController::class, 'storeReturn'])->name('abattoir.returns.store')->middleware(EnsureSpeciesModule::class);
     });
     Route::redirect('/sales-legacy', '/sales/transactions');
 

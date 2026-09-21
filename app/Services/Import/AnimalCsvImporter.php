@@ -23,47 +23,137 @@ class AnimalCsvImporter
 
     public const MAX_ROWS = 2000;
 
+    public const ACTION_KEEP = 'keep';
+
+    public const ACTION_REPLACE = 'replace';
+
     /** @var array<string, Farm> */
     protected array $farmCache = [];
 
-    /** @var array<string, Livestock> */
+    /** @var array<string, Livestock|null> */
     protected array $livestockCache = [];
 
     /** @var array<string, int> tag keys already accepted in this import file */
     protected array $seenTags = [];
 
     /**
+     * Validate the file and classify rows without writing to the database.
+     *
+     * Duplicate detection uses the application's unique key: livestock_id + tag_number.
+     *
+     * @return array{
+     *     total: int,
+     *     new_count: int,
+     *     existing_count: int,
+     *     failed_count: int,
+     *     new_rows: list<array{row: int, tag_number: string, name: string, farm_name: string, livestock_name: string}>,
+     *     existing_rows: list<array{row: int, tag_number: string, name: string, existing_name: string, animal_id: int, farm_name: string, livestock_name: string}>,
+     *     errors: list<array{row: int, message: string, messages: list<string>}>,
+     *     warnings: list<array{row: int, message: string}>
+     * }
+     */
+    public function preview(UploadedFile $file): array
+    {
+        $this->resetRuntimeState();
+
+        try {
+            $rows = $this->loadRows($file);
+        } catch (InvalidArgumentException $e) {
+            return $this->fileLevelFailurePreview($e->getMessage());
+        }
+
+        $newRows = [];
+        $existingRows = [];
+        $errors = [];
+        $warnings = [];
+
+        foreach ($rows as $rowNumber => $row) {
+            $prepared = $this->prepareRow($row, $rowNumber, allowCreateLivestock: false);
+
+            foreach ($prepared['warnings'] as $message) {
+                $warnings[] = ['row' => $rowNumber, 'message' => $message];
+            }
+
+            if ($prepared['status'] === 'invalid') {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'message' => implode(' ', $prepared['messages']),
+                    'messages' => $prepared['messages'],
+                ];
+
+                continue;
+            }
+
+            $summary = [
+                'row' => $rowNumber,
+                'tag_number' => (string) $prepared['tag_number'],
+                'name' => (string) $prepared['name'],
+                'farm_name' => (string) ($row['farm_name'] ?? ''),
+                'livestock_name' => (string) ($row['livestock_name'] ?? ''),
+            ];
+
+            if ($prepared['status'] === 'existing') {
+                $existingRows[] = $summary + [
+                    'existing_name' => (string) $prepared['existing_name'],
+                    'animal_id' => (int) $prepared['animal_id'],
+                ];
+                $this->seenTags[$prepared['tag_key']] = $rowNumber;
+
+                continue;
+            }
+
+            $newRows[] = $summary;
+            $this->seenTags[$prepared['tag_key']] = $rowNumber;
+        }
+
+        return [
+            'total' => count($rows),
+            'new_count' => count($newRows),
+            'existing_count' => count($existingRows),
+            'failed_count' => count($errors),
+            'new_rows' => $newRows,
+            'existing_rows' => $existingRows,
+            'errors' => $errors,
+            'warnings' => $warnings,
+        ];
+    }
+
+    /**
+     * Persist a previously validated import file.
+     *
+     * @param  self::ACTION_KEEP|self::ACTION_REPLACE  $duplicateAction
      * @return array{
      *     created: int,
+     *     updated: int,
+     *     skipped: int,
      *     failed: int,
      *     total: int,
      *     errors: list<array{row: int, message: string, messages: list<string>}>,
      *     warnings: list<array{row: int, message: string}>
      * }
      */
-    public function import(UploadedFile $file): array
+    public function import(UploadedFile $file, string $duplicateAction = self::ACTION_KEEP): array
     {
-        $this->farmCache = [];
-        $this->livestockCache = [];
-        $this->seenTags = [];
+        if (! in_array($duplicateAction, [self::ACTION_KEEP, self::ACTION_REPLACE], true)) {
+            throw new InvalidArgumentException('Invalid duplicate action.');
+        }
+
+        $this->resetRuntimeState();
 
         $created = 0;
+        $updated = 0;
+        $skipped = 0;
         $failed = 0;
         $errors = [];
         $warnings = [];
 
         try {
-            [, $rows] = $this->readAnimalImportRows($file, self::MAX_ROWS);
-
-            $this->detectImportDateConvention(
-                array_merge(
-                    array_column($rows, 'date_of_birth'),
-                    array_column($rows, 'acquisition_date')
-                )
-            );
+            $rows = $this->loadRows($file);
         } catch (InvalidArgumentException $e) {
             return [
                 'created' => 0,
+                'updated' => 0,
+                'skipped' => 0,
                 'failed' => 1,
                 'total' => 0,
                 'errors' => [[
@@ -79,11 +169,15 @@ class AnimalCsvImporter
 
         foreach ($rows as $rowNumber => $row) {
             try {
-                $result = DB::transaction(function () use ($row, $rowNumber) {
-                    return $this->importRow($row, $rowNumber);
+                $result = DB::transaction(function () use ($row, $rowNumber, $duplicateAction) {
+                    return $this->persistRow($row, $rowNumber, $duplicateAction);
                 });
 
-                $created++;
+                match ($result['outcome']) {
+                    'created' => $created++,
+                    'updated' => $updated++,
+                    'skipped' => $skipped++,
+                };
 
                 foreach ($result['warnings'] as $message) {
                     $warnings[] = ['row' => $rowNumber, 'message' => $message];
@@ -113,14 +207,109 @@ class AnimalCsvImporter
             }
         }
 
-        return compact('created', 'failed', 'total', 'errors', 'warnings');
+        return compact('created', 'updated', 'skipped', 'failed', 'total', 'errors', 'warnings');
+    }
+
+    /**
+     * @return array<int, array<string, string|null>>
+     */
+    protected function loadRows(UploadedFile $file): array
+    {
+        [, $rows] = $this->readAnimalImportRows($file, self::MAX_ROWS);
+
+        $this->detectImportDateConvention(
+            array_merge(
+                array_column($rows, 'date_of_birth'),
+                array_column($rows, 'acquisition_date')
+            )
+        );
+
+        return $rows;
+    }
+
+    protected function resetRuntimeState(): void
+    {
+        $this->farmCache = [];
+        $this->livestockCache = [];
+        $this->seenTags = [];
+    }
+
+    /**
+     * @return array{
+     *     total: int,
+     *     new_count: int,
+     *     existing_count: int,
+     *     failed_count: int,
+     *     new_rows: list<array<string, mixed>>,
+     *     existing_rows: list<array<string, mixed>>,
+     *     errors: list<array{row: int, message: string, messages: list<string>}>,
+     *     warnings: list<array{row: int, message: string}>
+     * }
+     */
+    protected function fileLevelFailurePreview(string $message): array
+    {
+        return [
+            'total' => 0,
+            'new_count' => 0,
+            'existing_count' => 0,
+            'failed_count' => 1,
+            'new_rows' => [],
+            'existing_rows' => [],
+            'errors' => [[
+                'row' => 0,
+                'message' => $message,
+                'messages' => [$message],
+            ]],
+            'warnings' => [],
+        ];
     }
 
     /**
      * @param  array<string, string|null>  $row
-     * @return array{warnings: list<string>}
+     * @return array{outcome: 'created'|'updated'|'skipped', warnings: list<string>}
      */
-    protected function importRow(array $row, int $rowNumber): array
+    protected function persistRow(array $row, int $rowNumber, string $duplicateAction): array
+    {
+        $prepared = $this->prepareRow($row, $rowNumber, allowCreateLivestock: true);
+
+        if ($prepared['status'] === 'invalid') {
+            throw new InvalidArgumentException(implode("\n", $prepared['messages']));
+        }
+
+        $this->seenTags[$prepared['tag_key']] = $rowNumber;
+
+        if ($prepared['status'] === 'existing') {
+            if ($duplicateAction === self::ACTION_KEEP) {
+                return ['outcome' => 'skipped', 'warnings' => $prepared['warnings']];
+            }
+
+            /** @var Animal $animal */
+            $animal = Animal::query()->findOrFail($prepared['animal_id']);
+            $animal->update($prepared['payload']);
+
+            return ['outcome' => 'updated', 'warnings' => $prepared['warnings']];
+        }
+
+        Animal::create($prepared['payload']);
+
+        return ['outcome' => 'created', 'warnings' => $prepared['warnings']];
+    }
+
+    /**
+     * @param  array<string, string|null>  $row
+     * @return array{
+     *     status: 'new'|'existing'|'invalid',
+     *     messages: list<string>,
+     *     warnings: list<string>,
+     *     tag_number: ?string,
+     *     tag_key: ?string,
+     *     name: ?string,
+     *     animal_id: ?int,
+     *     existing_name: ?string,
+     *     payload: ?array<string, mixed>
+     * }
+     */
+    protected function prepareRow(array $row, int $rowNumber, bool $allowCreateLivestock): array
     {
         $warnings = [];
         $messages = [];
@@ -137,36 +326,48 @@ class AnimalCsvImporter
         }
 
         if ($messages !== []) {
-            throw new InvalidArgumentException(implode("\n", $messages));
+            return $this->invalidPreparation($messages, $warnings);
         }
 
-        $farm = $this->resolveFarm($farmName);
-        $livestock = $this->resolveLivestock($farm, $livestockName, $row, $warnings);
+        try {
+            $farm = $this->resolveFarm($farmName);
+            $livestock = $this->resolveLivestock($farm, $livestockName, $row, $warnings, $allowCreateLivestock);
+        } catch (InvalidArgumentException $e) {
+            return $this->invalidPreparation(
+                array_values(array_filter(array_map('trim', explode("\n", $e->getMessage())))),
+                $warnings
+            );
+        }
 
         $tagNumber = filled($row['tag_number'] ?? null) ? trim((string) $row['tag_number']) : null;
 
         if ($tagNumber === null) {
-            $tagNumber = $this->generateTagNumber($farm, $livestock);
-            $warnings[] = __('Tag number was blank, so :tag was assigned.', ['tag' => $tagNumber]);
+            if ($livestock === null) {
+                // Preview without a livestock group yet: assign a unique display placeholder.
+                $tagNumber = 'AUTO-'.$rowNumber;
+                $warnings[] = __('Tag number was blank, so one will be assigned on import.');
+            } else {
+                $tagNumber = $this->generateTagNumber($farm, $livestock);
+                $warnings[] = __('Tag number was blank, so :tag was assigned.', ['tag' => $tagNumber]);
+            }
         }
 
-        $tagKey = $livestock->id.'|'.mb_strtolower($tagNumber);
+        $tagKey = ($livestock?->id ?? 'new:'.mb_strtolower($farmName).':'.mb_strtolower($livestockName)).'|'
+            .mb_strtolower($tagNumber);
 
         if (isset($this->seenTags[$tagKey])) {
-            throw new InvalidArgumentException(
-                "Duplicate tag number \"{$tagNumber}\" in this file (also on row {$this->seenTags[$tagKey]})."
-            );
+            return $this->invalidPreparation([
+                "Duplicate tag number \"{$tagNumber}\" in this file (also on row {$this->seenTags[$tagKey]}).",
+            ], $warnings);
         }
 
-        $exists = Animal::query()
-            ->where('livestock_id', $livestock->id)
-            ->where('tag_number', $tagNumber)
-            ->exists();
+        $existing = null;
 
-        if ($exists) {
-            throw new InvalidArgumentException(
-                "An animal with tag number \"{$tagNumber}\" already exists in group \"{$livestock->name}\"."
-            );
+        if ($livestock !== null) {
+            $existing = Animal::query()
+                ->where('livestock_id', $livestock->id)
+                ->where('tag_number', $tagNumber)
+                ->first();
         }
 
         $name = trim((string) ($row['name'] ?? ''));
@@ -212,7 +413,7 @@ class AnimalCsvImporter
                 : __('Health status was blank, so Healthy was used.');
             $healthStatus = 'Healthy';
         } elseif (
-            $productionStatus === 'Gestating'
+            $productionStatus === 'Pregnancy'
             && $healthStatus === 'Pregnant'
             && in_array($this->aliasKey((string) ($rawHealth ?? '')), ['', 'healthy'], true)
         ) {
@@ -285,6 +486,21 @@ class AnimalCsvImporter
             $weight = null;
         }
 
+        // Preview of a brand-new livestock group: classify as new without validating FKs yet.
+        if ($livestock === null) {
+            return [
+                'status' => 'new',
+                'messages' => [],
+                'warnings' => $warnings,
+                'tag_number' => $tagNumber,
+                'tag_key' => $tagKey,
+                'name' => $name,
+                'animal_id' => null,
+                'existing_name' => null,
+                'payload' => null,
+            ];
+        }
+
         $payload = [
             'farm_id' => $farm->id,
             'livestock_id' => $livestock->id,
@@ -335,14 +551,66 @@ class AnimalCsvImporter
         ]);
 
         if ($validator->fails()) {
-            throw new InvalidArgumentException(implode("\n", $validator->errors()->all()));
+            return $this->invalidPreparation($validator->errors()->all(), $warnings);
         }
 
-        Animal::create($validator->validated());
+        $validated = $validator->validated();
 
-        $this->seenTags[$tagKey] = $rowNumber;
+        if ($existing !== null) {
+            return [
+                'status' => 'existing',
+                'messages' => [],
+                'warnings' => $warnings,
+                'tag_number' => $tagNumber,
+                'tag_key' => $tagKey,
+                'name' => $name,
+                'animal_id' => $existing->id,
+                'existing_name' => $existing->name,
+                'payload' => $validated,
+            ];
+        }
 
-        return ['warnings' => $warnings];
+        return [
+            'status' => 'new',
+            'messages' => [],
+            'warnings' => $warnings,
+            'tag_number' => $tagNumber,
+            'tag_key' => $tagKey,
+            'name' => $name,
+            'animal_id' => null,
+            'existing_name' => null,
+            'payload' => $validated,
+        ];
+    }
+
+    /**
+     * @param  list<string>  $messages
+     * @param  list<string>  $warnings
+     * @return array{
+     *     status: 'invalid',
+     *     messages: list<string>,
+     *     warnings: list<string>,
+     *     tag_number: null,
+     *     tag_key: null,
+     *     name: null,
+     *     animal_id: null,
+     *     existing_name: null,
+     *     payload: null
+     * }
+     */
+    protected function invalidPreparation(array $messages, array $warnings): array
+    {
+        return [
+            'status' => 'invalid',
+            'messages' => array_values($messages),
+            'warnings' => $warnings,
+            'tag_number' => null,
+            'tag_key' => null,
+            'name' => null,
+            'animal_id' => null,
+            'existing_name' => null,
+            'payload' => null,
+        ];
     }
 
     protected function generateTagNumber(Farm $farm, Livestock $livestock): string
@@ -373,11 +641,16 @@ class AnimalCsvImporter
      * @param  array<string, string|null>  $row
      * @param  list<string>  $warnings
      */
-    protected function resolveLivestock(Farm $farm, string $livestockName, array $row, array &$warnings): Livestock
-    {
+    protected function resolveLivestock(
+        Farm $farm,
+        string $livestockName,
+        array $row,
+        array &$warnings,
+        bool $allowCreateLivestock
+    ): ?Livestock {
         $cacheKey = $farm->id.'|'.mb_strtolower($livestockName);
 
-        if (isset($this->livestockCache[$cacheKey])) {
+        if (array_key_exists($cacheKey, $this->livestockCache)) {
             return $this->livestockCache[$cacheKey];
         }
 
@@ -394,6 +667,10 @@ class AnimalCsvImporter
 
         if ($groups->isNotEmpty()) {
             return $this->livestockCache[$cacheKey] = $groups->first();
+        }
+
+        if (! $allowCreateLivestock) {
+            return $this->livestockCache[$cacheKey] = null;
         }
 
         $group = $this->createLivestockGroup($farm, $livestockName, $row);

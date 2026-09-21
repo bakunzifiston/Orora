@@ -672,7 +672,7 @@ class FeedCalculatorService
             'dry' => 'dry',
             'growing' => $type === 'poultry' ? 'growing' : 'growing',
             'breeding' => 'breeding',
-            'gestating', 'pregnant' => 'pregnant',
+            'gestating', 'pregnant', 'pregnancy' => 'pregnant',
             'fattening' => $type === 'poultry' ? 'broiler' : 'growing',
             default => match ($type) {
                 'poultry' => 'growing',

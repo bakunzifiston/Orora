@@ -111,7 +111,7 @@ class AnimalCsvImportTest extends TenantTestCase
         $this->assertSame(1, $result['created'], json_encode($result['errors']));
         $animal = Animal::query()->where('tag_number', '2044169')->first();
         $this->assertSame('Pregnant', $animal->health_status);
-        $this->assertSame('Gestating', $animal->production_status);
+        $this->assertSame('Pregnancy', $animal->production_status);
         $this->assertSame('Born on farm', $animal->acquisition_type);
     }
 
@@ -191,7 +191,7 @@ class AnimalCsvImportTest extends TenantTestCase
         $this->assertStringContainsString('Duplicate tag number', $result['errors'][0]['message']);
     }
 
-    public function test_it_rejects_tags_already_in_the_database(): void
+    public function test_it_skips_tags_already_in_the_database_when_keeping_existing(): void
     {
         $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
         $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
@@ -200,12 +200,188 @@ class AnimalCsvImportTest extends TenantTestCase
         $result = $this->importRows(',', [
             $this->row(['tag_number' => 'EXIST-1', 'name' => 'Again']),
             $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
-        ]);
+        ], AnimalCsvImporter::ACTION_KEEP);
 
         $this->assertSame(1, $result['created']);
-        $this->assertSame(1, $result['failed']);
-        $this->assertStringContainsString('already exists', $result['errors'][0]['message']);
+        $this->assertSame(0, $result['updated']);
+        $this->assertSame(1, $result['skipped']);
+        $this->assertSame(0, $result['failed']);
+        $this->assertDatabaseHas('animals', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+        $this->assertDatabaseHas('animals', ['tag_number' => 'NEW-1', 'name' => 'Fresh']);
+        $this->assertSame(1, Animal::query()->where('tag_number', 'EXIST-1')->count());
+    }
+
+    public function test_it_updates_existing_animals_when_replacing(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        $existing = FarmTestFixtures::animal($farm, $livestock, 'female', [
+            'tag_number' => 'EXIST-1',
+            'name' => 'Existing',
+            'weight_kg' => 400,
+        ]);
+
+        $result = $this->importRows(',', [
+            $this->row(['tag_number' => 'EXIST-1', 'name' => 'Updated Name', 'weight_kg' => '550']),
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
+        ], AnimalCsvImporter::ACTION_REPLACE);
+
+        $this->assertSame(1, $result['created']);
+        $this->assertSame(1, $result['updated']);
+        $this->assertSame(0, $result['skipped']);
+        $this->assertSame(0, $result['failed']);
+
+        $existing->refresh();
+        $this->assertSame('Updated Name', $existing->name);
+        $this->assertSame('550.00', (string) $existing->weight_kg);
+        $this->assertSame(1, Animal::query()->where('tag_number', 'EXIST-1')->count());
+        $this->assertDatabaseHas('animals', ['tag_number' => 'NEW-1', 'name' => 'Fresh']);
+    }
+
+    public function test_preview_detects_new_existing_and_invalid_without_writing(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        FarmTestFixtures::animal($farm, $livestock, 'female', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+
+        $beforeAnimals = Animal::query()->count();
+        $beforeLivestock = Livestock::query()->count();
+
+        $preview = $this->previewRows(',', [
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
+            $this->row(['tag_number' => 'EXIST-1', 'name' => 'Again']),
+            $this->row(['farm_name' => 'Missing Farm', 'tag_number' => 'X-1']),
+        ]);
+
+        $this->assertSame(3, $preview['total']);
+        $this->assertSame(1, $preview['new_count']);
+        $this->assertSame(1, $preview['existing_count']);
+        $this->assertSame(1, $preview['failed_count']);
+        $this->assertSame($beforeAnimals, Animal::query()->count());
+        $this->assertSame($beforeLivestock, Livestock::query()->count());
+        $this->assertSame('EXIST-1', $preview['existing_rows'][0]['tag_number']);
+        $this->assertSame('Existing', $preview['existing_rows'][0]['existing_name']);
+    }
+
+    public function test_mixed_import_with_keep_reports_created_skipped_and_failed(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        FarmTestFixtures::animal($farm, $livestock, 'female', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+
+        $result = $this->importRows(',', [
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'One']),
+            $this->row(['tag_number' => 'NEW-2', 'name' => 'Two']),
+            $this->row(['tag_number' => 'EXIST-1', 'name' => 'Again']),
+            $this->row(['farm_name' => 'Missing Farm', 'tag_number' => 'BAD-1']),
+            $this->row(['farm_name' => 'Missing Farm', 'tag_number' => 'BAD-2']),
+        ], AnimalCsvImporter::ACTION_KEEP);
+
+        $this->assertSame(2, $result['created']);
+        $this->assertSame(0, $result['updated']);
+        $this->assertSame(1, $result['skipped']);
+        $this->assertSame(2, $result['failed']);
+        $this->assertDatabaseHas('animals', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+    }
+
+    public function test_http_preview_then_keep_existing_flow(): void
+    {
+        $this->actingAsTenantUser();
+
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        FarmTestFixtures::animal($farm, $livestock, 'female', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+
+        $path = $this->writeCsv(',', [
+            $this->row(['tag_number' => 'EXIST-1', 'name' => 'Again']),
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
+            $this->row(['farm_name' => 'Missing Farm', 'tag_number' => 'BAD-1']),
+        ]);
+
+        $this->post(route('animals.import.store'), [
+            'file' => new UploadedFile($path, 'animals.csv', 'text/csv', null, true),
+        ])->assertRedirect(route('animals.import.preview'));
+
+        $this->assertSame(1, Animal::query()->count());
+
+        $this->get(route('animals.import.preview'))
+            ->assertOk()
+            ->assertSee('Import preview')
+            ->assertSee('Existing animals')
+            ->assertSee('New animals');
+
+        $this->post(route('animals.import.confirm'), [
+            'duplicate_action' => AnimalCsvImporter::ACTION_KEEP,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('animals', ['tag_number' => 'NEW-1', 'name' => 'Fresh']);
+        $this->assertDatabaseHas('animals', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+        $this->assertSame(2, Animal::query()->count());
+    }
+
+    public function test_http_replace_requires_final_confirmation(): void
+    {
+        $this->actingAsTenantUser();
+
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        $existing = FarmTestFixtures::animal($farm, $livestock, 'female', [
+            'tag_number' => 'EXIST-1',
+            'name' => 'Existing',
+        ]);
+
+        $path = $this->writeCsv(',', [
+            $this->row(['tag_number' => 'EXIST-1', 'name' => 'Replaced']),
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
+        ]);
+
+        $this->post(route('animals.import.store'), [
+            'file' => new UploadedFile($path, 'animals.csv', 'text/csv', null, true),
+        ])->assertRedirect(route('animals.import.preview'));
+
+        $this->post(route('animals.import.confirm'), [
+            'duplicate_action' => AnimalCsvImporter::ACTION_REPLACE,
+        ])->assertRedirect(route('animals.import.confirm-replace'));
+
+        $existing->refresh();
+        $this->assertSame('Existing', $existing->name);
+        $this->assertSame(1, Animal::query()->count());
+
+        $this->get(route('animals.import.confirm-replace'))
+            ->assertOk()
+            ->assertSee('existing animals will be updated');
+
+        $this->post(route('animals.import.execute-replace'))
+            ->assertRedirect();
+
+        $existing->refresh();
+        $this->assertSame('Replaced', $existing->name);
         $this->assertDatabaseHas('animals', ['tag_number' => 'NEW-1']);
+        $this->assertSame(2, Animal::query()->count());
+    }
+
+    public function test_http_cancel_makes_no_changes(): void
+    {
+        $this->actingAsTenantUser();
+
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        $livestock = FarmTestFixtures::livestock($farm, ['name' => 'Cows (lactating)']);
+        FarmTestFixtures::animal($farm, $livestock, 'female', ['tag_number' => 'EXIST-1', 'name' => 'Existing']);
+
+        $path = $this->writeCsv(',', [
+            $this->row(['tag_number' => 'NEW-1', 'name' => 'Fresh']),
+        ]);
+
+        $this->post(route('animals.import.store'), [
+            'file' => new UploadedFile($path, 'animals.csv', 'text/csv', null, true),
+        ])->assertRedirect(route('animals.import.preview'));
+
+        $this->post(route('animals.import.confirm'), [
+            'duplicate_action' => 'cancel',
+        ])->assertRedirect(route('animals.import'));
+
+        $this->assertSame(1, Animal::query()->count());
+        $this->assertDatabaseMissing('animals', ['tag_number' => 'NEW-1']);
     }
 
     public function test_it_fails_missing_farm_without_creating_animals(): void
@@ -297,9 +473,35 @@ class AnimalCsvImportTest extends TenantTestCase
 
     /**
      * @param  list<array<string, string>>  $rows
-     * @return array{created: int, failed: int, total: int, errors: list<array{row: int, message: string}>, warnings: list<array{row: int, message: string}>}
+     * @return array{created: int, updated: int, skipped: int, failed: int, total: int, errors: list<array{row: int, message: string}>, warnings: list<array{row: int, message: string}>}
      */
-    private function importRows(string $delimiter, array $rows): array
+    private function importRows(string $delimiter, array $rows, string $duplicateAction = AnimalCsvImporter::ACTION_KEEP): array
+    {
+        $path = $this->writeCsv($delimiter, $rows);
+
+        return app(AnimalCsvImporter::class)->import(
+            new UploadedFile($path, 'animals.csv', 'text/csv', null, true),
+            $duplicateAction
+        );
+    }
+
+    /**
+     * @param  list<array<string, string>>  $rows
+     * @return array{total: int, new_count: int, existing_count: int, failed_count: int, errors: list<array{row: int, message: string}>}
+     */
+    private function previewRows(string $delimiter, array $rows): array
+    {
+        $path = $this->writeCsv($delimiter, $rows);
+
+        return app(AnimalCsvImporter::class)->preview(
+            new UploadedFile($path, 'animals.csv', 'text/csv', null, true)
+        );
+    }
+
+    /**
+     * @param  list<array<string, string>>  $rows
+     */
+    private function writeCsv(string $delimiter, array $rows): string
     {
         $headers = AnimalCsvSchema::headers();
         $lines = [implode($delimiter, $headers)];
@@ -311,8 +513,6 @@ class AnimalCsvImportTest extends TenantTestCase
         $path = tempnam(sys_get_temp_dir(), 'animals').'.csv';
         file_put_contents($path, implode("\r\n", $lines)."\r\n");
 
-        return app(AnimalCsvImporter::class)->import(
-            new UploadedFile($path, 'animals.csv', 'text/csv', null, true)
-        );
+        return $path;
     }
 }

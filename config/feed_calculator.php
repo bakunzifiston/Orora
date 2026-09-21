@@ -106,7 +106,7 @@ return [
     'input_sources' => [
         'animal_type' => 'Animal species, or first livestock type on the herd',
         'weight' => 'Animal profile → weight (kg)',
-        'production_status' => 'Animal profile → production status (e.g. Lactating, Gestating, Dry)',
+        'production_status' => 'Animal profile → production status (e.g. Lactating, Pregnancy, Dry)',
         'age' => 'Months from date of birth (defaults to 12 months if birth date is missing)',
         'milk_yield' => 'Average liters from the last 5 milk records (lactating cattle only)',
     ],
@@ -116,7 +116,7 @@ return [
         'Dry' => 'dry',
         'Growing' => 'growing',
         'Breeding' => 'breeding',
-        'Gestating' => 'pregnant',
+        'Pregnancy' => 'pregnant',
         'Fattening' => 'growing (poultry → broiler)',
     ],
 ];

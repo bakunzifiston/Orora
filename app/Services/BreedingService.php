@@ -257,7 +257,7 @@ class BreedingService
                 ]);
                 $female?->update([
                     'health_status' => 'Pregnant',
-                    'production_status' => 'Gestating',
+                    'production_status' => 'Pregnancy',
                 ]);
                 $this->log($breeding, 'confirmed_pregnant', 'Pregnancy confirmed.');
             })(),

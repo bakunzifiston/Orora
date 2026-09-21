@@ -10,13 +10,14 @@ trait NormalizesAnimalStatuses
      * @var array<string, string>
      */
     protected array $productionStatusAliases = [
-        'pregnancy' => 'Gestating',
-        'pregnant' => 'Gestating',
-        'pregnancy cow' => 'Gestating',
-        'pregnant cow' => 'Gestating',
-        'gestating cow' => 'Gestating',
-        'in calf' => 'Gestating',
-        'with calf' => 'Gestating',
+        'pregnancy' => 'Pregnancy',
+        'pregnant' => 'Pregnancy',
+        'pregnancy cow' => 'Pregnancy',
+        'pregnant cow' => 'Pregnancy',
+        'gestating' => 'Pregnancy',
+        'gestating cow' => 'Pregnancy',
+        'in calf' => 'Pregnancy',
+        'with calf' => 'Pregnancy',
         'milking' => 'Lactating',
         'lactating cow' => 'Lactating',
         'in milk' => 'Lactating',
@@ -107,7 +108,7 @@ trait NormalizesAnimalStatuses
 
         // Spreadsheets often put pregnancy only in production_status. The Animals
         // Health filter looks at health_status, so promote Healthy → Pregnant.
-        if ($normalizedProduction === 'Gestating' && in_array($normalizedHealth, [null, 'Healthy'], true)) {
+        if ($normalizedProduction === 'Pregnancy' && in_array($normalizedHealth, [null, 'Healthy'], true)) {
             $normalizedHealth = 'Pregnant';
         }
 

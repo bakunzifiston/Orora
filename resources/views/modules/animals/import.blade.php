@@ -11,6 +11,30 @@
     @include('modules.partials.flash')
 
     <div class="dash-farm-form">
+        @if (! empty($pendingImport['preview']))
+            <section class="dash-form-section">
+                <header class="dash-form-section__head">
+                    <span class="dash-form-section__number" aria-hidden="true">…</span>
+                    <div class="dash-form-section__titles">
+                        <h2 class="dash-form-section-title">{{ __('Pending import') }}</h2>
+                        <p class="dash-form-section-hint">{{ __('You still have a file waiting for confirmation.') }}</p>
+                    </div>
+                </header>
+                <div class="dash-form-section__body">
+                    <p class="dash-form-hint" style="margin-bottom: 1rem;">
+                        {{ __('File: :name', ['name' => $pendingImport['original_name'] ?? '—']) }}
+                    </p>
+                    <div class="dash-form-actions">
+                        <a href="{{ route('animals.import.preview') }}" class="dash-btn-save">{{ __('Continue preview') }}</a>
+                        <form method="POST" action="{{ route('animals.import.cancel') }}">
+                            @csrf
+                            <button type="submit" class="dash-btn-cancel">{{ __('Discard pending import') }}</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        @endif
+
         @component('modules.farms._form-section', [
             'number' => '1',
             'title' => __('CSV / Excel template'),
@@ -22,9 +46,9 @@
             <ul class="dash-import-tips">
                 <li>{{ __('Accepted files: .csv, .txt, .xlsx (max 5 MB, 2,000 rows).') }}</li>
                 <li>{{ __('Required columns: farm_name, livestock_name. Farm must already exist.') }}</li>
-                <li>{{ __('Missing livestock groups are created automatically for that farm.') }}</li>
-                <li>{{ __('Blank optional fields get safe defaults. Invalid optional values are cleared, not rejected.') }}</li>
-                <li>{{ __('Duplicate tag numbers (in the file or already registered in that group) are rejected with a row-level error.') }}</li>
+                <li>{{ __('Animals are matched by tag number within each livestock group.') }}</li>
+                <li>{{ __('If existing animals are found, you choose Replace, Keep, or Cancel before anything is saved.') }}</li>
+                <li>{{ __('Preview never writes to the database. Import runs only after you confirm.') }}</li>
                 <li>{{ __('Invalid rows are skipped; valid rows still import. Each failure lists the exact reason.') }}</li>
             </ul>
         @endcomponent
@@ -35,7 +59,7 @@
             @component('modules.farms._form-section', [
                 'number' => '2',
                 'title' => __('Upload file'),
-                'description' => __('CSV or Excel. Invalid rows are skipped and listed below with reasons.'),
+                'description' => __('CSV or Excel. You will see a preview before any animals are created or updated.'),
             ])
                 <div class="dash-form-grid">
                     <div class="dash-form-field dash-form-field--full">
@@ -51,7 +75,7 @@
             <div class="dash-form-section dash-form-section--actions">
                 <div class="dash-form-section__body">
                     <div class="dash-form-actions">
-                        <button type="submit" class="dash-btn-save">{{ __('Import animals') }}</button>
+                        <button type="submit" class="dash-btn-save">{{ __('Upload & preview') }}</button>
                         <a href="{{ route('animals.index') }}" class="dash-btn-cancel">{{ __('Cancel') }}</a>
                     </div>
                 </div>
@@ -75,8 +99,16 @@
                             <div class="dash-stat-value">{{ number_format($summary['total'] ?? 0) }}</div>
                         </div>
                         <div class="dash-stat-card">
-                            <div class="dash-stat-label">{{ __('Imported') }}</div>
+                            <div class="dash-stat-label">{{ __('Created') }}</div>
                             <div class="dash-stat-value accent">{{ number_format($summary['created'] ?? 0) }}</div>
+                        </div>
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-label">{{ __('Updated') }}</div>
+                            <div class="dash-stat-value">{{ number_format($summary['updated'] ?? 0) }}</div>
+                        </div>
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-label">{{ __('Skipped') }}</div>
+                            <div class="dash-stat-value">{{ number_format($summary['skipped'] ?? 0) }}</div>
                         </div>
                         <div class="dash-stat-card">
                             <div class="dash-stat-label">{{ __('Failed') }}</div>

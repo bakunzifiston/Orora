@@ -143,7 +143,7 @@ final class AnimalCsvSchema
             null,
             null,
             null,
-            'Gestating',
+            'Pregnancy',
             'Good',
             null,
         ];
