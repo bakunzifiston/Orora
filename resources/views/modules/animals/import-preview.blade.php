@@ -3,13 +3,6 @@
 @section('title', __('Import preview'))
 
 @section('content')
-    @include('modules.partials.header', [
-        'title' => __('Import preview'),
-        'subtitle' => __('Review the file before any animals are created or updated.'),
-        'backRoute' => 'animals.import',
-    ])
-    @include('modules.partials.flash')
-
     @php
         $newCount = (int) ($preview['new_count'] ?? 0);
         $existingCount = (int) ($preview['existing_count'] ?? 0);
@@ -19,100 +12,146 @@
         $canProceed = ($newCount + $existingCount) > 0;
     @endphp
 
-    <div class="dash-farm-form">
-        @component('modules.farms._form-section', [
-            'number' => '1',
+    <div class="farm-dash farms-page health-page animal-import-page">
+        @include('modules.partials.header', [
             'title' => __('Import preview'),
-            'description' => __('No database changes have been made yet. Existing animals are matched by tag number within the livestock group.'),
+            'backRoute' => 'animals.import',
         ])
-            <p class="dash-form-hint" style="margin-bottom: 1rem;">
-                {{ __('File: :name', ['name' => $pending['original_name'] ?? '—']) }}
-            </p>
-            <div class="dash-health-stats">
-                <div class="dash-stat-card">
-                    <div class="dash-stat-label">{{ __('Rows in file') }}</div>
-                    <div class="dash-stat-value">{{ number_format($total) }}</div>
+        @include('modules.partials.flash')
+
+        <p class="animal-import-page__file-meta">
+            {{ __('File: :name', ['name' => $pending['original_name'] ?? '—']) }}
+            <span aria-hidden="true">·</span>
+            {{ __('Nothing has been saved yet') }}
+        </p>
+
+        <section class="farm-dash__section" aria-label="{{ __('Preview summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <div class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'box'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Rows in file') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($total) }}</div>
+                    </div>
                 </div>
-                <div class="dash-stat-card">
-                    <div class="dash-stat-label">{{ __('New animals') }}</div>
-                    <div class="dash-stat-value accent">{{ number_format($newCount) }}</div>
+                <div class="farm-kpi farm-kpi--production">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('New animals') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($newCount) }}</div>
+                    </div>
                 </div>
-                <div class="dash-stat-card">
-                    <div class="dash-stat-label">{{ __('Existing animals') }}</div>
-                    <div class="dash-stat-value">{{ number_format($existingCount) }}</div>
+                <div class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'movement'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Existing animals') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($existingCount) }}</div>
+                    </div>
                 </div>
-                <div class="dash-stat-card">
-                    <div class="dash-stat-label">{{ __('Invalid rows') }}</div>
-                    <div class="dash-stat-value">{{ number_format($failedCount) }}</div>
+                <div class="farm-kpi farm-kpi--expense">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'certificate'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Invalid rows') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($failedCount) }}</div>
+                    </div>
                 </div>
             </div>
-        @endcomponent
+        </section>
 
         @if ($hasExisting)
-            @component('modules.farms._form-section', [
-                'number' => '2',
-                'title' => __('Existing animals found'),
-                'description' => __(':count animals in this file already exist in the system.', ['count' => $existingCount]),
-            ])
-                <div class="dash-table-wrap" style="margin-bottom: 1.25rem;">
-                    <table class="dash-table">
+            <section class="farm-panel animal-import-page__table-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Existing animals found') }}</h2>
+                        <p class="farm-panel__desc">
+                            {{ __(':count animals in this file already exist (matched by tag within the group).', ['count' => $existingCount]) }}
+                        </p>
+                    </div>
+                </header>
+                <div class="dash-table-wrap">
+                    <table class="health-table">
                         <thead>
                             <tr>
-                                <th class="dash-table__row-col">{{ __('Row') }}</th>
-                                <th>{{ __('Tag') }}</th>
-                                <th>{{ __('File name') }}</th>
+                                <th>{{ __('Animal') }}</th>
                                 <th>{{ __('Current name') }}</th>
                                 <th>{{ __('Group') }}</th>
+                                <th>{{ __('Row') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (array_slice($preview['existing_rows'] ?? [], 0, 25) as $row)
                                 <tr>
-                                    <td>{{ $row['row'] }}</td>
-                                    <td>{{ $row['tag_number'] }}</td>
-                                    <td>{{ $row['name'] }}</td>
-                                    <td>{{ $row['existing_name'] }}</td>
-                                    <td>{{ $row['livestock_name'] }}</td>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'animal', 'tone' => 'warn'])
+                                            <div class="health-table__stack">
+                                                <span class="health-table__title">{{ $row['tag_number'] }}</span>
+                                                <span class="health-table__meta">{{ $row['name'] ?: __('No name in file') }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $row['existing_name'] ?: '—' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__value">{{ $row['livestock_name'] }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="health-table__meta">{{ $row['row'] }}</span>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
                 @if (count($preview['existing_rows'] ?? []) > 25)
-                    <p class="dash-form-hint">{{ __('Showing the first 25 existing animals.') }}</p>
+                    <p class="animal-import-page__note">{{ __('Showing the first 25 existing animals.') }}</p>
                 @endif
-
-                <p style="margin-bottom: 0.75rem; font-weight: 600;">{{ __('What would you like to do?') }}</p>
-            @endcomponent
+            </section>
         @endif
 
         @if (! empty($preview['errors']))
-            @component('modules.farms._form-section', [
-                'number' => $hasExisting ? '3' : '2',
-                'title' => __('Invalid rows'),
-                'description' => __('These rows will not be imported. Valid rows can still proceed.'),
-            ])
+            <section class="farm-panel animal-import-page__table-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Invalid rows') }}</h2>
+                        <p class="farm-panel__desc">{{ __('These rows will not be imported. Valid rows can still proceed.') }}</p>
+                    </div>
+                </header>
                 <div class="dash-table-wrap">
-                    <table class="dash-table">
+                    <table class="health-table">
                         <thead>
                             <tr>
-                                <th class="dash-table__row-col">{{ __('Row') }}</th>
+                                <th>{{ __('Row') }}</th>
                                 <th>{{ __('Error') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($preview['errors'] as $error)
                                 <tr>
-                                    <td>{{ ($error['row'] ?? 0) > 0 ? $error['row'] : '—' }}</td>
+                                    <td>
+                                        <div class="health-table__primary">
+                                            @include('modules.health.partials.table-icon', ['icon' => 'certificate', 'tone' => 'bad'])
+                                            <span class="health-table__value">{{ ($error['row'] ?? 0) > 0 ? $error['row'] : '—' }}</span>
+                                        </div>
+                                    </td>
                                     <td>
                                         @if (! empty($error['messages']) && count($error['messages']) > 1)
-                                            <ul style="margin: 0; padding-left: 1.1rem;">
+                                            <ul class="animal-import-page__error-list">
                                                 @foreach ($error['messages'] as $message)
                                                     <li>{{ $message }}</li>
                                                 @endforeach
                                             </ul>
                                         @else
-                                            {{ $error['message'] ?? '' }}
+                                            <span class="health-table__value">{{ $error['message'] ?? '' }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -120,54 +159,61 @@
                         </tbody>
                     </table>
                 </div>
-            @endcomponent
+            </section>
         @endif
 
-        <form method="POST" action="{{ route('animals.import.confirm') }}" class="animal-import-confirm-form">
-            @csrf
-
-            <div class="dash-form-section dash-form-section--actions">
-                <div class="dash-form-section__body">
-                    @if (! $canProceed)
-                        <p class="dash-form-hint" style="margin-bottom: 1rem;">
-                            {{ __('There are no valid animals to import from this file.') }}
-                        </p>
-                        <div class="dash-form-actions">
-                            <button type="submit" name="duplicate_action" value="cancel" class="dash-btn-cancel">{{ __('Cancel import') }}</button>
-                            <a href="{{ route('animals.import') }}" class="dash-btn-cancel">{{ __('Upload a different file') }}</a>
-                        </div>
-                    @elseif ($hasExisting)
-                        <div class="dash-form-actions" style="flex-wrap: wrap; gap: 0.75rem;">
-                            <button type="submit" name="duplicate_action" value="replace" class="dash-btn-save">
-                                {{ __('Replace existing') }}
-                            </button>
-                            <button type="submit" name="duplicate_action" value="keep" class="dash-btn-save" style="background: transparent; color: inherit; border: 1px solid currentColor;">
-                                {{ __('Keep existing') }}
-                            </button>
-                            <button type="submit" name="duplicate_action" value="cancel" class="dash-btn-cancel">
-                                {{ __('Cancel import') }}
-                            </button>
-                        </div>
-                        <ul class="dash-import-tips" style="margin-top: 1rem;">
-                            <li>{{ __('Replace Existing — update matching animals with values from this file. Primary keys stay the same.') }}</li>
-                            <li>{{ __('Keep Existing — leave current records unchanged and only import new animals.') }}</li>
-                            <li>{{ __('Cancel Import — discard this upload. Nothing is saved.') }}</li>
-                        </ul>
+        <section class="farm-panel">
+            <header class="farm-panel__head">
+                <div>
+                    <h2 class="farm-panel__title">{{ __('Next step') }}</h2>
+                    @if ($hasExisting)
+                        <p class="farm-panel__desc">{{ __('Choose how to handle animals that already exist.') }}</p>
+                    @elseif ($canProceed)
+                        <p class="farm-panel__desc">{{ __('Ready to create new animals from this file.') }}</p>
                     @else
-                        <div class="dash-form-actions">
-                            <button type="submit" name="duplicate_action" value="keep" class="dash-btn-save">
-                                {{ __('Import :count new animals', ['count' => $newCount]) }}
-                            </button>
-                            <button type="submit" name="duplicate_action" value="cancel" class="dash-btn-cancel">
-                                {{ __('Cancel import') }}
-                            </button>
-                        </div>
+                        <p class="farm-panel__desc">{{ __('There are no valid animals to import from this file.') }}</p>
                     @endif
-                    @error('duplicate_action')
-                        <p class="dash-form-error">{{ $message }}</p>
-                    @enderror
                 </div>
-            </div>
-        </form>
+            </header>
+
+            <form method="POST" action="{{ route('animals.import.confirm') }}" class="animal-import-page__form">
+                @csrf
+
+                @if (! $canProceed)
+                    <div class="animal-import-page__actions">
+                        <button type="submit" name="duplicate_action" value="cancel" class="dash-farm-card__btn">{{ __('Cancel import') }}</button>
+                        <a href="{{ route('animals.import') }}" class="dash-btn-save">{{ __('Upload a different file') }}</a>
+                    </div>
+                @elseif ($hasExisting)
+                    <div class="animal-import-page__choice-grid">
+                        <button type="submit" name="duplicate_action" value="replace" class="animal-import-page__choice">
+                            <span class="animal-import-page__choice-title">{{ __('Replace existing') }}</span>
+                            <span class="animal-import-page__choice-desc">{{ __('Update matching animals with values from this file.') }}</span>
+                        </button>
+                        <button type="submit" name="duplicate_action" value="keep" class="animal-import-page__choice">
+                            <span class="animal-import-page__choice-title">{{ __('Keep existing') }}</span>
+                            <span class="animal-import-page__choice-desc">{{ __('Leave current records unchanged and only import new animals.') }}</span>
+                        </button>
+                        <button type="submit" name="duplicate_action" value="cancel" class="animal-import-page__choice animal-import-page__choice--muted">
+                            <span class="animal-import-page__choice-title">{{ __('Cancel import') }}</span>
+                            <span class="animal-import-page__choice-desc">{{ __('Discard this upload. Nothing is saved.') }}</span>
+                        </button>
+                    </div>
+                @else
+                    <div class="animal-import-page__actions">
+                        <button type="submit" name="duplicate_action" value="keep" class="dash-btn-save">
+                            {{ __('Import :count new animals', ['count' => $newCount]) }}
+                        </button>
+                        <button type="submit" name="duplicate_action" value="cancel" class="dash-farm-card__btn">
+                            {{ __('Cancel import') }}
+                        </button>
+                    </div>
+                @endif
+
+                @error('duplicate_action')
+                    <p class="dash-form-error">{{ $message }}</p>
+                @enderror
+            </form>
+        </section>
     </div>
 @endsection

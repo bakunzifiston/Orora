@@ -295,17 +295,6 @@ class DashboardAnalyticsService
 
         $lowStock = $this->lowFeedStockCount($farmId);
 
-        $pregnant = BreedingRecord::query()
-            ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
-            ->where('breeding_status', 'confirmed_pregnant')
-            ->count();
-
-        $upcomingCalvings = BreedingRecord::query()
-            ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
-            ->where('breeding_status', 'confirmed_pregnant')
-            ->whereBetween('expected_calving_date', [now()->toDateString(), now()->addDays(60)->toDateString()])
-            ->count();
-
         $strips = [
             [
                 'key' => 'health',
@@ -353,18 +342,25 @@ class DashboardAnalyticsService
             ];
         } else {
             $strips[] = [
-                'key' => 'breeding',
-                'label' => 'Breeding',
-                'route' => 'breeding.overview',
-                'icon' => 'breeding',
+                'key' => 'stock',
+                'label' => 'Herd groups',
+                'route' => 'animals.index',
+                'icon' => 'livestock',
                 'metrics' => [
-                    ['label' => 'Pregnant', 'value' => number_format($pregnant)],
-                    ['label' => 'Calvings (60d)', 'value' => number_format($upcomingCalvings)],
+                    ['label' => 'Pregnant Cows', 'value' => number_format($this->herdGroupAnimalCount($farmId, 'Pregnant Cows'))],
+                    ['label' => 'Calves Group', 'value' => number_format($this->herdGroupAnimalCount($farmId, 'Calves Group'))],
                 ],
             ];
         }
 
         return $strips;
+    }
+
+    private function herdGroupAnimalCount(?int $farmId, string $herdGroup): int
+    {
+        return $this->farmScope(Animal::query(), $farmId)
+            ->whereHas('livestock', fn (Builder $query) => $query->whereJsonContains('herd_groups', $herdGroup))
+            ->count();
     }
 
     /**

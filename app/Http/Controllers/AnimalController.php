@@ -92,7 +92,7 @@ class AnimalController extends Controller
         ];
 
         $moduleKpis = collect($analytics->operationModuleKpis($farmId))
-            ->reject(fn (array $kpi) => in_array($kpi['key'] ?? '', ['health', 'breeding'], true))
+            ->reject(fn (array $kpi) => in_array($kpi['key'] ?? '', ['health', 'breeding', 'stock'], true))
             ->values()
             ->all();
 

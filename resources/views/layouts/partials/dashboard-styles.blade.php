@@ -2503,6 +2503,129 @@
         max-width: 16rem;
         margin-inline: auto;
     }
+    .animal-import-page .dash-page-header,
+    .animal-import-page .dash-flash,
+    .animal-import-page > .dash-alert {
+        margin-bottom: 0;
+    }
+    .animal-import-page__banner {
+        margin-bottom: 1rem;
+    }
+    .animal-import-page__grid {
+        margin-bottom: 1rem;
+    }
+    .animal-import-page__tips {
+        list-style: none;
+        margin: 0 0 1rem;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+    .animal-import-page__tips li {
+        position: relative;
+        padding-left: 1rem;
+        font-size: 0.8125rem;
+        color: var(--farm-muted);
+        line-height: 1.4;
+    }
+    .animal-import-page__tips li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.45rem;
+        width: 0.35rem;
+        height: 0.35rem;
+        border-radius: 999px;
+        background: #A4D400;
+    }
+    .animal-import-page__form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .animal-import-page__file input[type="file"] {
+        width: 100%;
+        font-size: 0.8125rem;
+        padding: 0.55rem 0.65rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.45rem;
+        background: #fff;
+    }
+    .animal-import-page__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .animal-import-page__actions form {
+        margin: 0;
+        display: inline-flex;
+    }
+    .animal-import-page__file-meta {
+        margin: 0 0 0.85rem;
+        font-size: 0.8125rem;
+        color: var(--farm-muted);
+    }
+    .animal-import-page__note {
+        margin: 0.75rem 0 0;
+        font-size: 0.75rem;
+        color: var(--farm-muted);
+    }
+    .animal-import-page__table-panel {
+        margin-bottom: 1rem;
+        padding-bottom: 0.35rem;
+    }
+    .animal-import-page__table-panel .dash-table-wrap {
+        margin: 0 -0.15rem;
+    }
+    .animal-import-page__error-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.8125rem;
+        color: #334155;
+    }
+    .animal-import-page__choice-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.65rem;
+    }
+    .animal-import-page__choice {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+        text-align: left;
+        padding: 0.9rem 1rem;
+        border: 1px solid var(--farm-border);
+        border-radius: 0.65rem;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .animal-import-page__choice:hover {
+        border-color: rgba(164, 212, 0, 0.45);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+        transform: translateY(-1px);
+    }
+    .animal-import-page__choice--muted {
+        background: #f8fafc;
+    }
+    .animal-import-page__choice-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .animal-import-page__choice-desc {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        line-height: 1.4;
+    }
+    @media (max-width: 900px) {
+        .animal-import-page__choice-grid {
+            grid-template-columns: 1fr;
+        }
+    }
     .health-page__side-panel {
         margin-bottom: 1rem;
         padding-bottom: 0.35rem;
