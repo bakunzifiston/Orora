@@ -1,91 +1,136 @@
 @extends('layouts.admin')
 
-@section('title', 'Farms')
+@section('title', __('Farms'))
 
 @section('content')
-    @if (empty($farmsReady))
-        <div class="dash-panel">
-            <p class="dash-empty">Farm tables are not set up yet. Run <code>php artisan migrate --force</code>.</p>
-        </div>
-    @else
-        @include('central.users.partials.toolbar')
+    <div class="farm-dash farms-page health-page admin-dash admin-farms">
+        @if (empty($farmsReady))
+            <article class="farm-panel">
+                <p class="dash-empty">{{ __('Farm tables are not set up yet. Run php artisan migrate --force.') }}</p>
+            </article>
+        @else
+            @include('central.users.partials.toolbar')
 
-        @if (! empty($filtersActive))
-            <section class="dash-ops-row" aria-label="Filtered summary" style="margin-bottom: 1.25rem;">
-                @include('central.partials.platform-kpis', ['filters' => $filters, 'hideAccountKpis' => true])
+            @include('central.partials.platform-kpis', ['filters' => $filters, 'hideAccountKpis' => true])
+
+            <section class="farm-dash__section" aria-label="{{ __('All farms') }}">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('All farms') }}</h2>
+                            <p class="farm-panel__desc">{{ number_format($farms->total()) }} {{ __('total') }}</p>
+                        </div>
+                    </header>
+
+                    @if ($farms->isEmpty())
+                        <p class="dash-empty">
+                            @if (! empty($filtersActive))
+                                {{ __('No farms match the selected filters.') }}
+                            @else
+                                {{ __('No farms registered yet.') }}
+                            @endif
+                        </p>
+                    @else
+                        <div class="dash-table-wrap">
+                            <table class="health-table">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Farm') }}</th>
+                                        <th>{{ __('Type') }}</th>
+                                        <th>{{ __('Owner') }}</th>
+                                        <th>{{ __('Location') }}</th>
+                                        <th>{{ __('Account') }}</th>
+                                        <th>{{ __('Stock') }}</th>
+                                        <th>{{ __('Registered') }}</th>
+                                        <th class="health-table__actions">{{ __('Actions') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($farms as $farm)
+                                        @php
+                                            $isPoultry = ($farm->primary_species ?? null) === 'poultry';
+                                            $statusTone = match ($farm->status) {
+                                                'active' => 'ok',
+                                                'pending' => 'warn',
+                                                'suspended' => 'bad',
+                                                default => 'muted',
+                                            };
+                                            $owner = $farm->requiresOrganizationDetails()
+                                                ? ($farm->organization_name ?: '—')
+                                                : ($farm->owner_full_name ?: '—');
+                                            $accountEmail = $accountEmails[$farm->tenant_id] ?? null;
+                                            $farmQuery = http_build_query(request()->only(['period', 'from', 'to', 'farm_id', 'province_code', 'district_code']));
+                                            $showUrl = route('central.farms.show', $farm).($farmQuery ? '?'.$farmQuery : '');
+                                            $stockLabel = $isPoultry
+                                                ? number_format($farm->flocks_count ?? 0).' '.__('flocks')
+                                                : number_format($farm->animals_count).' '.__('animals');
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <div class="health-table__primary">
+                                                    @include('modules.health.partials.table-icon', ['icon' => 'farm', 'tone' => $statusTone])
+                                                    <div class="health-table__stack">
+                                                        <a href="{{ $showUrl }}" class="health-table__title health-table__title--link">{{ $farm->name }}</a>
+                                                        @if ($farm->status)
+                                                            <span class="health-table__meta">{{ ucfirst($farm->status) }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__pill health-table__pill--{{ $isPoultry ? 'warn' : 'ok' }}">
+                                                    {{ $isPoultry ? __('Poultry') : __('Cattle') }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__value">{{ $owner }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__value">{{ Str::limit($farm->location_label ?: '—', 42) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__meta">{{ $accountEmail ?: '—' }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__value">{{ $stockLabel }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__meta">{{ $farm->created_at?->format('M j, Y') ?? '—' }}</span>
+                                            </td>
+                                            <td class="health-table__actions">
+                                                <div class="health-table__action-btns">
+                                                    <a href="{{ $showUrl }}" class="dash-btn-save dash-btn-save--sm">{{ __('View') }}</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="dash-pagination">{{ $farms->links() }}</div>
+                    @endif
+                </article>
             </section>
         @endif
-
-        <div class="dash-panel dash-panel--flush dash-data-table-panel">
-            <div class="admin-panel-head" style="padding: 1.25rem 1.25rem 0;">
-                <h2 class="dash-panel-title">All farms</h2>
-                <span class="admin-panel-meta">{{ number_format($farms->total()) }}</span>
-            </div>
-
-            @if ($farms->isEmpty())
-                <p class="dash-data-table__empty">
-                    @if (! empty($filtersActive))
-                        No farms match the selected filters.
-                    @else
-                        No farms registered yet.
-                    @endif
-                </p>
-            @else
-                <div class="dash-data-table-wrap">
-                    <table class="dash-data-table">
-                        <thead>
-                            <tr>
-                                <th>Farm</th>
-                                <th>Owner</th>
-                                <th>Location</th>
-                                <th>Account</th>
-                                <th class="dash-data-table__num">Groups</th>
-                                <th class="dash-data-table__num">Animals</th>
-                                <th>Registered</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($farms as $farm)
-                                @php
-                                    $statusBadge = match ($farm->status) {
-                                        'active' => 'dash-data-table__badge--active',
-                                        'pending' => 'dash-data-table__badge--pending',
-                                        'suspended' => 'dash-data-table__badge--suspended',
-                                        default => 'dash-data-table__badge--inactive',
-                                    };
-                                    $owner = $farm->requiresOrganizationDetails()
-                                        ? ($farm->organization_name ?: '—')
-                                        : ($farm->owner_full_name ?: '—');
-                                    $accountEmail = $accountEmails[$farm->tenant_id] ?? null;
-                                    $farmQuery = http_build_query(request()->only(['period', 'from', 'to', 'farm_id', 'province_code', 'district_code']));
-                                @endphp
-                                <tr>
-                                    <td>
-                                        <div class="dash-data-table__primary">
-                                            <div class="dash-data-table__title-row">
-                                                <a href="{{ route('central.farms.show', $farm).($farmQuery ? '?'.$farmQuery : '') }}" class="dash-data-table__link">{{ $farm->name }}</a>
-                                                @if ($farm->status)
-                                                    <span class="dash-data-table__badge {{ $statusBadge }}">{{ $farm->status }}</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="dash-data-table__muted">{{ $owner }}</td>
-                                    <td class="dash-data-table__muted">{{ Str::limit($farm->location_label ?: '—', 42) }}</td>
-                                    <td class="dash-data-table__muted">{{ $accountEmail ?: '—' }}</td>
-                                    <td class="dash-data-table__num">{{ number_format($farm->livestock_count) }}</td>
-                                    <td class="dash-data-table__num">{{ number_format($farm->animals_count) }}</td>
-                                    <td class="dash-data-table__muted">{{ $farm->created_at?->format('M j, Y') ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="dash-pagination">{{ $farms->links() }}</div>
-            @endif
-        </div>
-    @endif
+    </div>
 @endsection
+
+@push('styles')
+    @include('central.dashboard.partials.styles')
+    <style>
+        .admin-farms .farm-kpi:not(a) {
+            cursor: default;
+        }
+        .admin-farms .farm-kpi:not(a):hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .admin-farms .health-table__action-btns .dash-btn-save--sm {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script>
@@ -125,7 +170,7 @@
                     return;
                 }
 
-                districtSelect.innerHTML = '<option value="">All districts</option>';
+                districtSelect.innerHTML = '<option value="">{{ __('All districts') }}</option>';
 
                 if (!provinceCode) {
                     districtSelect.disabled = true;

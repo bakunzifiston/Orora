@@ -18,6 +18,7 @@ class ContactMessageController extends Controller
                 'activeNav' => 'contact',
                 'messages' => MarketplaceDatabase::emptyPaginator(),
                 'contactReady' => false,
+                'stats' => $this->emptyStats(),
             ]);
         }
 
@@ -25,10 +26,18 @@ class ContactMessageController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
+        $base = ContactMessage::query();
+
         return view('central.contact-messages.index', [
             'activeNav' => 'contact',
             'messages' => $messages,
             'contactReady' => true,
+            'stats' => [
+                'total' => (clone $base)->count(),
+                'new' => (clone $base)->where('status', 'new')->count(),
+                'read' => (clone $base)->where('status', 'read')->count(),
+                'replied' => (clone $base)->where('status', 'replied')->count(),
+            ],
         ]);
     }
 
@@ -44,5 +53,18 @@ class ContactMessageController extends Controller
         ]);
 
         return back()->with('success', 'Message updated.');
+    }
+
+    /**
+     * @return array{total: int, new: int, read: int, replied: int}
+     */
+    private function emptyStats(): array
+    {
+        return [
+            'total' => 0,
+            'new' => 0,
+            'read' => 0,
+            'replied' => 0,
+        ];
     }
 }

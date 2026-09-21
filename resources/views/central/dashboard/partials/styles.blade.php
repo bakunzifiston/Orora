@@ -1,38 +1,69 @@
 <style>
-    .admin-dash .dash-stats { margin-bottom: 0; }
-    .admin-kpis .dash-stat-value { font-size: 1.5rem; }
-    .admin-kpis .dash-stat-label { font-size: 0.75rem; letter-spacing: 0.02em; }
-
-    .admin-panel-head {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
+    .admin-dash.farm-dash {
+        gap: 1rem;
     }
-    .admin-panel-head .dash-panel-title { margin: 0; }
-    .admin-panel-meta {
+
+    .admin-dash__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    .admin-dash__title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--farm-ink, #0f172a);
+    }
+    .admin-dash__period {
+        margin: 0.25rem 0 0;
         font-size: 0.8125rem;
-        color: var(--orora-gray);
-        font-weight: 500;
+        color: var(--farm-muted, #64748b);
+    }
+    .admin-dash__toolbar {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+    }
+    .admin-dash__toolbar .admin-dash__header-text,
+    .admin-dash__toolbar .dash-ops-toolbar__brand {
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+    .admin-dash__toolbar .farms-page__filters {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .admin-dash .farm-kpi:not(a) {
+        cursor: default;
+    }
+    .admin-dash .farm-kpi:not(a):hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--farm-border);
+    }
+    .admin-dash a.farm-kpi {
+        cursor: pointer;
     }
 
     .admin-map-panel {
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        padding-bottom: 0;
-    }
-    .admin-map-panel__head {
-        margin-bottom: 0.85rem;
+        min-height: 0;
     }
     .admin-farms-map {
-        width: calc(100% + 2.5rem);
-        margin: 0 -1.25rem;
-        height: 320px;
+        width: calc(100% + 2.4rem);
+        margin: 0 -1.2rem -1.25rem;
+        height: 300px;
         border: 0;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid var(--farm-border, #e5e7eb);
         border-radius: 0;
         overflow: hidden;
         background: #f8faf9;
@@ -58,32 +89,6 @@
         border-radius: 999px;
         width: 12px;
         height: 12px;
-        box-shadow: 0 1px 4px rgba(0, 43, 43, 0.2);
-    }
-    .admin-panel-title-link {
-        color: inherit;
-        text-decoration: none;
-    }
-    .admin-panel-title-link:hover {
-        color: #002B2B;
-        text-decoration: underline;
-    }
-    .admin-panel-meta--link {
-        text-decoration: none;
-        color: var(--orora-gray);
-    }
-    .admin-panel-meta--link:hover {
-        color: #002B2B;
-        text-decoration: underline;
-    }
-    .admin-farm-row-link {
-        font-weight: 700;
-        color: #002B2B;
-        text-decoration: none;
-    }
-    .admin-farm-row-link:hover {
-        color: #A4D400;
-        text-decoration: underline;
     }
     .admin-farm-popup__title {
         font-weight: 700;
@@ -95,7 +100,7 @@
         display: block;
     }
     .admin-farm-popup__title:hover {
-        color: #A4D400;
+        color: #3f5200;
         text-decoration: underline;
     }
     .admin-farm-popup__meta {
@@ -104,21 +109,8 @@
         margin: 0.2rem 0 0;
         line-height: 1.35;
     }
-    .admin-farm-popup__link {
-        display: inline-block;
-        margin-top: 0.45rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #002B2B;
-        text-decoration: none;
-    }
-    .admin-farm-popup__link:hover {
-        color: #A4D400;
-        text-decoration: underline;
-    }
     .leaflet-popup-content-wrapper {
         border-radius: 0.5rem;
-        box-shadow: 0 4px 16px rgba(0, 43, 43, 0.12);
         padding: 0;
     }
     .leaflet-popup-content {
@@ -129,38 +121,34 @@
         box-shadow: none;
     }
 
-    .admin-chart-panel .dash-home-chart-wrap { height: 280px; }
-    .admin-chart-ref__canvas { height: 260px; }
-
-    .admin-chart-panel--groups .admin-donut--compact {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-        min-height: 0;
-    }
-    .admin-chart-panel--groups .admin-donut__chart {
-        height: 150px;
-        max-width: 150px;
-    }
-    .admin-chart-panel--groups .admin-donut__legend {
-        max-height: 110px;
-        overflow-y: auto;
-    }
-    .admin-chart-panel--groups .admin-donut__item {
-        font-size: 0.75rem;
-        gap: 0.4rem;
+    .admin-chart-ref__canvas {
+        height: 210px;
     }
 
     .admin-donut {
         display: grid;
-        grid-template-columns: minmax(140px, 1fr) minmax(0, 1.15fr);
-        gap: 1rem 1.25rem;
+        grid-template-columns: minmax(120px, 1fr) minmax(0, 1.15fr);
+        gap: 0.85rem 1rem;
         align-items: center;
-        min-height: 220px;
+        min-height: 180px;
+    }
+    .admin-donut--compact {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        min-height: 0;
+    }
+    .admin-donut--compact .admin-donut__chart {
+        height: 150px;
+        max-width: 150px;
+    }
+    .admin-donut--compact .admin-donut__legend {
+        max-height: 110px;
+        overflow-y: auto;
     }
     .admin-donut__chart {
         position: relative;
-        height: 200px;
-        max-width: 200px;
+        height: 180px;
+        max-width: 180px;
         margin-inline: auto;
     }
     .admin-donut__chart canvas {
@@ -178,7 +166,7 @@
         text-align: center;
     }
     .admin-donut__total {
-        font-size: 1.35rem;
+        font-size: 1.25rem;
         font-weight: 800;
         color: #002B2B;
         line-height: 1.1;
@@ -189,7 +177,7 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: var(--orora-gray);
+        color: var(--farm-muted, #64748b);
         margin-top: 0.15rem;
     }
     .admin-donut__legend {
@@ -198,14 +186,14 @@
         padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.55rem;
+        gap: 0.45rem;
     }
     .admin-donut__item {
         display: grid;
         grid-template-columns: 0.65rem 1fr auto;
         align-items: center;
-        gap: 0.55rem;
-        font-size: 0.8125rem;
+        gap: 0.5rem;
+        font-size: 0.75rem;
     }
     .admin-donut__swatch {
         width: 0.65rem;
@@ -223,20 +211,32 @@
         color: #002B2B;
         font-variant-numeric: tabular-nums;
     }
-    @media (max-width: 520px) {
-        .admin-donut {
-            grid-template-columns: 1fr;
-        }
-        .admin-donut__legend {
-            padding-top: 0.25rem;
-        }
-    }
 
     .admin-inbox-link {
         font-size: 0.8125rem;
         font-weight: 600;
-        color: var(--orora-sidebar);
+        color: var(--orora-sidebar, #002B2B);
         text-decoration: none;
+        white-space: nowrap;
     }
-    .admin-inbox-link:hover { text-decoration: underline; }
+    .admin-inbox-link:hover {
+        text-decoration: underline;
+    }
+
+    .admin-dash .farm-activity {
+        max-height: 320px;
+    }
+
+    @media (max-width: 900px) {
+        .admin-dash__header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .admin-dash__toolbar .farms-page__filters {
+            justify-content: flex-start;
+        }
+        .admin-donut {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>

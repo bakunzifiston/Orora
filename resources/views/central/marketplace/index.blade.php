@@ -1,97 +1,135 @@
 @extends('layouts.admin')
 
-@section('title', 'Marketplace')
+@section('title', __('Marketplace'))
 
 @section('content')
-    <div class="admin-marketplace-page">
-        <div class="admin-panel-head">
-            <h1 class="dash-welcome" style="margin: 0;">Marketplace</h1>
-            <span class="admin-panel-meta">{{ number_format($listings->total()) }} listings</span>
+    <div class="farm-dash farms-page health-page admin-dash admin-marketplace">
+        <div class="dash-ops-toolbar farms-page__toolbar admin-dash__toolbar">
+            <div class="admin-dash__header-text dash-ops-toolbar__brand">
+                <h1 class="admin-dash__title">{{ __('Marketplace') }}</h1>
+                <p class="admin-dash__period">{{ __('Platform listings across all workspaces.') }}</p>
+            </div>
         </div>
 
-        <section class="dash-ops-row" aria-label="Marketplace summary">
-            <div class="dash-stats admin-kpis">
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Categories</div>
-                        <div class="dash-stat-value">{{ number_format($categories->count()) }}</div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <div class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'box'])
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'box', 'label' => 'Categories'])
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Categories') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['categories'] ?? 0) }}</div>
+                    </div>
                 </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Listings</div>
-                        <div class="dash-stat-value accent">{{ number_format($listings->total()) }}</div>
+                <div class="farm-kpi farm-kpi--sales">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Listings'])
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Listings') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['listings'] ?? 0) }}</div>
+                    </div>
+                </div>
+                <div class="farm-kpi farm-kpi--production">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Active') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['active'] ?? 0) }}</div>
+                    </div>
+                </div>
+                <div class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Pending') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['pending'] ?? 0) }}</div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <div class="dash-panel dash-panel--flush">
-            <div class="admin-panel-head" style="padding: 1.25rem 1.25rem 0;">
-                <h2 class="dash-panel-title">Listings</h2>
-            </div>
+        <section class="farm-dash__section" aria-label="{{ __('Listings') }}">
+            <article class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Listings') }}</h2>
+                        <p class="farm-panel__desc">{{ number_format($listings->total()) }} {{ __('total') }}</p>
+                    </div>
+                </header>
 
-            @if (empty($shopReady))
-                <p class="dash-data-table__empty">Marketplace is not set up yet.</p>
-            @elseif ($listings->isEmpty())
-                <p class="dash-data-table__empty">No listings yet.</p>
-            @else
-                <div class="dash-data-table-wrap">
-                    <table class="dash-data-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Tenant</th>
-                                <th class="dash-data-table__num">Price</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($listings as $listing)
-                                @php
-                                    $statusBadge = match ($listing->status) {
-                                        'active', 'published' => 'dash-data-table__badge--active',
-                                        'pending' => 'dash-data-table__badge--pending',
-                                        'sold', 'archived' => 'dash-data-table__badge--inactive',
-                                        default => 'dash-data-table__badge--inactive',
-                                    };
-                                @endphp
+                @if (empty($shopReady))
+                    <p class="dash-empty">{{ __('Marketplace is not set up yet.') }}</p>
+                @elseif ($listings->isEmpty())
+                    <p class="dash-empty">{{ __('No listings yet.') }}</p>
+                @else
+                    <div class="dash-table-wrap">
+                        <table class="health-table">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <div class="dash-data-table__primary">
-                                            <span class="dash-data-table__text">{{ $listing->title }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="dash-data-table__muted">{{ $listing->category?->name ?? '—' }}</td>
-                                    <td class="dash-data-table__muted">{{ $listing->tenant?->name ?: $listing->tenant_id }}</td>
-                                    <td class="dash-data-table__num">{{ number_format((float) $listing->price) }} {{ $listing->currency }}</td>
-                                    <td><span class="dash-data-table__badge {{ $statusBadge }}">{{ $listing->status }}</span></td>
+                                    <th>{{ __('Title') }}</th>
+                                    <th>{{ __('Category') }}</th>
+                                    <th>{{ __('Tenant') }}</th>
+                                    <th>{{ __('Price') }}</th>
+                                    <th>{{ __('Status') }}</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="dash-pagination">{{ $listings->links() }}</div>
-            @endif
-        </div>
+                            </thead>
+                            <tbody>
+                                @foreach ($listings as $listing)
+                                    @php
+                                        $statusTone = match ($listing->status) {
+                                            'active', 'published' => 'ok',
+                                            'pending' => 'warn',
+                                            'sold', 'archived' => 'muted',
+                                            default => 'muted',
+                                        };
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            <div class="health-table__primary">
+                                                @include('modules.health.partials.table-icon', ['icon' => 'sale', 'tone' => $statusTone])
+                                                <span class="health-table__title">{{ $listing->title }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="health-table__value">{{ $listing->category?->name ?? '—' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="health-table__meta">{{ $listing->tenant?->name ?: $listing->tenant_id }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="health-table__value">
+                                                {{ number_format((float) $listing->price) }}
+                                                <span class="health-table__meta">{{ $listing->currency }}</span>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="health-table__pill health-table__pill--{{ $statusTone }}">{{ $listing->status }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="dash-pagination">{{ $listings->links() }}</div>
+                @endif
+            </article>
+        </section>
     </div>
 @endsection
 
 @push('styles')
+    @include('central.dashboard.partials.styles')
     <style>
-        .admin-marketplace-page {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
+        .admin-marketplace .farm-kpi:not(a) {
+            cursor: default;
         }
-        .admin-marketplace-page > .admin-panel-head {
-            margin-bottom: 0;
-        }
-        .admin-marketplace-page .dash-panel--flush .admin-panel-head .dash-panel-title {
-            margin-bottom: 0;
+        .admin-marketplace .farm-kpi:not(a):hover {
+            transform: none;
+            box-shadow: none;
         }
     </style>
 @endpush

@@ -50,6 +50,11 @@ class LoginController extends Controller
 
         Auth::guard('admin')->logout();
 
+        $user = Auth::guard('web')->user();
+        if ($user) {
+            $user->forceFill(['last_login_at' => now()])->save();
+        }
+
         if (TenantContext::isActive()) {
             $email = Str::lower($request->input('email'));
             $tenantId = TenantContext::id();

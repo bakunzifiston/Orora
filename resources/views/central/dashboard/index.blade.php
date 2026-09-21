@@ -1,158 +1,207 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard')
+@section('title', __('Dashboard'))
 
 @section('content')
-    <div class="admin-dash">
+    <div class="farm-dash farms-page health-page admin-dash">
         @include('central.dashboard.partials.toolbar')
 
-        <section class="dash-ops-row" aria-label="Summary">
-            @include('central.partials.platform-kpis')
+        @include('central.partials.platform-kpis')
+
+        <section class="farm-dash__section" aria-label="{{ __('Charts') }}">
+            <div class="farm-dash__charts farm-dash__charts--3">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Milk yield') }}</h2>
+                            <p class="farm-panel__desc">
+                                {{ ($charts['milkYield']['interval'] ?? 'month') === 'year' ? __('Yearly') : __('Monthly') }}
+                                · {{ $filters['label'] }}
+                            </p>
+                        </div>
+                    </header>
+                    <div class="farm-panel__chart farm-panel__chart--sm admin-chart-ref__canvas">
+                        <canvas id="admin-chart-milk-yield" aria-label="{{ __('Milk yield line chart') }}"></canvas>
+                    </div>
+                </article>
+
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Animals sold') }}</h2>
+                            <p class="farm-panel__desc">
+                                {{ ($charts['animalsSold']['interval'] ?? 'month') === 'year' ? __('Yearly') : __('Monthly') }}
+                                · {{ $filters['label'] }}
+                            </p>
+                        </div>
+                    </header>
+                    <div class="farm-panel__chart farm-panel__chart--sm admin-chart-ref__canvas">
+                        <canvas id="admin-chart-animals-sold" aria-label="{{ __('Animals sold bar chart') }}"></canvas>
+                    </div>
+                </article>
+
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Livestock groups') }}</h2>
+                            <p class="farm-panel__desc">{{ __('Animals by group') }}</p>
+                        </div>
+                    </header>
+                    @if (empty($charts['groups']['values']) || ! collect($charts['groups']['values'])->sum())
+                        <p class="dash-empty">{{ __('No livestock groups yet.') }}</p>
+                    @else
+                        @php
+                            $groupColors = ['#A4D400', '#002B2B', '#4ade80', '#60a5fa', '#fb923c', '#a78bfa', '#f472b6', '#fbbf24'];
+                            $groupTotal = collect($charts['groups']['values'])->sum();
+                        @endphp
+                        <div class="admin-donut admin-donut--compact">
+                            <div class="admin-donut__chart">
+                                <canvas id="admin-chart-groups" aria-label="{{ __('Livestock groups donut chart') }}"></canvas>
+                                <div class="admin-donut__center" aria-hidden="true">
+                                    <span class="admin-donut__total">{{ number_format($groupTotal) }}</span>
+                                    <span class="admin-donut__label">{{ __('animals') }}</span>
+                                </div>
+                            </div>
+                            <ul class="admin-donut__legend">
+                                @foreach ($charts['groups']['labels'] as $index => $label)
+                                    <li class="admin-donut__item">
+                                        <span class="admin-donut__swatch" style="background: {{ $groupColors[$index % count($groupColors)] }}"></span>
+                                        <span class="admin-donut__name">{{ $label }}</span>
+                                        <span class="admin-donut__value">{{ number_format($charts['groups']['values'][$index]) }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </article>
+            </div>
         </section>
 
-        <section class="dash-ops-row dash-ops-charts-3" aria-label="Charts">
-            <div class="dash-panel admin-chart-panel admin-chart-ref">
-                <div class="admin-panel-head">
-                    <h2 class="dash-panel-title">Milk yield</h2>
-                    <span class="admin-panel-meta">{{ ($charts['milkYield']['interval'] ?? 'month') === 'year' ? 'Yearly' : 'Monthly' }} · {{ $filters['label'] }}</span>
-                </div>
-                <div class="dash-home-chart-wrap admin-chart-ref__canvas"><canvas id="admin-chart-milk-yield" aria-label="Milk yield line chart"></canvas></div>
-            </div>
-            <div class="dash-panel admin-chart-panel admin-chart-ref">
-                <div class="admin-panel-head">
-                    <h2 class="dash-panel-title">Animals sold</h2>
-                    <span class="admin-panel-meta">{{ ($charts['animalsSold']['interval'] ?? 'month') === 'year' ? 'Yearly' : 'Monthly' }} · {{ $filters['label'] }}</span>
-                </div>
-                <div class="dash-home-chart-wrap admin-chart-ref__canvas"><canvas id="admin-chart-animals-sold" aria-label="Animals sold bar chart"></canvas></div>
-            </div>
-            <div class="dash-panel admin-chart-panel admin-chart-panel--groups">
-                <div class="admin-panel-head">
-                    <h2 class="dash-panel-title">Livestock groups</h2>
-                    <span class="admin-panel-meta">Animals</span>
-                </div>
-                @if (empty($charts['groups']['values']) || ! collect($charts['groups']['values'])->sum())
-                    <p class="dash-empty">No livestock groups yet.</p>
-                @else
-                    @php
-                        $groupColors = ['#A4D400', '#002B2B', '#4ade80', '#60a5fa', '#fb923c', '#a78bfa', '#f472b6', '#fbbf24'];
-                        $groupTotal = collect($charts['groups']['values'])->sum();
-                    @endphp
-                    <div class="admin-donut admin-donut--compact">
-                        <div class="admin-donut__chart">
-                            <canvas id="admin-chart-groups" aria-label="Livestock groups donut chart"></canvas>
-                            <div class="admin-donut__center" aria-hidden="true">
-                                <span class="admin-donut__total">{{ number_format($groupTotal) }}</span>
-                                <span class="admin-donut__label">animals</span>
-                            </div>
+        <section class="farm-dash__section" aria-label="{{ __('Farms') }}">
+            <div class="farm-dash__charts farm-dash__charts--2 admin-map-row">
+                @include('central.dashboard.partials.farms-map')
+
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Recent farms') }}</h2>
+                            <p class="farm-panel__desc">{{ __('Newly registered in this period') }}</p>
                         </div>
-                        <ul class="admin-donut__legend">
-                            @foreach ($charts['groups']['labels'] as $index => $label)
-                                <li class="admin-donut__item">
-                                    <span class="admin-donut__swatch" style="background: {{ $groupColors[$index % count($groupColors)] }}"></span>
-                                    <span class="admin-donut__name">{{ $label }}</span>
-                                    <span class="admin-donut__value">{{ number_format($charts['groups']['values'][$index]) }}</span>
+                    </header>
+                    @if ($recentFarms->isEmpty())
+                        <p class="dash-empty">{{ __('No farms yet.') }}</p>
+                    @else
+                        <div class="dash-table-wrap">
+                            <table class="health-table">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Farm') }}</th>
+                                        <th>{{ __('Location') }}</th>
+                                        <th>{{ __('Registered') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($recentFarms as $farm)
+                                        <tr>
+                                            <td>
+                                                <div class="health-table__primary">
+                                                    @include('modules.health.partials.table-icon', ['icon' => 'farm', 'tone' => 'default'])
+                                                    <a href="{{ route('central.farms.show', $farm) }}" class="health-table__title health-table__title--link">{{ $farm->name }}</a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__value">{{ collect([$farm->district, $farm->province])->filter()->implode(', ') ?: '—' }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__meta">{{ $farm->created_at?->format('M j, Y') }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </article>
+            </div>
+        </section>
+
+        <section class="farm-dash__section" aria-label="{{ __('Activity and inbox') }}">
+            <div class="farm-dash__charts farm-dash__charts--2">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Recent activity') }}</h2>
+                            <p class="farm-panel__desc">{{ __('Latest platform events') }}</p>
+                        </div>
+                    </header>
+                    @if (empty($recentActivity))
+                        <p class="dash-empty">{{ __('No activity yet.') }}</p>
+                    @else
+                        <ul class="farm-activity">
+                            @foreach ($recentActivity as $item)
+                                <li class="farm-activity__item">
+                                    <div class="farm-activity__icon" aria-hidden="true">
+                                        @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
+                                    </div>
+                                    <div class="farm-activity__body">
+                                        <span class="farm-activity__title">{{ $item['title'] }}</span>
+                                        <span class="farm-activity__meta">{{ $item['module'] }} · {{ $item['meta'] }}</span>
+                                        <time class="farm-activity__time" datetime="{{ $item['at']->toIso8601String() }}">{{ $item['at']->diffForHumans() }}</time>
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>
-                    </div>
-                @endif
-            </div>
-        </section>
+                    @endif
+                </article>
 
-        <section class="dash-ops-row dash-ops-charts-2 admin-map-row" aria-label="Farm map and recent farms">
-            @include('central.dashboard.partials.farms-map')
-
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">Recent farms</h2>
-                @if ($recentFarms->isEmpty())
-                    <p class="dash-empty">No farms yet.</p>
-                @else
-                    <div class="dash-table-wrap">
-                        <table class="dash-table dash-table--compact">
-                            <thead>
-                                <tr>
-                                    <th>Farm</th>
-                                    <th>Location</th>
-                                    <th>Registered</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($recentFarms as $farm)
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Contact inbox') }}</h2>
+                            <p class="farm-panel__desc">{{ __('Latest messages') }}</p>
+                        </div>
+                        <a href="{{ route('central.contact-messages.index') }}" class="admin-inbox-link">
+                            @if (($stats['contact_new'] ?? 0) > 0)
+                                {{ number_format($stats['contact_new']) }} {{ __('new') }}
+                            @else
+                                {{ __('View all') }}
+                            @endif
+                        </a>
+                    </header>
+                    @if ($recentContacts->isEmpty())
+                        <p class="dash-empty">{{ __('No messages yet.') }}</p>
+                    @else
+                        <div class="dash-table-wrap">
+                            <table class="health-table">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <a href="{{ route('central.farms.show', $farm) }}" class="admin-farm-row-link">{{ $farm->name }}</a>
-                                        </td>
-                                        <td>{{ collect([$farm->district, $farm->province])->filter()->implode(', ') ?: '—' }}</td>
-                                        <td>{{ $farm->created_at?->format('M j, Y') }}</td>
+                                        <th>{{ __('From') }}</th>
+                                        <th>{{ __('Subject') }}</th>
+                                        <th>{{ __('Date') }}</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            </div>
-        </section>
-
-        <section class="dash-ops-row" aria-label="Recent activity">
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">Recent activity</h2>
-                @if (empty($recentActivity))
-                    <p class="dash-empty">No activity yet.</p>
-                @else
-                    <ul class="dash-home-activity">
-                        @foreach ($recentActivity as $item)
-                            <li class="dash-home-activity__item">
-                                <div class="dash-home-activity__icon">
-                                    @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon']])
-                                </div>
-                                <div class="dash-home-activity__body">
-                                    <span class="dash-home-activity__title">{{ $item['title'] }}</span>
-                                    <span class="dash-home-activity__meta">{{ $item['module'] }} · {{ $item['meta'] }}</span>
-                                    <time class="dash-home-activity__time" datetime="{{ $item['at']->toIso8601String() }}">{{ $item['at']->diffForHumans() }}</time>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-            </div>
-        </section>
-
-        <section class="dash-ops-row" aria-label="Contact inbox">
-            <div class="dash-panel">
-                <div class="admin-panel-head">
-                    <h2 class="dash-panel-title">Contact inbox</h2>
-                    <a href="{{ route('central.contact-messages.index') }}" class="admin-inbox-link">
-                        @if ($stats['contact_new'] > 0)
-                            {{ number_format($stats['contact_new']) }} new
-                        @else
-                            View all
-                        @endif
-                    </a>
-                </div>
-                @if ($recentContacts->isEmpty())
-                    <p class="dash-empty">No messages yet.</p>
-                @else
-                    <div class="dash-table-wrap">
-                        <table class="dash-table dash-table--compact">
-                            <thead>
-                                <tr>
-                                    <th>From</th>
-                                    <th>Subject</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($recentContacts as $message)
-                                    <tr>
-                                        <td>{{ $message->name }}</td>
-                                        <td>{{ Str::limit($message->subject, 48) }}</td>
-                                        <td>{{ $message->created_at?->format('M j, Y') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
+                                </thead>
+                                <tbody>
+                                    @foreach ($recentContacts as $message)
+                                        <tr>
+                                            <td>
+                                                <div class="health-table__primary">
+                                                    @include('modules.health.partials.table-icon', ['icon' => 'mail', 'tone' => 'muted'])
+                                                    <span class="health-table__title">{{ $message->name }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__value">{{ Str::limit($message->subject, 48) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="health-table__meta">{{ $message->created_at?->format('M j, Y') }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </article>
             </div>
         </section>
     </div>
@@ -240,8 +289,9 @@
             };
 
             const milkYield = charts.milkYield || {};
-            if (milkYield.labels?.length) {
-                new Chart(document.getElementById('admin-chart-milk-yield'), {
+            const milkEl = document.getElementById('admin-chart-milk-yield');
+            if (milkEl && milkYield.labels?.length) {
+                new Chart(milkEl, {
                     type: 'line',
                     data: {
                         labels: milkYield.labels,
@@ -251,7 +301,7 @@
                             borderColor: brand.lime,
                             backgroundColor: brand.lime,
                             borderWidth: 2,
-                            pointRadius: 5,
+                            pointRadius: 4,
                             pointHoverRadius: 6,
                             pointBackgroundColor: brand.lime,
                             pointBorderColor: '#fff',
@@ -278,8 +328,9 @@
             }
 
             const animalsSold = charts.animalsSold || {};
-            if (animalsSold.labels?.length) {
-                new Chart(document.getElementById('admin-chart-animals-sold'), {
+            const soldEl = document.getElementById('admin-chart-animals-sold');
+            if (soldEl && animalsSold.labels?.length) {
+                new Chart(soldEl, {
                     type: 'bar',
                     data: {
                         labels: animalsSold.labels,
@@ -301,8 +352,9 @@
             }
 
             const groups = charts.groups || {};
-            if (groups.labels?.length && groups.values?.some((value) => value > 0)) {
-                new Chart(document.getElementById('admin-chart-groups'), {
+            const groupsEl = document.getElementById('admin-chart-groups');
+            if (groupsEl && groups.labels?.length && groups.values?.some((value) => value > 0)) {
+                new Chart(groupsEl, {
                     type: 'doughnut',
                     data: {
                         labels: groups.labels,

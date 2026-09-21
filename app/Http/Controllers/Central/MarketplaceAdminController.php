@@ -18,6 +18,7 @@ class MarketplaceAdminController extends Controller
                 'categories' => collect(),
                 'listings' => MarketplaceDatabase::emptyPaginator(),
                 'shopReady' => false,
+                'stats' => $this->emptyStats(),
             ]);
         }
 
@@ -27,11 +28,32 @@ class MarketplaceAdminController extends Controller
             ->orderByDesc('created_at')
             ->paginate(15);
 
+        $base = MarketplaceListing::query();
+
         return view('central.marketplace.index', [
             'activeNav' => 'marketplace',
             'categories' => $categories,
             'listings' => $listings,
             'shopReady' => true,
+            'stats' => [
+                'categories' => $categories->count(),
+                'listings' => (clone $base)->count(),
+                'active' => (clone $base)->whereIn('status', ['active', 'published'])->count(),
+                'pending' => (clone $base)->where('status', 'pending')->count(),
+            ],
         ]);
+    }
+
+    /**
+     * @return array{categories: int, listings: int, active: int, pending: int}
+     */
+    private function emptyStats(): array
+    {
+        return [
+            'categories' => 0,
+            'listings' => 0,
+            'active' => 0,
+            'pending' => 0,
+        ];
     }
 }

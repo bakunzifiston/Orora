@@ -12,7 +12,14 @@ use Illuminate\Support\Facades\Schema;
 class AdminDashboardFilterService
 {
     /**
-     * @return array{period: string, from: string, to: string, label: string}
+     * @return array{
+     *     period: string,
+     *     from: string,
+     *     to: string,
+     *     label: string,
+     *     farm_id: ?int,
+     *     farm_name: ?string
+     * }
      */
     public function resolve(Request $request): array
     {
@@ -58,11 +65,27 @@ class AdminDashboardFilterService
             $label = $from->format('M j, Y').' – '.$to->format('M j, Y');
         }
 
+        $farmId = $request->filled('farm_id') ? $request->integer('farm_id') : null;
+        $farmName = null;
+
+        if ($farmId) {
+            $farm = $this->findFarm($farmId);
+
+            if ($farm) {
+                $farmName = $farm->name;
+                $label = $label.' · '.$farm->name;
+            } else {
+                $farmId = null;
+            }
+        }
+
         return [
             'period' => $period,
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'label' => $label,
+            'farm_id' => $farmId,
+            'farm_name' => $farmName,
         ];
     }
 
@@ -74,6 +97,29 @@ class AdminDashboardFilterService
     public function rangeEnd(array $filters): Carbon
     {
         return Carbon::parse($filters['to'])->endOfDay();
+    }
+
+    /**
+     * @return list<int>|null
+     */
+    public function farmIds(array $filters): ?array
+    {
+        $farmId = $filters['farm_id'] ?? null;
+
+        return $farmId ? [(int) $farmId] : null;
+    }
+
+    private function findFarm(int $farmId): ?Farm
+    {
+        try {
+            if (! Schema::hasTable('farms')) {
+                return null;
+            }
+
+            return Farm::query()->withoutGlobalScope('tenant')->find($farmId);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function allTimeStart(): Carbon

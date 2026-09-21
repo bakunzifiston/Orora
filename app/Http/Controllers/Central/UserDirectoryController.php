@@ -51,7 +51,7 @@ class UserDirectoryController extends Controller
 
         $farmsQuery = Farm::query()
             ->withoutGlobalScope('tenant')
-            ->withCount(['livestock', 'animals']);
+            ->withCount(['livestock', 'animals', 'flocks']);
 
         if ($filtersActive) {
             $this->filters->applyToFarms($farmsQuery, $filters);
@@ -171,8 +171,16 @@ class UserDirectoryController extends Controller
             'livestock_groups' => 0,
             'head_count' => 0,
             'animals' => 0,
+            'flocks' => 0,
+            'birds' => 0,
             'liter_yield' => 0.0,
             'liters_sold' => 0.0,
+            'eggs_collected' => 0,
+            'eggs_sold' => 0.0,
+            'animals_sold' => 0,
+            'cattle_farms' => 0,
+            'poultry_farms' => 0,
+            'primary_species' => null,
         ];
     }
 }

@@ -32,6 +32,8 @@ class AdminDashboardController extends Controller
         $filters = $this->filters->resolve($request);
         $rangeStart = $this->filters->rangeStart($filters);
         $rangeEnd = $this->filters->rangeEnd($filters);
+        $farmIds = $this->filters->farmIds($filters);
+        $farmId = $filters['farm_id'] ?? null;
 
         $livestockGroups = $this->safeQuery(
             Livestock::class,
@@ -39,13 +41,14 @@ class AdminDashboardController extends Controller
                 ->with('farm:id,name,tenant_id')
                 ->withCount(['animals as animals_count' => fn ($animalQuery) => $animalQuery
                     ->whereBetween('created_at', [$rangeStart, $rangeEnd])])
+                ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->whereBetween('created_at', [$rangeStart, $rangeEnd])
                 ->orderBy('name')
                 ->get(),
             collect(),
         );
 
-        $stats = array_merge($this->stats->platformStats($filters, $rangeStart, $rangeEnd), [
+        $stats = array_merge($this->stats->platformStats($filters, $rangeStart, $rangeEnd, $farmIds), [
             'contact_new' => $this->safeCount(
                 ContactMessage::class,
                 fn ($q) => $q->where('status', 'new')
@@ -66,6 +69,7 @@ class AdminDashboardController extends Controller
         $recentFarms = $this->safeQuery(
             Farm::class,
             fn ($query) => $query
+                ->when($farmId, fn ($q) => $q->whereKey($farmId))
                 ->whereBetween('created_at', [$rangeStart, $rangeEnd])
                 ->orderByDesc('created_at')
                 ->limit(8)
@@ -73,18 +77,25 @@ class AdminDashboardController extends Controller
             collect(),
         );
 
-        $recentActivity = $this->buildRecentActivity($rangeStart, $rangeEnd);
+        $recentActivity = $this->buildRecentActivity($rangeStart, $rangeEnd, $farmId);
+
+        $farmOptions = $this->safeQuery(
+            Farm::class,
+            fn ($query) => $query->withoutGlobalScope('tenant')->orderBy('name')->get(['id', 'name']),
+            collect(),
+        );
 
         return view('central.dashboard.index', [
             'activeNav' => 'dashboard',
             'filters' => $filters,
+            'farmOptions' => $farmOptions,
             'stats' => $stats,
             'charts' => $this->buildCharts($filters),
             'recentFarms' => $recentFarms,
             'recentActivity' => $recentActivity,
             'recentContacts' => $recentContacts,
             'livestockGroups' => $livestockGroups,
-            'farmMapMarkers' => $this->farmMap->markers(),
+            'farmMapMarkers' => $this->farmMap->markers($farmIds),
         ]);
     }
 
@@ -101,7 +112,7 @@ class AdminDashboardController extends Controller
     {
         $milkYield = $this->buildMilkYieldChart($filters);
         $animalsSold = $this->buildAnimalsSoldChart($filters);
-        $groups = $this->buildLivestockGroupsDonut();
+        $groups = $this->buildLivestockGroupsDonut($filters['farm_id'] ?? null);
 
         return [
             'milkYield' => $milkYield,
@@ -113,12 +124,13 @@ class AdminDashboardController extends Controller
     /**
      * @return array{labels: list<string>, values: list<int>}
      */
-    private function buildLivestockGroupsDonut(): array
+    private function buildLivestockGroupsDonut(?int $farmId = null): array
     {
         $allGroups = $this->safeQuery(
             Livestock::class,
             fn ($query) => $query
                 ->withCount('animals')
+                ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->orderBy('name')
                 ->get(['id', 'name']),
             collect(),
@@ -166,8 +178,8 @@ class AdminDashboardController extends Controller
         };
 
         $chart = match ($bucket) {
-            'year' => $this->bucketMilkYieldByYear($start, $end),
-            default => $this->bucketMilkYieldByMonth($start, $end),
+            'year' => $this->bucketMilkYieldByYear($start, $end, $filters),
+            default => $this->bucketMilkYieldByMonth($start, $end, $filters),
         };
 
         $chart['interval'] = $bucket === 'year' ? 'year' : 'month';
@@ -176,7 +188,7 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * @param  array{period: string, from: string, to: string}  $filters
+     * @param  array{period: string, from: string, to: string, farm_id?: ?int}  $filters
      * @return array{labels: list<string>, values: list<int>, interval: string}
      */
     private function buildAnimalsSoldChart(array $filters): array
@@ -190,8 +202,8 @@ class AdminDashboardController extends Controller
         };
 
         $chart = match ($bucket) {
-            'year' => $this->bucketAnimalsSoldByYear($start, $end),
-            default => $this->bucketAnimalsSoldByMonth($start, $end),
+            'year' => $this->bucketAnimalsSoldByYear($start, $end, $filters),
+            default => $this->bucketAnimalsSoldByMonth($start, $end, $filters),
         };
 
         $chart['interval'] = $bucket === 'year' ? 'year' : 'month';
@@ -200,9 +212,10 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * @param  array{farm_id?: ?int}  $filters
      * @return array{labels: list<string>, values: list<int>}
      */
-    private function bucketAnimalsSoldByMonth(Carbon $start, Carbon $end): array
+    private function bucketAnimalsSoldByMonth(Carbon $start, Carbon $end, array $filters = []): array
     {
         $labels = [];
         $values = [];
@@ -213,7 +226,7 @@ class AdminDashboardController extends Controller
             $from = $cursor->copy()->startOfMonth()->max($start)->toDateString();
             $to = $cursor->copy()->endOfMonth()->min($end)->toDateString();
             $labels[] = $cursor->format('M Y');
-            $values[] = $this->animalsSoldBetween($from, $to);
+            $values[] = $this->animalsSoldBetween($from, $to, $filters['farm_id'] ?? null);
             $cursor->addMonth();
         }
 
@@ -223,7 +236,7 @@ class AdminDashboardController extends Controller
     /**
      * @return array{labels: list<string>, values: list<int>}
      */
-    private function bucketAnimalsSoldByYear(Carbon $start, Carbon $end): array
+    private function bucketAnimalsSoldByYear(Carbon $start, Carbon $end, array $filters = []): array
     {
         $labels = [];
         $values = [];
@@ -234,14 +247,14 @@ class AdminDashboardController extends Controller
             $from = $cursor->copy()->startOfYear()->max($start)->toDateString();
             $to = $cursor->copy()->endOfYear()->min($end)->toDateString();
             $labels[] = (string) $cursor->year;
-            $values[] = $this->animalsSoldBetween($from, $to);
+            $values[] = $this->animalsSoldBetween($from, $to, $filters['farm_id'] ?? null);
             $cursor->addYear();
         }
 
         return compact('labels', 'values');
     }
 
-    private function animalsSoldBetween(string $from, string $to): int
+    private function animalsSoldBetween(string $from, string $to, ?int $farmId = null): int
     {
         return (int) $this->safeQuery(
             SaleTransaction::class,
@@ -249,6 +262,7 @@ class AdminDashboardController extends Controller
                 ->where('sale_type', 'animal_sale')
                 ->where('sale_status', 'completed')
                 ->whereBetween('sale_date', [$from, $to])
+                ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->count(),
             0,
         );
@@ -380,9 +394,10 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * @param  array{farm_id?: ?int}  $filters
      * @return array{labels: list<string>, values: list<float>}
      */
-    private function bucketMilkYieldByMonth(Carbon $start, Carbon $end): array
+    private function bucketMilkYieldByMonth(Carbon $start, Carbon $end, array $filters = []): array
     {
         $labels = [];
         $values = [];
@@ -393,7 +408,7 @@ class AdminDashboardController extends Controller
             $from = $cursor->copy()->startOfMonth()->max($start)->toDateString();
             $to = $cursor->copy()->endOfMonth()->min($end)->toDateString();
             $labels[] = $cursor->format('M Y');
-            $values[] = $this->litersYieldBetween($from, $to);
+            $values[] = $this->litersYieldBetween($from, $to, $filters['farm_id'] ?? null);
             $cursor->addMonth();
         }
 
@@ -401,9 +416,10 @@ class AdminDashboardController extends Controller
     }
 
     /**
+     * @param  array{farm_id?: ?int}  $filters
      * @return array{labels: list<string>, values: list<float>}
      */
-    private function bucketMilkYieldByYear(Carbon $start, Carbon $end): array
+    private function bucketMilkYieldByYear(Carbon $start, Carbon $end, array $filters = []): array
     {
         $labels = [];
         $values = [];
@@ -414,20 +430,21 @@ class AdminDashboardController extends Controller
             $from = $cursor->copy()->startOfYear()->max($start)->toDateString();
             $to = $cursor->copy()->endOfYear()->min($end)->toDateString();
             $labels[] = (string) $cursor->year;
-            $values[] = $this->litersYieldBetween($from, $to);
+            $values[] = $this->litersYieldBetween($from, $to, $filters['farm_id'] ?? null);
             $cursor->addYear();
         }
 
         return compact('labels', 'values');
     }
 
-    private function litersYieldBetween(string $from, string $to): float
+    private function litersYieldBetween(string $from, string $to, ?int $farmId = null): float
     {
         return (float) $this->safeQuery(
             MilkSession::class,
             fn ($query) => (float) $query
                 ->where('status', 'completed')
                 ->whereBetween('session_date', [$from, $to])
+                ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
                 ->sum('total_yield_liters'),
             0.0,
         );
@@ -436,31 +453,34 @@ class AdminDashboardController extends Controller
     /**
      * @return list<array{at: \Carbon\Carbon|null, icon: string, module: string, title: string, meta: string}>
      */
-    private function buildRecentActivity(Carbon $rangeStart, Carbon $rangeEnd): array
+    private function buildRecentActivity(Carbon $rangeStart, Carbon $rangeEnd, ?int $farmId = null): array
     {
         $items = collect();
         $inRange = fn ($query) => $query
             ->whereBetween('created_at', [$rangeStart, $rangeEnd])
             ->orderByDesc('created_at');
+        $forFarm = fn ($query) => $farmId ? $query->where('farm_id', $farmId) : $query;
 
-        $this->safeQuery(
-            TenantAccount::class,
-            fn ($query) => $inRange($query)->limit(6)->get()
-                ->each(function (TenantAccount $account) use ($items) {
-                    $items->push([
-                        'at' => $account->created_at,
-                        'icon' => 'customer',
-                        'module' => 'Account',
-                        'title' => 'Farmer signed up',
-                        'meta' => $account->email.' · '.$account->tenant_id,
-                    ]);
-                }),
-            null,
-        );
+        if (! $farmId) {
+            $this->safeQuery(
+                TenantAccount::class,
+                fn ($query) => $inRange($query)->limit(6)->get()
+                    ->each(function (TenantAccount $account) use ($items) {
+                        $items->push([
+                            'at' => $account->created_at,
+                            'icon' => 'customer',
+                            'module' => 'Account',
+                            'title' => 'Farmer signed up',
+                            'meta' => $account->email.' · '.$account->tenant_id,
+                        ]);
+                    }),
+                null,
+            );
+        }
 
         $this->safeQuery(
             Farm::class,
-            fn ($query) => $inRange($query)->limit(6)->get()
+            fn ($query) => $inRange($farmId ? $query->whereKey($farmId) : $query)->limit(6)->get()
                 ->each(function (Farm $farm) use ($items) {
                     $location = collect([$farm->district, $farm->province])->filter()->implode(', ') ?: 'Rwanda';
 
@@ -477,7 +497,7 @@ class AdminDashboardController extends Controller
 
         $this->safeQuery(
             Livestock::class,
-            fn ($query) => $inRange($query->with('farm:id,name'))->limit(5)->get()
+            fn ($query) => $inRange($forFarm($query->with('farm:id,name')))->limit(5)->get()
                 ->each(function (Livestock $group) use ($items) {
                     $items->push([
                         'at' => $group->created_at,
@@ -492,7 +512,7 @@ class AdminDashboardController extends Controller
 
         $this->safeQuery(
             Animal::class,
-            fn ($query) => $inRange($query)->limit(5)->get()
+            fn ($query) => $inRange($forFarm($query))->limit(5)->get()
                 ->each(function (Animal $animal) use ($items) {
                     $label = $animal->name ?: $animal->tag_number ?: 'Animal #'.$animal->id;
 
@@ -507,20 +527,22 @@ class AdminDashboardController extends Controller
             null,
         );
 
-        $this->safeQuery(
-            ContactMessage::class,
-            fn ($query) => $inRange($query)->limit(4)->get()
-                ->each(function (ContactMessage $message) use ($items) {
-                    $items->push([
-                        'at' => $message->created_at,
-                        'icon' => 'mail',
-                        'module' => 'Contact',
-                        'title' => $message->subject,
-                        'meta' => $message->name.' · '.ucfirst($message->status),
-                    ]);
-                }),
-            null,
-        );
+        if (! $farmId) {
+            $this->safeQuery(
+                ContactMessage::class,
+                fn ($query) => $inRange($query)->limit(4)->get()
+                    ->each(function (ContactMessage $message) use ($items) {
+                        $items->push([
+                            'at' => $message->created_at,
+                            'icon' => 'mail',
+                            'module' => 'Contact',
+                            'title' => $message->subject,
+                            'meta' => $message->name.' · '.ucfirst($message->status),
+                        ]);
+                    }),
+                null,
+            );
+        }
 
         return $items
             ->filter(fn (array $item) => $item['at'] !== null)

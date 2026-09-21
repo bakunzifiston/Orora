@@ -18,7 +18,7 @@ class AdminFarmMapService
      *     url: string
      * }>
      */
-    public function markers(): array
+    public function markers(?array $farmIds = null): array
     {
         if (! Schema::hasTable('farms')) {
             return [];
@@ -34,9 +34,19 @@ class AdminFarmMapService
             $columns[] = 'longitude';
         }
 
-        return Farm::query()
+        $query = Farm::query()
             ->withoutGlobalScope('tenant')
-            ->orderBy('name')
+            ->orderBy('name');
+
+        if ($farmIds !== null) {
+            if ($farmIds === []) {
+                return [];
+            }
+
+            $query->whereIn('id', $farmIds);
+        }
+
+        return $query
             ->get($columns)
             ->map(fn (Farm $farm) => $this->toMarker($farm))
             ->filter()

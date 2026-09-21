@@ -4,280 +4,378 @@
 
 @section('content')
     @php
-        $statusClass = match ($farm->status) {
-            'active' => 'dash-farm-card__badge--active',
-            'pending' => 'dash-farm-card__badge--pending',
-            'suspended' => 'dash-farm-card__badge--suspended',
-            default => 'dash-farm-card__badge--inactive',
+        $isPoultry = ($farm->primary_species ?? null) === 'poultry';
+        $statusTone = match ($farm->status) {
+            'active' => 'ok',
+            'pending' => 'warn',
+            'suspended' => 'bad',
+            default => 'muted',
         };
         $ownershipLabel = config('modules.ownership_types')[$farm->ownership_type] ?? ucfirst(str_replace('_', ' ', (string) $farm->ownership_type));
         $backQuery = http_build_query(request()->only(['period', 'from', 'to', 'farm_id', 'province_code', 'district_code']));
         $backUrl = route('central.farms.index').($backQuery ? '?'.$backQuery : '');
         $location = collect([$farm->district, $farm->province, $farm->country])->filter()->implode(', ');
+        $period = $filters['period'] ?? 'all';
     @endphp
 
-    <div class="admin-farm-page">
-        <div class="admin-farm-page__top">
-            <div>
-                <a href="{{ $backUrl }}" class="dash-back-link">← Farms</a>
-                <div class="admin-farm-page__title-row">
-                    <h1 class="dash-welcome">{{ $farm->name }}</h1>
-                    <span class="dash-farm-card__badge {{ $statusClass }}">{{ ucfirst($farm->status) }}</span>
+    <div class="farm-dash farms-page health-page admin-dash admin-farms">
+        <form method="GET" action="{{ route('central.farms.show', $farm) }}" class="dash-ops-toolbar farms-page__toolbar admin-dash__toolbar" id="admin-farm-filters-form">
+            <div class="admin-dash__header-text dash-ops-toolbar__brand">
+                <a href="{{ $backUrl }}" class="dash-back-link">← {{ __('Farms') }}</a>
+                <div class="admin-farms__title-row">
+                    <h1 class="admin-dash__title">{{ $farm->name }}</h1>
+                    <span class="health-table__pill health-table__pill--{{ $statusTone }}">{{ ucfirst($farm->status) }}</span>
+                    <span class="health-table__pill health-table__pill--{{ $isPoultry ? 'warn' : 'ok' }}">
+                        {{ $isPoultry ? __('Poultry') : __('Cattle') }}
+                    </span>
                 </div>
-                <p class="admin-farm-page__meta">
-                    {{ $location ?: 'Rwanda' }}
+                <p class="admin-dash__period">
+                    {{ $location ?: __('Rwanda') }}
                     @if ($farm->registration_number)
                         · {{ $farm->registration_number }}
                     @endif
+                    · {{ __('Showing') }}
+                    <strong>{{ $filters['label'] ?? __('All time') }}</strong>
                 </p>
             </div>
 
-            <form method="GET" action="{{ route('central.farms.show', $farm) }}" class="admin-farm-page__filters" id="admin-farm-filters-form">
+            <div class="dash-ops-toolbar__controls farms-page__filters">
                 <div class="dash-ops-field">
-                    <label for="admin_farm_filter_period">Period</label>
-                    <select name="period" id="admin_farm_filter_period">
-                        <option value="all" @selected(($filters['period'] ?? 'all') === 'all' || ($filters['period'] ?? '') === '')>All time</option>
-                        <option value="daily" @selected(($filters['period'] ?? '') === 'daily')>Daily</option>
-                        <option value="monthly" @selected(($filters['period'] ?? '') === 'monthly')>Monthly</option>
-                        <option value="yearly" @selected(($filters['period'] ?? '') === 'yearly')>Yearly</option>
-                        <option value="custom" @selected(($filters['period'] ?? '') === 'custom')>Custom</option>
+                    <label for="admin_farm_filter_period">{{ __('Period') }}</label>
+                    <select name="period" id="admin_farm_filter_period" onchange="this.form.submit()">
+                        <option value="all" @selected($period === 'all' || $period === '')>{{ __('All time') }}</option>
+                        <option value="daily" @selected($period === 'daily')>{{ __('Daily') }}</option>
+                        <option value="monthly" @selected($period === 'monthly')>{{ __('Monthly') }}</option>
+                        <option value="yearly" @selected($period === 'yearly')>{{ __('Yearly') }}</option>
+                        <option value="custom" @selected($period === 'custom')>{{ __('Custom') }}</option>
                     </select>
                 </div>
-                <div class="dash-ops-field dash-ops-field--dates @if(($filters['period'] ?? 'all') !== 'custom') dash-ops-field--muted @endif" id="admin-farm-custom-dates">
-                    <label>Range</label>
+                <div class="dash-ops-field dash-ops-field--dates @if($period !== 'custom') dash-ops-field--muted @endif" id="admin-farm-custom-dates">
+                    <label>{{ __('Range') }}</label>
                     <div class="dash-ops-dates">
-                        <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="From date">
+                        <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="{{ __('From date') }}">
                         <span class="dash-ops-dates__sep">→</span>
-                        <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="To date">
+                        <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('To date') }}">
                     </div>
                 </div>
-                <button type="submit" class="dash-btn-save dash-ops-apply">Apply</button>
-            </form>
-        </div>
+                <button type="submit" class="dash-btn-save dash-ops-apply">{{ __('Apply') }}</button>
+            </div>
+        </form>
 
-        <section class="dash-ops-row" aria-label="Farm summary">
-            <div class="dash-stats admin-kpis">
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Size</div>
-                        <div class="dash-stat-value">{{ $farm->farm_size_hectares !== null ? number_format($farm->farm_size_hectares, 2).' ha' : '—' }}</div>
+        <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
+            <div class="farm-dash__kpis farm-dash__kpis--4">
+                <div class="farm-kpi farm-kpi--farms">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'farm', 'label' => 'Farm size'])
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Size') }}</div>
+                        <div class="farm-kpi__value">
+                            {{ $farm->farm_size_hectares !== null ? number_format($farm->farm_size_hectares, 2) : '—' }}
+                            @if ($farm->farm_size_hectares !== null)
+                                <span class="farm-kpi__unit">ha</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Groups</div>
-                        <div class="dash-stat-value accent">{{ number_format($stats['livestock_groups']) }}</div>
+
+                @if ($isPoultry)
+                    <div class="farm-kpi farm-kpi--stock">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'livestock'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Flocks') }}</div>
+                            <div class="farm-kpi__value">{{ number_format($stats['flocks'] ?? 0) }}</div>
+                        </div>
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'livestock', 'label' => 'Livestock groups'])
+                    <div class="farm-kpi farm-kpi--production">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Birds on hand') }}</div>
+                            <div class="farm-kpi__value">{{ number_format($stats['birds'] ?? 0) }}</div>
+                        </div>
+                    </div>
+                    <div class="farm-kpi farm-kpi--eggs">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Eggs collected') }}</div>
+                            <div class="farm-kpi__value">{{ number_format($stats['eggs_collected'] ?? 0) }}</div>
+                        </div>
+                    </div>
+                    <div class="farm-kpi farm-kpi--revenue">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Eggs sold') }}</div>
+                            <div class="farm-kpi__value">{{ number_format($stats['eggs_sold'] ?? 0, 0) }}</div>
+                        </div>
+                    </div>
+                @else
+                    <div class="farm-kpi farm-kpi--stock">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'livestock'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Livestock groups') }}</div>
+                            <div class="farm-kpi__value">{{ number_format($stats['livestock_groups'] ?? 0) }}</div>
+                        </div>
+                    </div>
+                    <div class="farm-kpi farm-kpi--production">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Animals') }}</div>
+                            <div class="farm-kpi__value">{{ number_format($stats['animals'] ?? 0) }}</div>
+                        </div>
+                    </div>
+                    <div class="farm-kpi farm-kpi--sales">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Milk yield') }}</div>
+                            <div class="farm-kpi__value">
+                                {{ number_format($stats['liter_yield'] ?? 0, 0) }}
+                                <span class="farm-kpi__unit">L</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="farm-kpi farm-kpi--revenue">
+                        <div class="farm-kpi__icon" aria-hidden="true">
+                            @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                        </div>
+                        <div class="farm-kpi__body">
+                            <div class="farm-kpi__label">{{ __('Milk sold') }}</div>
+                            <div class="farm-kpi__value">
+                                {{ number_format($stats['liters_sold'] ?? 0, 0) }}
+                                <span class="farm-kpi__unit">L</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="farm-kpi farm-kpi--health">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Animals sold') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['animals_sold'] ?? 0) }}</div>
+                    </div>
                 </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Animals</div>
-                        <div class="dash-stat-value accent">{{ number_format($stats['animals']) }}</div>
+
+                <div class="farm-kpi farm-kpi--receivable">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'animal', 'label' => 'Animals'])
-                </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Milk yield</div>
-                        <div class="dash-stat-value accent">{{ number_format($stats['liter_yield'], 0) }}<span class="dash-home-stat__suffix"> L</span></div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Sales') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['sales'] ?? 0) }}</div>
                     </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'milk', 'label' => 'Milk yield'])
-                </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Milk sold</div>
-                        <div class="dash-stat-value">{{ number_format($stats['liters_sold'], 0) }}<span class="dash-home-stat__suffix"> L</span></div>
-                    </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Milk sold'])
-                </div>
-                <div class="dash-stat-card dash-ops-kpi">
-                    <div>
-                        <div class="dash-stat-label">Sales</div>
-                        <div class="dash-stat-value">{{ number_format($stats['sales']) }}</div>
-                    </div>
-                    @include('modules.partials.stat-icon', ['icon' => 'sale', 'label' => 'Sales'])
                 </div>
             </div>
         </section>
 
-        <div class="dash-health-grid">
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">Account</h2>
-                <dl class="dash-farm-detail">
-                    @include('modules.farms._detail-row', ['label' => 'Login', 'value' => $workspaceAccount])
-                    @include('modules.farms._detail-row', ['label' => 'Name', 'value' => $workspaceUser?->name])
-                    @if ($farm->requiresOrganizationDetails())
-                        @include('modules.farms._detail-row', ['label' => 'Organization', 'value' => $farm->organization_name])
-                        @include('modules.farms._detail-row', ['label' => 'Tax ID', 'value' => $farm->tax_id])
-                    @else
-                        @include('modules.farms._detail-row', ['label' => 'Owner', 'value' => $farm->owner_full_name])
-                        @include('modules.farms._detail-row', ['label' => 'National ID', 'value' => $farm->owner_national_id])
-                    @endif
-                    @include('modules.farms._detail-row', ['label' => 'Phone', 'value' => $farm->contact_phone])
-                    @include('modules.farms._detail-row', ['label' => 'Email', 'value' => $farm->contact_email])
-                </dl>
-            </div>
+        <section class="farm-dash__section" aria-label="{{ __('Farm details') }}">
+            <div class="farm-dash__charts farm-dash__charts--3">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Account') }}</h2>
+                        </div>
+                    </header>
+                    <dl class="admin-farms__detail">
+                        @include('modules.farms._detail-row', ['label' => __('Login'), 'value' => $workspaceAccount])
+                        @include('modules.farms._detail-row', ['label' => __('Name'), 'value' => $workspaceUser?->name])
+                        @if ($farm->requiresOrganizationDetails())
+                            @include('modules.farms._detail-row', ['label' => __('Organization'), 'value' => $farm->organization_name])
+                            @include('modules.farms._detail-row', ['label' => __('Tax ID'), 'value' => $farm->tax_id])
+                        @else
+                            @include('modules.farms._detail-row', ['label' => __('Owner'), 'value' => $farm->owner_full_name])
+                            @include('modules.farms._detail-row', ['label' => __('National ID'), 'value' => $farm->owner_national_id])
+                        @endif
+                        @include('modules.farms._detail-row', ['label' => __('Phone'), 'value' => $farm->contact_phone])
+                        @include('modules.farms._detail-row', ['label' => __('Email'), 'value' => $farm->contact_email])
+                    </dl>
+                </article>
 
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">Registration</h2>
-                <dl class="dash-farm-detail">
-                    @include('modules.farms._detail-row', ['label' => 'Number', 'value' => $farm->registration_number])
-                    @include('modules.farms._detail-row', ['label' => 'Date', 'value' => $farm->registration_date?->format('M j, Y')])
-                    @include('modules.farms._detail-row', ['label' => 'Ownership', 'value' => $ownershipLabel])
-                    @include('modules.farms._detail-row', ['label' => 'Workspace', 'value' => $farm->tenant_id])
-                    @include('modules.farms._detail-row', ['label' => 'Joined', 'value' => $farm->created_at?->format('M j, Y')])
-                </dl>
-            </div>
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Registration') }}</h2>
+                        </div>
+                    </header>
+                    <dl class="admin-farms__detail">
+                        @include('modules.farms._detail-row', ['label' => __('Number'), 'value' => $farm->registration_number])
+                        @include('modules.farms._detail-row', ['label' => __('Date'), 'value' => $farm->registration_date?->format('M j, Y')])
+                        @include('modules.farms._detail-row', ['label' => __('Ownership'), 'value' => $ownershipLabel])
+                        @include('modules.farms._detail-row', ['label' => __('Workspace'), 'value' => $farm->tenant_id])
+                        @include('modules.farms._detail-row', ['label' => __('Joined'), 'value' => $farm->created_at?->format('M j, Y')])
+                    </dl>
+                </article>
 
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">Location</h2>
-                <dl class="dash-farm-detail">
-                    @include('modules.farms._detail-row', ['label' => 'Province', 'value' => $farm->province])
-                    @include('modules.farms._detail-row', ['label' => 'District', 'value' => $farm->district])
-                    @include('modules.farms._detail-row', ['label' => 'Sector', 'value' => $farm->sector])
-                    @include('modules.farms._detail-row', ['label' => 'Cell', 'value' => $farm->cell])
-                    @include('modules.farms._detail-row', ['label' => 'Village', 'value' => $farm->village])
-                </dl>
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Location') }}</h2>
+                        </div>
+                    </header>
+                    <dl class="admin-farms__detail">
+                        @include('modules.farms._detail-row', ['label' => __('Province'), 'value' => $farm->province])
+                        @include('modules.farms._detail-row', ['label' => __('District'), 'value' => $farm->district])
+                        @include('modules.farms._detail-row', ['label' => __('Sector'), 'value' => $farm->sector])
+                        @include('modules.farms._detail-row', ['label' => __('Cell'), 'value' => $farm->cell])
+                        @include('modules.farms._detail-row', ['label' => __('Village'), 'value' => $farm->village])
+                    </dl>
+                </article>
             </div>
-        </div>
+        </section>
 
-        <div class="dash-panel dash-panel--flush">
-            <div class="admin-panel-head">
-                <h2 class="dash-panel-title">Livestock groups</h2>
-                <span class="admin-panel-meta">{{ number_format($livestockGroups->count()) }} · {{ $filters['label'] }}</span>
-            </div>
-            @if ($livestockGroups->isEmpty())
-                <p class="dash-empty">No livestock groups in this period.</p>
-            @else
-                <div class="dash-data-table-wrap">
-                    <table class="dash-data-table">
-                        <thead>
-                            <tr>
-                                <th>Group</th>
-                                <th>Breed</th>
-                                <th class="dash-data-table__num">Head</th>
-                                <th class="dash-data-table__num">Animals</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($livestockGroups as $group)
-                                @php
-                                    $groupBadge = $group->status === 'active'
-                                        ? 'dash-data-table__badge--active'
-                                        : 'dash-data-table__badge--inactive';
-                                @endphp
+        <section class="farm-dash__section" aria-label="{{ __('Livestock groups') }}">
+            <article class="farm-panel">
+                <header class="farm-panel__head">
+                    <div>
+                        <h2 class="farm-panel__title">{{ __('Livestock groups') }}</h2>
+                        <p class="farm-panel__desc">{{ number_format($livestockGroups->count()) }} · {{ $filters['label'] ?? __('All time') }}</p>
+                    </div>
+                </header>
+                @if ($livestockGroups->isEmpty())
+                    <p class="dash-empty">{{ __('No livestock groups in this period.') }}</p>
+                @else
+                    <div class="dash-table-wrap">
+                        <table class="health-table">
+                            <thead>
                                 <tr>
-                                    <td>{{ $group->name }}</td>
-                                    <td class="dash-data-table__muted">{{ $group->breed ?: '—' }}</td>
-                                    <td class="dash-data-table__num">{{ number_format($group->head_count) }}</td>
-                                    <td class="dash-data-table__num">{{ number_format($group->animals_count) }}</td>
-                                    <td><span class="dash-data-table__badge {{ $groupBadge }}">{{ $group->status }}</span></td>
+                                    <th>{{ __('Group') }}</th>
+                                    <th>{{ __('Breed') }}</th>
+                                    <th>{{ __('Head') }}</th>
+                                    <th>{{ __('Animals') }}</th>
+                                    <th>{{ __('Status') }}</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
+                            </thead>
+                            <tbody>
+                                @foreach ($livestockGroups as $group)
+                                    @php
+                                        $groupTone = $group->status === 'active' ? 'ok' : 'muted';
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            <div class="health-table__primary">
+                                                @include('modules.health.partials.table-icon', ['icon' => 'livestock', 'tone' => $groupTone])
+                                                <span class="health-table__title">{{ $group->name }}</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="health-table__value">{{ $group->breed ?: '—' }}</span></td>
+                                        <td><span class="health-table__value">{{ number_format($group->head_count) }}</span></td>
+                                        <td><span class="health-table__value">{{ number_format($group->animals_count) }}</span></td>
+                                        <td>
+                                            <span class="health-table__pill health-table__pill--{{ $groupTone }}">{{ $group->status }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </article>
+        </section>
 
         @if ($farm->requiresMembers() && $farm->members->isNotEmpty())
-            <div class="dash-panel dash-panel--flush">
-                <h2 class="dash-panel-title">Members</h2>
-                <div class="dash-data-table-wrap">
-                    <table class="dash-data-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Gender</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($farm->members as $member)
+            <section class="farm-dash__section" aria-label="{{ __('Members') }}">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Members') }}</h2>
+                            <p class="farm-panel__desc">{{ number_format($farm->members->count()) }} {{ __('total') }}</p>
+                        </div>
+                    </header>
+                    <div class="dash-table-wrap">
+                        <table class="health-table">
+                            <thead>
                                 <tr>
-                                    <td>{{ trim($member->first_name.' '.$member->last_name) }}</td>
-                                    <td class="dash-data-table__muted">{{ $member->phone ?: '—' }}</td>
-                                    <td class="dash-data-table__muted">{{ $member->gender ? (config('modules.animal_genders')[$member->gender] ?? ucfirst($member->gender)) : '—' }}</td>
+                                    <th>{{ __('Name') }}</th>
+                                    <th>{{ __('Phone') }}</th>
+                                    <th>{{ __('Gender') }}</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                            </thead>
+                            <tbody>
+                                @foreach ($farm->members as $member)
+                                    <tr>
+                                        <td>
+                                            <div class="health-table__primary">
+                                                @include('modules.health.partials.table-icon', ['icon' => 'customer', 'tone' => 'default'])
+                                                <span class="health-table__title">{{ trim($member->first_name.' '.$member->last_name) }}</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="health-table__meta">{{ $member->phone ?: '—' }}</span></td>
+                                        <td>
+                                            <span class="health-table__value">
+                                                {{ $member->gender ? (config('modules.animal_genders')[$member->gender] ?? ucfirst($member->gender)) : '—' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
         @endif
 
         @if ($farm->notes)
-            <div class="dash-panel">
-                <h2 class="dash-panel-title">Notes</h2>
-                <p class="admin-farm-page__notes">{{ $farm->notes }}</p>
-            </div>
+            <section class="farm-dash__section" aria-label="{{ __('Notes') }}">
+                <article class="farm-panel">
+                    <header class="farm-panel__head">
+                        <div>
+                            <h2 class="farm-panel__title">{{ __('Notes') }}</h2>
+                        </div>
+                    </header>
+                    <p class="admin-farms__notes">{{ $farm->notes }}</p>
+                </article>
+            </section>
         @endif
     </div>
 @endsection
 
 @push('styles')
+    @include('central.dashboard.partials.styles')
     <style>
-        .admin-farm-page {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-        .admin-farm-page__top {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 1rem 1.5rem;
-        }
-        .admin-farm-page__title-row {
+        .admin-farms__title-row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 0.65rem;
             margin-top: 0.35rem;
         }
-        .admin-farm-page__title-row .dash-welcome {
+        .admin-farms__detail {
             margin: 0;
+            padding: 0 1.25rem 1.25rem;
         }
-        .admin-farm-page__meta {
-            margin: 0.35rem 0 0;
-            font-size: 0.8125rem;
-            color: var(--orora-gray);
-        }
-        .admin-farm-page__filters {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 0.75rem;
-        }
-        .admin-farm-page__notes {
+        .admin-farms__notes {
             margin: 0;
+            padding: 0 1.25rem 1.25rem;
             font-size: 0.875rem;
             color: #374151;
             white-space: pre-wrap;
             line-height: 1.5;
         }
-        .admin-farm-page .dash-panel-title {
-            margin-bottom: 1rem;
+        .admin-farms .dash-back-link {
+            display: inline-block;
+            margin-bottom: 0.15rem;
         }
-        .admin-farm-page .dash-panel--flush .dash-panel-title,
-        .admin-farm-page .admin-panel-head .dash-panel-title {
-            margin-bottom: 0;
+        .admin-farms .farm-kpi:not(a) {
+            cursor: default;
         }
-        .admin-farm-page .admin-panel-head {
-            padding: 0 0 1rem;
-        }
-        .admin-farm-page .dash-panel--flush > .dash-panel-title {
-            padding: 1.25rem 1.25rem 0;
-        }
-        .admin-farm-page .dash-panel--flush .admin-panel-head {
-            padding: 1.25rem 1.25rem 1rem;
-        }
-        .admin-farm-page .dash-empty {
-            padding: 0 1.25rem 1.25rem;
+        .admin-farms .farm-kpi:not(a):hover {
+            transform: none;
+            box-shadow: none;
         }
     </style>
 @endpush
