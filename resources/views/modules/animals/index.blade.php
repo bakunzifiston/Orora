@@ -129,15 +129,6 @@
                         <div class="farm-kpi__value">{{ number_format($stats['male']) }}</div>
                     </div>
                 </div>
-                <div class="farm-kpi farm-kpi--sales">
-                    <div class="farm-kpi__icon" aria-hidden="true">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
-                    </div>
-                    <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Lactating') }}</div>
-                        <div class="farm-kpi__value">{{ number_format($stats['lactating']) }}</div>
-                    </div>
-                </div>
 
                 @foreach ($moduleKpis as $kpi)
                     @php

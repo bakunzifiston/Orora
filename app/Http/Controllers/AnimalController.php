@@ -89,11 +89,10 @@ class AnimalController extends Controller
             'active' => (clone $statsQuery)->where('lifecycle_status', 'Active')->count(),
             'female' => (clone $statsQuery)->where('gender', 'female')->count(),
             'male' => (clone $statsQuery)->where('gender', 'male')->count(),
-            'lactating' => (clone $statsQuery)->where('production_status', 'Lactating')->count(),
         ];
 
         $moduleKpis = collect($analytics->operationModuleKpis($farmId))
-            ->reject(fn (array $kpi) => ($kpi['key'] ?? '') === 'health')
+            ->reject(fn (array $kpi) => in_array($kpi['key'] ?? '', ['health', 'breeding'], true))
             ->values()
             ->all();
 
