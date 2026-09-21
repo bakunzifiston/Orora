@@ -26,6 +26,7 @@
                 <li>{{ __('Dates may be YYYY-MM-DD or DD/MM/YYYY, and a spreadsheet using MM/DD/YYYY is detected automatically.') }}</li>
                 <li>{{ __('A date of birth in the future is left blank and reported back to you.') }}</li>
                 <li>{{ __('Rows without a tag number are given one automatically.') }}</li>
+                <li>{{ __('Pregnancy wording such as “pregnancy cow” is mapped to Gestating / Pregnant so Health filters find the animal.') }}</li>
                 <li>{{ __('Photos are added later on each animal.') }}</li>
             </ul>
         @endcomponent

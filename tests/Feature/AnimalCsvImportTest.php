@@ -93,6 +93,62 @@ class AnimalCsvImportTest extends TenantTestCase
         $this->assertDatabaseHas('animals', ['tag_number' => 'RW-001', 'name' => 'Bella']);
     }
 
+    public function test_it_maps_pregnancy_cow_so_health_filters_find_the_animal(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        FarmTestFixtures::livestock($farm, ['name' => 'Dairy herd']);
+
+        $result = $this->importRows("\t", [
+            $this->row([
+                'livestock_name' => 'Dairy herd',
+                'tag_number' => '2044169',
+                'name' => 'Mariza',
+                'health_status' => 'Healthy',
+                'production_status' => 'pregnancy cow',
+                'acquisition_type' => 'born in the farm',
+                'date_of_birth' => '10/5/2022',
+            ]),
+        ]);
+
+        $this->assertSame(1, $result['created'], json_encode($result['errors']));
+        $this->assertSame(0, $result['failed']);
+
+        $animal = Animal::query()->where('tag_number', '2044169')->first();
+
+        $this->assertNotNull($animal);
+        $this->assertSame('Pregnant', $animal->health_status);
+        $this->assertSame('Gestating', $animal->production_status);
+        $this->assertSame('Born on farm', $animal->acquisition_type);
+        $this->assertSame('2022-05-10', $animal->date_of_birth->toDateString());
+
+        $messages = collect($result['warnings'])->pluck('message')->implode(' ');
+        $this->assertStringContainsString('pregnancy cow', $messages);
+        $this->assertStringContainsString('Pregnant', $messages);
+    }
+
+    public function test_it_maps_pregnant_health_aliases(): void
+    {
+        $farm = FarmTestFixtures::farm(['name' => 'Nandi Farm']);
+        FarmTestFixtures::livestock($farm, ['name' => 'Dairy herd']);
+
+        $result = $this->importRows("\t", [
+            $this->row([
+                'livestock_name' => 'Dairy herd',
+                'tag_number' => 'P-1',
+                'name' => 'Bella',
+                'health_status' => 'pregnancy',
+                'production_status' => '',
+            ]),
+        ]);
+
+        $this->assertSame(1, $result['created']);
+        $this->assertDatabaseHas('animals', [
+            'tag_number' => 'P-1',
+            'health_status' => 'Pregnant',
+            'production_status' => null,
+        ]);
+    }
+
     /**
      * @param  array<string, string>  $overrides
      * @return array<string, string>

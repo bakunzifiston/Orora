@@ -5,6 +5,7 @@ namespace App\Services\Import;
 use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Livestock;
+use App\Services\Import\Concerns\NormalizesAnimalStatuses;
 use App\Services\Import\Concerns\NormalizesDates;
 use App\Services\Import\Concerns\ParsesCsv;
 use App\Services\ImportExport\AnimalCsvSchema;
@@ -16,6 +17,7 @@ use Throwable;
 
 class AnimalCsvImporter
 {
+    use NormalizesAnimalStatuses;
     use NormalizesDates;
     use ParsesCsv;
 
@@ -97,26 +99,60 @@ class AnimalCsvImporter
             $dateOfBirth = null;
         }
 
+        $rawHealth = $row['health_status'] ?? null;
+        $rawProduction = $row['production_status'] ?? null;
+        [$healthStatus, $productionStatus] = $this->normalizeHealthAndProduction($rawHealth, $rawProduction);
+
+        if ($rawProduction !== null && $rawProduction !== '' && $productionStatus !== null && $rawProduction !== $productionStatus) {
+            $warnings[] = __('Production status ":from" was mapped to :to.', [
+                'from' => $rawProduction,
+                'to' => $productionStatus,
+            ]);
+        }
+
+        if (
+            $productionStatus === 'Gestating'
+            && $healthStatus === 'Pregnant'
+            && in_array($this->aliasKey((string) ($rawHealth ?? '')), ['', 'healthy'], true)
+        ) {
+            $warnings[] = __('Health status was set to Pregnant so pregnancy filters can find this animal.');
+        } elseif ($rawHealth !== null && $rawHealth !== '' && $healthStatus !== null && $rawHealth !== $healthStatus) {
+            $warnings[] = __('Health status ":from" was mapped to :to.', [
+                'from' => $rawHealth,
+                'to' => $healthStatus,
+            ]);
+        }
+
+        $rawAcquisition = $row['acquisition_type'] ?? null;
+        $acquisitionType = $this->normalizeAcquisitionType($rawAcquisition);
+
+        if ($rawAcquisition !== null && $rawAcquisition !== '' && $acquisitionType !== null && $rawAcquisition !== $acquisitionType) {
+            $warnings[] = __('Acquisition type ":from" was mapped to :to.', [
+                'from' => $rawAcquisition,
+                'to' => $acquisitionType,
+            ]);
+        }
+
         $payload = [
             'farm_id' => $farm->id,
             'livestock_id' => $livestock->id,
             'tag_number' => $tagNumber,
             'name' => $row['name'] ?? null,
             'gender' => isset($row['gender']) ? strtolower((string) $row['gender']) : null,
-            'health_status' => $row['health_status'] ?? null,
-            'lifecycle_status' => $row['lifecycle_status'] ?? null,
+            'health_status' => $healthStatus,
+            'lifecycle_status' => $this->normalizeLifecycleStatus($row['lifecycle_status'] ?? null),
             'date_of_birth' => $dateOfBirth,
             'weight_kg' => $row['weight_kg'] ?? null,
             'color_markings' => $row['color_markings'] ?? null,
             'species' => $row['species'] ?? null,
             'breed' => $row['breed'] ?? null,
-            'acquisition_type' => $row['acquisition_type'] ?? null,
+            'acquisition_type' => $acquisitionType,
             'acquisition_date' => $this->normalizeImportDate($row['acquisition_date'] ?? null),
             'source' => $row['source'] ?? null,
             'mother_tag' => $row['mother_tag'] ?? null,
             'father_tag' => $row['father_tag'] ?? null,
-            'production_status' => $row['production_status'] ?? null,
-            'current_condition' => $row['current_condition'] ?? null,
+            'production_status' => $productionStatus,
+            'current_condition' => $this->normalizeCurrentCondition($row['current_condition'] ?? null),
             'notes' => $row['notes'] ?? null,
         ];
 
