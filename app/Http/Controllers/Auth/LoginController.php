@@ -9,6 +9,7 @@ use App\Services\TenantAccountService;
 use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -40,7 +41,9 @@ class LoginController extends Controller
 
             /** @var AdminUser $admin */
             $admin = Auth::guard('admin')->user();
-            $admin->update(['last_login_at' => now()]);
+            if ($admin && Schema::hasColumn($admin->getTable(), 'last_login_at')) {
+                $admin->update(['last_login_at' => now()]);
+            }
 
             $request->session()->forget(['tenant_id', 'auth_email']);
             $this->tenantAccounts->forgetTenantCookies();
@@ -51,7 +54,7 @@ class LoginController extends Controller
         Auth::guard('admin')->logout();
 
         $user = Auth::guard('web')->user();
-        if ($user) {
+        if ($user && Schema::hasColumn($user->getTable(), 'last_login_at')) {
             $user->forceFill(['last_login_at' => now()])->save();
         }
 
