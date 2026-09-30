@@ -14,7 +14,7 @@
             <div class="lp-hero__media" aria-hidden="true"></div>
             <div class="lp-hero__shade" aria-hidden="true"></div>
             <div class="mp-container lp-hero__frame">
-                <div class="lp-hero__copy is-visible" data-lp-reveal>
+                <div class="lp-hero__copy" data-lp-reveal>
                     <p class="lp-hero__brand">Orora Farm</p>
                     <h1 class="lp-hero__title">
                         Farm management,<br>
@@ -33,7 +33,7 @@
 
         <section class="lp-stats lp-stats--home" data-lp-stats data-lp-reveal>
             <div class="mp-container">
-                <div class="lp-stats__grid lp-stats__grid--three">
+                <div class="lp-stats__grid lp-stats__grid--three" data-lp-stagger>
                     @foreach (array_slice($landingStats, 0, 3) as $stat)
                         <div class="lp-stats__item">
                             @if (($stat['animate'] ?? false) && ($stat['value'] ?? null))
@@ -61,7 +61,7 @@
                     <p class="lp-section__subtitle">{{ $ps['subtitle'] }}</p>
                 </div>
 
-                <div class="lp-compare lp-compare--home">
+                <div class="lp-compare lp-compare--home" data-lp-stagger>
                     <div class="lp-compare__col lp-compare__col--before">
                         <h3 class="lp-compare__heading">{{ $ps['before_label'] }}</h3>
                         <ul class="lp-compare__list">
@@ -99,7 +99,7 @@
                     <h2 class="lp-section__title">Everything your farm needs</h2>
                     <p class="lp-section__subtitle">Modules designed for day-to-day livestock operations.</p>
                 </div>
-                <div class="lp-feature-grid lp-feature-grid--home">
+                <div class="lp-feature-grid lp-feature-grid--home" data-lp-stagger>
                     @foreach (config('marketplace.features') as $index => $feature)
                         <article class="lp-feature-card lp-feature-card--home">
                             <span class="lp-feature-card__index" aria-hidden="true">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
@@ -118,7 +118,7 @@
                     <h2 class="lp-section__title">Get started in minutes</h2>
                     <p class="lp-section__subtitle">Three clear steps from signup to daily farm records.</p>
                 </div>
-                <div class="lp-flow lp-flow--home">
+                <div class="lp-flow lp-flow--home" data-lp-stagger>
                     @foreach (config('marketplace.how_it_works') as $step)
                         <div class="lp-flow__step">
                             <div class="lp-flow__number">{{ $step['step'] }}</div>
@@ -142,7 +142,7 @@
                 </div>
 
                 @if ($categories->isNotEmpty())
-                    <div class="lp-category-links">
+                    <div class="lp-category-links" data-lp-stagger>
                         @foreach ($categories->take(6) as $category)
                             <a href="{{ route('marketplace.shop', ['category' => $category->slug]) }}" class="lp-category-link">
                                 {{ $category->name }}
@@ -151,7 +151,7 @@
                     </div>
                 @endif
 
-                <div class="mp-card-grid lp-listing-grid">
+                <div class="mp-card-grid lp-listing-grid" data-lp-stagger>
                     @forelse ($featuredListings as $listing)
                         @include('marketplace.shop.partials.listing-card', ['listing' => $listing])
                     @empty
@@ -217,7 +217,7 @@
                     <h2 class="lp-section__title">Simple, transparent pricing</h2>
                     <p class="lp-section__subtitle">Start free. Upgrade when your operation grows.</p>
                 </div>
-                <div class="lp-pricing-grid lp-pricing-grid--home">
+                <div class="lp-pricing-grid lp-pricing-grid--home" data-lp-stagger>
                     @foreach (config('marketplace.pricing') as $plan)
                         <article class="lp-pricing-card {{ $plan['popular'] ? 'lp-pricing-card--popular' : '' }}">
                             @if ($plan['popular'])

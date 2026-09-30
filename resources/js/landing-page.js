@@ -18,19 +18,33 @@ function initReveal() {
         return;
     }
 
+    const reveal = (node) => {
+        node.classList.add('is-visible');
+    };
+
+    // Hero copy should animate immediately on load.
+    nodes.forEach((node) => {
+        if (node.classList.contains('lp-hero__copy') || node.classList.contains('is-visible')) {
+            reveal(node);
+        }
+    });
+
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
+                    reveal(entry.target);
                     observer.unobserve(entry.target);
                 }
             });
         },
-        { threshold: 0.14, rootMargin: '0px 0px -6% 0px' }
+        { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
     );
 
-    nodes.forEach((node) => observer.observe(node));
+    nodes.forEach((node) => {
+        if (node.classList.contains('is-visible')) return;
+        observer.observe(node);
+    });
 }
 function initStickyNav() {
     const nav = document.querySelector('[data-lp-nav]');

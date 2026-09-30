@@ -2013,13 +2013,14 @@
         align-items: flex-start;
         padding: 0.7rem 0.85rem;
         background: #fff;
-        border: 1px solid var(--farm-border);
+        border: 1px solid var(--farm-border, #e5e7eb);
         border-radius: 0.65rem;
         text-decoration: none;
-        color: inherit;
+        color: #0f172a;
         min-width: 0;
         transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
         border-top: 2px solid transparent;
+        color-scheme: light;
     }
     .farm-kpi:hover {
         border-color: rgba(164, 212, 0, 0.45);
@@ -2068,7 +2069,7 @@
     .farm-kpi__label {
         font-size: 0.6875rem;
         font-weight: 600;
-        color: var(--farm-muted);
+        color: #64748b;
         letter-spacing: 0.01em;
     }
     .farm-kpi__value {
@@ -2076,7 +2077,7 @@
         font-size: 1.25rem;
         font-weight: 700;
         line-height: 1.15;
-        color: var(--farm-ink);
+        color: #0f172a;
         letter-spacing: -0.02em;
         word-break: break-word;
     }
@@ -2084,13 +2085,13 @@
     .farm-kpi__unit {
         font-size: 0.6875rem;
         font-weight: 600;
-        color: var(--farm-muted);
+        color: #64748b;
         margin-left: 0.15rem;
     }
     .farm-kpi__hint {
         margin-top: 0.2rem;
         font-size: 0.625rem;
-        color: #94a3b8;
+        color: #64748b;
         line-height: 1.3;
     }
     .farm-kpi__trend {
@@ -3221,14 +3222,6 @@
         .employees-table thead th:nth-child(5),
         .employees-table tbody td:nth-child(5) {
             display: none;
-        }
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .farm-dash {
-            --farm-border: rgba(255, 255, 255, 0.1);
-            --farm-muted: #94a3b8;
-            --farm-ink: #f8fafc;
         }
     }
 </style>
