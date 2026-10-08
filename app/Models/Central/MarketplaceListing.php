@@ -120,6 +120,21 @@ class MarketplaceListing extends CentralModel
         return $images[0] ?? null;
     }
 
+    public function imageUrl(?string $path = null): ?string
+    {
+        $path ??= $this->mainImage();
+
+        if (! $path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return asset(ltrim($path, '/'));
+    }
+
     public function formattedPrice(): string
     {
         $amount = number_format((float) $this->price, 0).' '.$this->currency;

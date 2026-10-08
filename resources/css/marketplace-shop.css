@@ -540,9 +540,15 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 0.35s ease, transform 0.45s ease;
+}
+
+/* Progressive fade-in when JS marks loading state */
+.shop-card__img.is-loading {
     opacity: 0;
     transform: scale(1.04);
-    transition: opacity 0.35s ease, transform 0.45s ease;
 }
 
 .shop-card__img.is-loaded {

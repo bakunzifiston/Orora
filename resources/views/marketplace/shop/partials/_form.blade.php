@@ -158,7 +158,7 @@
             <div class="shop-form__existing">
                 @foreach ($listing->images as $image)
                     <label class="shop-form__existing-item">
-                        <img src="{{ asset($image) }}" alt="">
+                        <img src="{{ $listing->imageUrl($image) }}" alt="">
                         <input type="checkbox" name="keep_images[]" value="{{ $image }}" checked> Keep
                     </label>
                 @endforeach

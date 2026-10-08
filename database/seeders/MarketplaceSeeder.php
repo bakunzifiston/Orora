@@ -57,6 +57,7 @@ class MarketplaceSeeder extends Seeder
                 'is_featured' => true,
                 'is_verified' => true,
                 'views_count' => 1240,
+                'images' => ['images/marketplace/cow.jpg'],
             ],
             [
                 'category_id' => $categoryMap['milk-dairy'],
@@ -74,6 +75,7 @@ class MarketplaceSeeder extends Seeder
                 'location_district' => 'Nyagatare',
                 'is_featured' => true,
                 'is_verified' => true,
+                'images' => ['images/marketplace/milk.jpg'],
             ],
             [
                 'category_id' => $categoryMap['meat-products'],
@@ -90,6 +92,7 @@ class MarketplaceSeeder extends Seeder
                 'seller_type' => 'company',
                 'location_district' => 'Musanze',
                 'is_verified' => true,
+                'images' => ['images/marketplace/beef.jpg'],
             ],
             [
                 'category_id' => $categoryMap['feed-supplies'],
@@ -106,10 +109,35 @@ class MarketplaceSeeder extends Seeder
                 'seller_type' => 'company',
                 'location_district' => 'Huye',
                 'is_featured' => true,
+                'images' => ['images/marketplace/feed.jpg'],
+            ],
+            [
+                'category_id' => $categoryMap['live-animals'],
+                'listing_type' => 'animal',
+                'title' => 'Friesian heifers — 18 months',
+                'slug' => 'friesian-heifers-18-months',
+                'description' => 'Well-grown Friesian heifers ready for breeding. Vaccinated and dewormed.',
+                'breed' => 'Friesian',
+                'age' => '18 months',
+                'weight_kg' => 280,
+                'quantity' => 4,
+                'unit' => 'head',
+                'price' => 420000,
+                'price_type' => 'negotiable',
+                'seller_name' => 'Kagarama Prime Farm',
+                'seller_phone' => '+250 788 123 456',
+                'seller_type' => 'individual',
+                'location_district' => 'Kigali',
+                'is_featured' => true,
+                'is_verified' => true,
+                'images' => ['images/marketplace/heifers.jpg'],
             ],
         ];
 
         foreach ($listings as $listing) {
+            $images = $listing['images'] ?? [];
+            unset($listing['images']);
+
             MarketplaceListing::query()->updateOrCreate(
                 ['tenant_id' => $tenant->id, 'slug' => $listing['slug']],
                 $listing + [
@@ -117,7 +145,7 @@ class MarketplaceSeeder extends Seeder
                     'listing_code' => MarketplaceListing::generateCode(),
                     'currency' => 'RWF',
                     'status' => 'active',
-                    'images' => [],
+                    'images' => $images,
                 ]
             );
         }

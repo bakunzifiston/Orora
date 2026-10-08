@@ -16,7 +16,7 @@
     <a href="{{ route('marketplace.shop.show', $listing) }}" class="shop-card__media">
         @if ($listing->mainImage())
             <img
-                src="{{ asset($listing->mainImage()) }}"
+                src="{{ $listing->imageUrl() }}"
                 alt="{{ $listing->title }}"
                 loading="lazy"
                 class="shop-card__img"

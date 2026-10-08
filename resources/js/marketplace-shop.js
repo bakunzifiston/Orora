@@ -64,13 +64,17 @@ function initLoadingStates() {
 
 function initImageReveal() {
     document.querySelectorAll('[data-shop-img]').forEach((img) => {
-        const reveal = () => img.classList.add('is-loaded');
+        const reveal = () => {
+            img.classList.remove('is-loading');
+            img.classList.add('is-loaded');
+        };
 
         if (img.complete && img.naturalWidth > 0) {
             reveal();
             return;
         }
 
+        img.classList.add('is-loading');
         img.addEventListener('load', reveal, { once: true });
         img.addEventListener('error', reveal, { once: true });
     });

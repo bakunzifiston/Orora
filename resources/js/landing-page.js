@@ -7,7 +7,26 @@ document.addEventListener('DOMContentLoaded', () => {
     initCountUp();
     initTestimonials();
     initReveal();
+    initShopImageReveal();
 });
+
+function initShopImageReveal() {
+    document.querySelectorAll('[data-shop-img]').forEach((img) => {
+        const reveal = () => {
+            img.classList.remove('is-loading');
+            img.classList.add('is-loaded');
+        };
+
+        if (img.complete && img.naturalWidth > 0) {
+            reveal();
+            return;
+        }
+
+        img.classList.add('is-loading');
+        img.addEventListener('load', reveal, { once: true });
+        img.addEventListener('error', reveal, { once: true });
+    });
+}
 
 function initReveal() {
     const nodes = document.querySelectorAll('[data-lp-reveal]');
