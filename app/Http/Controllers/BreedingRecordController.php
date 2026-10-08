@@ -75,7 +75,10 @@ class BreedingRecordController extends Controller
 
         return redirect()
             ->route('breeding.records.edit', $record)
-            ->with('success', "Breeding recorded. You will be reminded to perform a pregnancy check on {$dueOn} ({$this->breedingReminders->dueAfterDays()} days after breeding).");
+            ->with('success', __('Breeding recorded. You will be reminded to perform a pregnancy check on :date (:days days after breeding).', [
+                'date' => $dueOn,
+                'days' => $this->breedingReminders->dueAfterDays(),
+            ]));
     }
 
     public function edit(BreedingRecord $breedingRecord): View
@@ -118,7 +121,7 @@ class BreedingRecordController extends Controller
 
         return redirect()
             ->route('breeding.records.edit', $breedingRecord)
-            ->with('success', 'Breeding record updated.');
+            ->with('success', __('Breeding record updated.'));
     }
 
     public function destroy(BreedingRecord $breedingRecord): RedirectResponse
@@ -130,7 +133,7 @@ class BreedingRecordController extends Controller
         $this->expenseService->deleteForSource($breedingRecord);
         $breedingRecord->delete();
 
-        return redirect()->route('breeding.records')->with('success', 'Breeding record removed.');
+        return redirect()->route('breeding.records')->with('success', __('Breeding record removed.'));
     }
 
     private function formOptions(?BreedingRecord $record = null): array

@@ -17,18 +17,33 @@
         $initials = collect(explode(' ', $admin->name))->map(fn ($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
     @endphp
     <div class="dash-app">
+        @include('layouts.partials.dash-mobile-nav')
         @include('layouts.partials.admin-sidebar', [
             'activeNav' => $activeNav ?? 'dashboard',
         ])
 
         <div class="dash-main">
             <header class="dash-topbar">
-                <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--orora-gray);">
-                    {{ __('Platform workspace') }}
-                </p>
+                <div class="dash-topbar__start">
+                    <button
+                        type="button"
+                        class="dash-nav-toggle dash-nav-toggle--bar"
+                        data-dash-nav-toggle
+                        aria-controls="dash-sidebar"
+                        aria-expanded="false"
+                        aria-label="{{ __('Open menu') }}"
+                    >
+                        <span class="dash-nav-toggle__bars" aria-hidden="true">
+                            <span></span><span></span><span></span>
+                        </span>
+                    </button>
+                    <p class="dash-topbar__label">
+                        {{ __('Platform workspace') }}
+                    </p>
+                </div>
                 <div class="dash-topbar-actions">
                     @include('layouts.partials.locale-switcher')
-                    <a href="{{ url('/') }}" target="_blank" rel="noopener" class="dash-topbar-logout" style="text-decoration: none;">
+                    <a href="{{ url('/') }}" target="_blank" rel="noopener" class="dash-topbar-logout dash-topbar-logout--link dash-icon-btn--desktop">
                         {{ __('Public site') }}
                     </a>
                     <div class="dash-topbar-profile">

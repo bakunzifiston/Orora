@@ -52,7 +52,7 @@ class ContactMessageController extends Controller
             'replied_at' => $validated['status'] === 'replied' ? now() : $contactMessage->replied_at,
         ]);
 
-        return back()->with('success', 'Message updated.');
+        return back()->with('success', __('Message updated.'));
     }
 
     /**

@@ -87,12 +87,18 @@ class BreedingRecord extends TenantModel
 
     public function statusLabel(): string
     {
-        return config('modules.breeding_status_labels')[$this->breeding_status] ?? ucfirst(str_replace('_', ' ', $this->breeding_status));
+        $label = config('modules.breeding_status_labels')[$this->breeding_status]
+            ?? ucfirst(str_replace('_', ' ', $this->breeding_status));
+
+        return __($label);
     }
 
     public function breedingTypeLabel(): string
     {
-        return config('modules.breeding_type_labels')[$this->breeding_type] ?? ucfirst(str_replace('_', ' ', $this->breeding_type));
+        $label = config('modules.breeding_type_labels')[$this->breeding_type]
+            ?? ucfirst(str_replace('_', ' ', $this->breeding_type));
+
+        return __($label);
     }
 
     public function sireLabel(): string
@@ -105,6 +111,6 @@ class BreedingRecord extends TenantModel
             return $this->external_sire_name.($this->external_sire_breed ? " — {$this->external_sire_breed}" : '');
         }
 
-        return 'Unknown';
+        return __('Unknown');
     }
 }

@@ -74,6 +74,6 @@ class PregnancyCheckController extends Controller
 
         return redirect()
             ->route('breeding.records.edit', $check->breeding_record_id)
-            ->with('success', 'Pregnancy check recorded.');
+            ->with('success', __('Pregnancy check recorded.'));
     }
 }

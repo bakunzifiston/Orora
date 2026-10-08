@@ -10,10 +10,14 @@ class ProfileController extends Controller
 {
     public function edit(): View
     {
+        $species = app(\App\Services\Species\SpeciesProfile::class);
+        $access = app(\App\Services\WorkspaceAccessService::class);
+        $groups = $access->filterNavigationGroups($species->navigationGroups(), auth()->user());
+
         return view('profile.edit', [
             'user' => auth()->user(),
-            'navigation' => config('modules.navigation'),
-            'navigationGroups' => config('modules.navigation_groups'),
+            'navigation' => collect($groups)->flatMap(fn (array $g) => $g['items'] ?? [])->values()->all(),
+            'navigationGroups' => $groups,
             'activeNav' => 'settings',
         ]);
     }
@@ -32,6 +36,6 @@ class ProfileController extends Controller
 
         return redirect()
             ->route('profile.edit')
-            ->with('success', 'Profile updated successfully.');
+            ->with('success', __('Profile updated successfully.'));
     }
 }

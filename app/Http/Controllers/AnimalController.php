@@ -131,7 +131,7 @@ class AnimalController extends Controller
 
         return redirect()
             ->route('animals.show', $animal)
-            ->with('success', 'Animal registered successfully.');
+            ->with('success', __('Animal registered successfully.'));
     }
 
     public function edit(Animal $animal): View
@@ -146,7 +146,7 @@ class AnimalController extends Controller
 
         return redirect()
             ->route('animals.show', $animal)
-            ->with('success', 'Animal updated successfully.');
+            ->with('success', __('Animal updated successfully.'));
     }
 
     public function destroy(Animal $animal): RedirectResponse
@@ -157,7 +157,7 @@ class AnimalController extends Controller
 
         $animal->delete();
 
-        return redirect()->route('animals.index')->with('success', 'Animal removed successfully.');
+        return redirect()->route('animals.index')->with('success', __('Animal removed successfully.'));
     }
 
     private function formOptions(): array

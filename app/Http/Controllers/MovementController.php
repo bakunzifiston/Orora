@@ -34,7 +34,7 @@ class MovementController extends Controller
     {
         Movement::create($request->validate($this->rules()));
 
-        return redirect()->route('movements.index')->with('success', 'Movement recorded successfully.');
+        return redirect()->route('movements.index')->with('success', __('Movement recorded successfully.'));
     }
 
     public function edit(Movement $movement): View
@@ -46,14 +46,14 @@ class MovementController extends Controller
     {
         $movement->update($request->validate($this->rules()));
 
-        return redirect()->route('movements.index')->with('success', 'Movement updated successfully.');
+        return redirect()->route('movements.index')->with('success', __('Movement updated successfully.'));
     }
 
     public function destroy(Movement $movement): RedirectResponse
     {
         $movement->delete();
 
-        return redirect()->route('movements.index')->with('success', 'Movement removed successfully.');
+        return redirect()->route('movements.index')->with('success', __('Movement removed successfully.'));
     }
 
     private function formOptions(): array

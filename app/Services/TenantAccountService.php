@@ -138,11 +138,20 @@ class TenantAccountService
 
         $this->initializeTenant($tenant->id);
 
-        $user = User::create([
+        $userAttributes = [
             'name' => $name,
             'email' => $email,
             'password' => $password,
-        ]);
+        ];
+
+        if (Schema::hasColumn('users', 'role')) {
+            $userAttributes['role'] = 'workspace_admin';
+        }
+        if (Schema::hasColumn('users', 'is_active')) {
+            $userAttributes['is_active'] = true;
+        }
+
+        $user = User::create($userAttributes);
 
         TenantAccount::create([
             'tenant_id' => $tenant->id,

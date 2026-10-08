@@ -55,7 +55,7 @@ class CustomerController extends Controller
             $request->primaryContactAttributes(),
         );
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Customer registered successfully.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Customer registered successfully.'));
     }
 
     public function show(Customer $customer): View
@@ -101,17 +101,17 @@ class CustomerController extends Controller
             $request->profileAttributes(),
         );
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Customer updated successfully.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Customer updated successfully.'));
     }
 
     public function destroy(Customer $customer): RedirectResponse
     {
         if ($customer->saleTransactions()->exists()) {
-            return redirect()->route('customers.directory')->with('error', 'Customer has sales history and cannot be deleted.');
+            return redirect()->route('customers.directory')->with('error', __('Customer has sales history and cannot be deleted.'));
         }
 
         $customer->delete();
 
-        return redirect()->route('customers.directory')->with('success', 'Customer removed successfully.');
+        return redirect()->route('customers.directory')->with('success', __('Customer removed successfully.'));
     }
 }

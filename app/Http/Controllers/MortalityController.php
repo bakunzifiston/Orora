@@ -52,7 +52,7 @@ class MortalityController extends Controller
 
         return redirect()
             ->route('health.mortality')
-            ->with('success', 'Mortality record saved successfully.');
+            ->with('success', __('Mortality record saved successfully.'));
     }
 
     public function edit(Mortality $mortality): View
@@ -85,7 +85,7 @@ class MortalityController extends Controller
 
         return redirect()
             ->route('health.mortality')
-            ->with('success', 'Mortality record updated successfully.');
+            ->with('success', __('Mortality record updated successfully.'));
     }
 
     public function destroy(Mortality $mortality): RedirectResponse
@@ -110,7 +110,7 @@ class MortalityController extends Controller
 
         return redirect()
             ->route('health.mortality')
-            ->with('success', 'Mortality record removed successfully.');
+            ->with('success', __('Mortality record removed successfully.'));
     }
 
     private function storeAttachment(MortalityRequest $request, Mortality $mortality): void

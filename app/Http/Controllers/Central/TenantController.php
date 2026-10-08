@@ -52,7 +52,10 @@ class TenantController extends Controller
 
         return redirect()
             ->route('central.tenants.index')
-            ->with('success', "Tenant \"{$tenant->name}\" created. Database: tenant{$tenant->id}");
+            ->with('success', __('Tenant ":name" created. Database: tenant:id', [
+                'name' => $tenant->name,
+                'id' => $tenant->id,
+            ]));
     }
 
     public function destroy(Tenant $tenant): RedirectResponse
@@ -62,6 +65,6 @@ class TenantController extends Controller
 
         return redirect()
             ->route('central.tenants.index')
-            ->with('success', "Tenant \"{$name}\" and its database were removed.");
+            ->with('success', __('Tenant ":name" and its database were removed.', ['name' => $name]));
     }
 }

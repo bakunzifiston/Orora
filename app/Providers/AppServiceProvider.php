@@ -47,7 +47,14 @@ class AppServiceProvider extends ServiceProvider
                 return '/admin';
             }
 
-            return route('dashboard');
+            if (Auth::guard('admin')->check()) {
+                return '/admin';
+            }
+
+            $user = Auth::guard('web')->user();
+            $home = app(\App\Services\WorkspaceAccessService::class)->homeRouteFor($user);
+
+            return route($home);
         });
 
         TenantAssetsController::$tenancyMiddleware = InitializeTenancyForAssets::class;
@@ -57,9 +64,16 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            $user = auth()->user();
+            if ($user && method_exists($user, 'loadMissing')) {
+                $user->loadMissing('modulePermissions');
+            }
+
             $species = app(\App\Services\Species\SpeciesProfile::class);
-            $view->with('navigationGroups', $species->navigationGroups());
-            $view->with('navigation', $species->navigation());
+            $access = app(\App\Services\WorkspaceAccessService::class);
+            $groups = $access->filterNavigationGroups($species->navigationGroups(), $user);
+            $view->with('navigationGroups', $groups);
+            $view->with('navigation', collect($groups)->flatMap(fn (array $g) => $g['items'] ?? [])->values()->all());
         });
 
         Route::middleware('web')

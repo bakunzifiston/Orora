@@ -50,7 +50,7 @@ class MilkSessionController extends Controller
 
         return redirect()
             ->route('milk.sessions.edit', $session)
-            ->with('success', 'Milking session opened. Add animal yields below.');
+            ->with('success', __('Milking session opened. Add animal yields below.'));
     }
 
     public function edit(MilkSession $milkSession): View
@@ -73,7 +73,7 @@ class MilkSessionController extends Controller
 
         return redirect()
             ->route('milk.sessions.edit', $milkSession)
-            ->with('success', 'Session updated.');
+            ->with('success', __('Session updated.'));
     }
 
     public function complete(MilkSessionCompleteRequest $request, MilkSession $milkSession): RedirectResponse
@@ -89,7 +89,7 @@ class MilkSessionController extends Controller
 
         return redirect()
             ->route('milk.sessions')
-            ->with('success', 'Session completed and milk stored.');
+            ->with('success', __('Session completed and milk stored.'));
     }
 
     public function cancel(MilkSession $milkSession): RedirectResponse
@@ -102,7 +102,7 @@ class MilkSessionController extends Controller
 
         return redirect()
             ->route('milk.sessions')
-            ->with('success', 'Session cancelled.');
+            ->with('success', __('Session cancelled.'));
     }
 
     public function destroy(MilkSession $milkSession): RedirectResponse
@@ -114,7 +114,7 @@ class MilkSessionController extends Controller
         $milkSession->records()->delete();
         $milkSession->delete();
 
-        return redirect()->route('milk.sessions')->with('success', 'Session removed.');
+        return redirect()->route('milk.sessions')->with('success', __('Session removed.'));
     }
 
     private function formOptions(?MilkSession $session = null): array

@@ -73,7 +73,7 @@ class FlockController extends Controller
 
         return redirect()
             ->route('flocks.show', $flock)
-            ->with('success', 'Flock placed successfully.');
+            ->with('success', __('Flock placed successfully.'));
     }
 
     public function edit(Flock $flock): View
@@ -87,14 +87,14 @@ class FlockController extends Controller
 
         return redirect()
             ->route('flocks.show', $flock)
-            ->with('success', 'Flock updated successfully.');
+            ->with('success', __('Flock updated successfully.'));
     }
 
     public function destroy(Flock $flock): RedirectResponse
     {
         $flock->delete();
 
-        return redirect()->route('flocks.index')->with('success', 'Flock removed successfully.');
+        return redirect()->route('flocks.index')->with('success', __('Flock removed successfully.'));
     }
 
     private function formData(array $extra = []): array

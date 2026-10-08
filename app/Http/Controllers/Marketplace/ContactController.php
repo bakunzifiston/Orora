@@ -26,7 +26,7 @@ class ContactController extends Controller
         if (! MarketplaceDatabase::contactReady()) {
             return redirect()
                 ->route('marketplace.contact')
-                ->with('error', 'Contact form is temporarily unavailable. Please try again later or email us directly.');
+                ->with('error', __('Contact form is temporarily unavailable. Please try again later or email us directly.'));
         }
 
         $data = $request->validated();

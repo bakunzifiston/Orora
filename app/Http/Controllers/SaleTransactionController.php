@@ -105,7 +105,7 @@ class SaleTransactionController extends Controller
         ]);
         $this->saleService->recalculateTotals($transaction);
 
-        return redirect()->route('sales.transactions.show', $transaction)->with('success', 'Sale updated.');
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Sale updated.'));
     }
 
     public function storeItem(SaleItemRequest $request, SaleTransaction $transaction): RedirectResponse
@@ -116,7 +116,7 @@ class SaleTransactionController extends Controller
             return back()->withInput()->withErrors(['item' => $e->getMessage()]);
         }
 
-        return redirect()->route('sales.transactions.show', $transaction)->with('success', 'Line item added.');
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Line item added.'));
     }
 
     public function storePayment(SalePaymentRequest $request, SaleTransaction $transaction): RedirectResponse
@@ -127,7 +127,7 @@ class SaleTransactionController extends Controller
             return back()->withErrors(['payment' => $e->getMessage()]);
         }
 
-        return redirect()->route('sales.transactions.show', $transaction)->with('success', 'Payment recorded.');
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Payment recorded.'));
     }
 
     public function confirm(SaleTransaction $transaction): RedirectResponse
@@ -154,7 +154,7 @@ class SaleTransactionController extends Controller
             return back()->withErrors(['sale' => $e->getMessage()]);
         }
 
-        return redirect()->route('sales.transactions.show', $transaction)->with('success', 'Sale completed.');
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Sale completed.'));
     }
 
     public function cancel(SaleTransaction $transaction): RedirectResponse
@@ -165,7 +165,7 @@ class SaleTransactionController extends Controller
             return back()->withErrors(['sale' => $e->getMessage()]);
         }
 
-        return redirect()->route('sales.transactions.show', $transaction)->with('success', 'Sale cancelled.');
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Sale cancelled.'));
     }
 
     public function destroy(SaleTransaction $transaction): RedirectResponse
@@ -176,7 +176,7 @@ class SaleTransactionController extends Controller
 
         $transaction->delete();
 
-        return redirect()->route('sales.transactions')->with('success', 'Sale removed.');
+        return redirect()->route('sales.transactions')->with('success', __('Sale removed.'));
     }
 
     private function formOptions(?int $farmId = null, ?SaleTransaction $transaction = null): array

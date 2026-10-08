@@ -21,7 +21,7 @@ class EmployeeAddressController extends Controller
         $employee->addresses()->create($request->validated());
         $this->employeeService->log($employee, 'updated', null, null, 'Address added.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Address added.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Address added.'));
     }
 
     public function destroy(Employee $employee, EmployeeAddress $address): RedirectResponse
@@ -31,6 +31,6 @@ class EmployeeAddressController extends Controller
         $address->delete();
         $this->employeeService->log($employee, 'updated', null, null, 'Address removed.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Address removed.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Address removed.'));
     }
 }

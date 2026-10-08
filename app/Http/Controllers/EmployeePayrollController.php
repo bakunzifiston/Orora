@@ -15,6 +15,6 @@ class EmployeePayrollController extends Controller
     {
         $this->employeeService->updatePayroll($employee, $request->validated());
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Payroll details updated.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Payroll details updated.'));
     }
 }

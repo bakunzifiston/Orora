@@ -21,7 +21,7 @@ class EmployeeEmergencyContactController extends Controller
         $employee->emergencyContacts()->create($request->validated());
         $this->employeeService->log($employee, 'updated', null, null, 'Emergency contact added.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Emergency contact added.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Emergency contact added.'));
     }
 
     public function destroy(Employee $employee, EmployeeEmergencyContact $emergencyContact): RedirectResponse
@@ -31,6 +31,6 @@ class EmployeeEmergencyContactController extends Controller
         $emergencyContact->delete();
         $this->employeeService->log($employee, 'updated', null, null, 'Emergency contact removed.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Emergency contact removed.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Emergency contact removed.'));
     }
 }

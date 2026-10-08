@@ -125,12 +125,12 @@ class PlatformUserController extends Controller
         try {
             $this->workspace->purge($user);
         } catch (Throwable) {
-            return back()->with('error', "Could not delete {$name}. Some related records could not be removed.");
+            return back()->with('error', __('Could not delete :name. Some related records could not be removed.', ['name' => $name]));
         }
 
         return redirect()
             ->route('central.accounts.index')
-            ->with('success', "{$name} and all related records were deleted.");
+            ->with('success', __(':name and all related records were deleted.', ['name' => $name]));
     }
 
     /**

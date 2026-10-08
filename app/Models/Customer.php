@@ -76,7 +76,7 @@ class Customer extends TenantModel
 
     public function typeLabel(): string
     {
-        return config('modules.customer_types.'.$this->customer_type, ucfirst(str_replace('_', ' ', $this->customer_type)));
+        return __(config('modules.customer_types.'.$this->customer_type, ucfirst(str_replace('_', ' ', $this->customer_type))));
     }
 
     public function isIndividual(): bool

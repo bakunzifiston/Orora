@@ -39,7 +39,7 @@ class VetVisitController extends Controller
 
         return redirect()
             ->route('health.vet-visits')
-            ->with('success', 'Vet visit saved successfully.');
+            ->with('success', __('Vet visit saved successfully.'));
     }
 
     public function edit(VetVisit $vetVisit): View
@@ -63,7 +63,7 @@ class VetVisitController extends Controller
 
         return redirect()
             ->route('health.vet-visits')
-            ->with('success', 'Vet visit updated successfully.');
+            ->with('success', __('Vet visit updated successfully.'));
     }
 
     public function destroy(VetVisit $vetVisit): RedirectResponse
@@ -78,7 +78,7 @@ class VetVisitController extends Controller
 
         return redirect()
             ->route('health.vet-visits')
-            ->with('success', 'Vet visit removed successfully.');
+            ->with('success', __('Vet visit removed successfully.'));
     }
 
     private function storeAttachment(VetVisitRequest $request, VetVisit $vetVisit): void

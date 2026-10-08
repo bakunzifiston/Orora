@@ -45,10 +45,13 @@ $registerAppRoutes = function (): void {
             Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
         });
 
-        Route::middleware('auth')->group(function () {
+        Route::middleware(['auth', 'module.access'])->group(function () {
             Route::get('/dashboard', DashboardController::class)->name('dashboard');
             Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        });
+
+        Route::middleware('auth')->group(function () {
             Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
             require __DIR__.'/modules.php';

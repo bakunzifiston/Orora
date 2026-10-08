@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Dashboard')
+@section('title', __('Dashboard'))
 
 @php
     $f = $dashboard['filters'] ?? [];
@@ -348,7 +348,7 @@
                         <div class="dash-ops-alert-groups farm-alerts" data-alert-list>
                             @foreach ($alertGroups as $module => $moduleAlerts)
                                 <div class="dash-ops-alert-group" data-alert-group>
-                                    <div class="dash-ops-alert-group__title">{{ $module }}</div>
+                                    <div class="dash-ops-alert-group__title">{{ __($module) }}</div>
                                     <ul>
                                         @foreach ($moduleAlerts as $alert)
                                             <li data-alert-severity="{{ $alert['severity'] }}">
@@ -362,16 +362,16 @@
                                                     <a href="{{ $alertUrl }}" class="dash-ops-alert-line dash-ops-alert-line--{{ $alert['severity'] }} dash-ops-alert-line--link farm-alert-line">
                                                         <span class="farm-alert-line__dot" aria-hidden="true"></span>
                                                         <span class="farm-alert-line__content">
-                                                            <strong>{{ $alert['title'] }}</strong>
-                                                            <span>{{ $alert['message'] }}</span>
+                                                            <strong>{{ __($alert['title']) }}</strong>
+                                                            <span>{{ __($alert['message'], $alert['message_replace'] ?? []) }}</span>
                                                         </span>
                                                     </a>
                                                 @else
                                                     <div class="dash-ops-alert-line dash-ops-alert-line--{{ $alert['severity'] }} farm-alert-line">
                                                         <span class="farm-alert-line__dot" aria-hidden="true"></span>
                                                         <span class="farm-alert-line__content">
-                                                            <strong>{{ $alert['title'] }}</strong>
-                                                            <span>{{ $alert['message'] }}</span>
+                                                            <strong>{{ __($alert['title']) }}</strong>
+                                                            <span>{{ __($alert['message'], $alert['message_replace'] ?? []) }}</span>
                                                         </span>
                                                     </div>
                                                 @endif
@@ -461,7 +461,7 @@
                                         @else
                                             <span class="farm-activity__title">{{ $item['title'] }}</span>
                                         @endif
-                                        <span class="farm-activity__meta">{{ $item['module'] }} · {{ $item['meta'] }}</span>
+                                        <span class="farm-activity__meta">{{ __($item['module']) }} · {{ $item['meta'] }}</span>
                                         <time class="farm-activity__time" datetime="{{ $item['at']->toIso8601String() }}">{{ $item['at']->diffForHumans() }}</time>
                                     </div>
                                 </li>

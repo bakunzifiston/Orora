@@ -16,7 +16,7 @@
                             <h2 class="farm-panel__title">{{ __('Milk yield') }}</h2>
                             <p class="farm-panel__desc">
                                 {{ ($charts['milkYield']['interval'] ?? 'month') === 'year' ? __('Yearly') : __('Monthly') }}
-                                · {{ $filters['label'] }}
+                                · {{ __($filters['label'] ?? 'All time') }}
                             </p>
                         </div>
                     </header>
@@ -31,7 +31,7 @@
                             <h2 class="farm-panel__title">{{ __('Animals sold') }}</h2>
                             <p class="farm-panel__desc">
                                 {{ ($charts['animalsSold']['interval'] ?? 'month') === 'year' ? __('Yearly') : __('Monthly') }}
-                                · {{ $filters['label'] }}
+                                · {{ __($filters['label'] ?? 'All time') }}
                             </p>
                         </div>
                     </header>

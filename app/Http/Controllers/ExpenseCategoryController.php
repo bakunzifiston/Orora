@@ -38,7 +38,7 @@ class ExpenseCategoryController extends Controller
             'is_system' => false,
         ]);
 
-        return redirect()->route('expenses.categories')->with('success', 'Category created successfully.');
+        return redirect()->route('expenses.categories')->with('success', __('Category created successfully.'));
     }
 
     public function edit(ExpenseCategory $category): View
@@ -54,21 +54,21 @@ class ExpenseCategoryController extends Controller
             $category->update($request->validated());
         }
 
-        return redirect()->route('expenses.categories')->with('success', 'Category updated successfully.');
+        return redirect()->route('expenses.categories')->with('success', __('Category updated successfully.'));
     }
 
     public function destroy(ExpenseCategory $category): RedirectResponse
     {
         if ($category->is_system) {
-            return redirect()->route('expenses.categories')->with('error', 'System categories cannot be deleted.');
+            return redirect()->route('expenses.categories')->with('error', __('System categories cannot be deleted.'));
         }
 
         if ($category->expenses()->exists()) {
-            return redirect()->route('expenses.categories')->with('error', 'Category has expenses and cannot be deleted.');
+            return redirect()->route('expenses.categories')->with('error', __('Category has expenses and cannot be deleted.'));
         }
 
         $category->delete();
 
-        return redirect()->route('expenses.categories')->with('success', 'Category removed successfully.');
+        return redirect()->route('expenses.categories')->with('success', __('Category removed successfully.'));
     }
 }

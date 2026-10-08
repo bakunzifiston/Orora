@@ -39,7 +39,7 @@ class VaccinationController extends Controller
 
         return redirect()
             ->route('health.vaccinations')
-            ->with('success', 'Vaccination saved successfully.');
+            ->with('success', __('Vaccination saved successfully.'));
     }
 
     public function edit(Vaccination $vaccination): View
@@ -63,7 +63,7 @@ class VaccinationController extends Controller
 
         return redirect()
             ->route('health.vaccinations')
-            ->with('success', 'Vaccination updated successfully.');
+            ->with('success', __('Vaccination updated successfully.'));
     }
 
     public function destroy(Vaccination $vaccination): RedirectResponse
@@ -78,7 +78,7 @@ class VaccinationController extends Controller
 
         return redirect()
             ->route('health.vaccinations')
-            ->with('success', 'Vaccination removed successfully.');
+            ->with('success', __('Vaccination removed successfully.'));
     }
 
     private function storeAttachment(VaccinationRequest $request, Vaccination $vaccination): void

@@ -76,7 +76,7 @@ class ShopController extends Controller
 
         return redirect()
             ->route('marketplace.shop.show', $listing)
-            ->with('success', 'Your listing has been posted successfully.');
+            ->with('success', __('Your listing has been posted successfully.'));
     }
 
     public function edit(MarketplaceListing $listing): View
@@ -101,7 +101,7 @@ class ShopController extends Controller
 
         return redirect()
             ->route('marketplace.shop.show', $listing)
-            ->with('success', 'Listing updated successfully.');
+            ->with('success', __('Listing updated successfully.'));
     }
 
     public function destroy(MarketplaceListing $listing): RedirectResponse
@@ -112,7 +112,7 @@ class ShopController extends Controller
 
         return redirect()
             ->route('marketplace.shop')
-            ->with('success', 'Listing removed.');
+            ->with('success', __('Listing removed.'));
     }
 
     public function inquiry(MarketplaceInquiryRequest $request, MarketplaceListing $listing): RedirectResponse
@@ -127,7 +127,7 @@ class ShopController extends Controller
 
         return redirect()
             ->route('marketplace.shop.show', $listing)
-            ->with('success', 'Your inquiry has been sent to the seller.');
+            ->with('success', __('Your inquiry has been sent to the seller.'));
     }
 
     private function authorizeOwner(MarketplaceListing $listing): void

@@ -218,4 +218,26 @@
         border-top: 1px solid #f0f1f4;
         margin-top: 0;
     }
+    .dash-data-table-panel,
+    .dash-panel--flush {
+        max-width: 100%;
+    }
+    .dash-data-table-wrap,
+    .dash-panel--flush .dash-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 640px) {
+        .dash-panel--flush .dash-panel-head {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.65rem;
+            padding: 0.9rem 1rem;
+        }
+        .dash-data-table th,
+        .dash-data-table td {
+            padding: 0.65rem 0.7rem;
+            font-size: 0.8125rem;
+        }
+    }
 </style>

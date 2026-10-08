@@ -85,7 +85,7 @@ class Employee extends TenantModel
 
     public function statusLabel(): string
     {
-        return ucfirst(str_replace('_', ' ', $this->status));
+        return __(ucfirst(str_replace('_', ' ', $this->status)));
     }
 
     public function tenureMonths(): ?int

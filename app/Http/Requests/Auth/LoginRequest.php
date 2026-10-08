@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -55,6 +56,16 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => __('These credentials do not match our records.'),
+            ]);
+        }
+
+        $user = Auth::guard('web')->user();
+        if ($user && Schema::hasColumn($user->getTable(), 'is_active') && ! $user->is_active) {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => __('Your account has been deactivated. Contact your workspace admin.'),
             ]);
         }
 

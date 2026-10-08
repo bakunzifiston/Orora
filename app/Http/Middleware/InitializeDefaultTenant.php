@@ -37,7 +37,7 @@ class InitializeDefaultTenant
 
             $response = redirect()
                 ->route('login')
-                ->with('error', 'Your session expired. Please sign in again.');
+                ->with('error', __('Your session expired. Please sign in again.'));
 
             foreach ($request->cookies->keys() as $key) {
                 if (str_starts_with($key, 'remember_web_')) {

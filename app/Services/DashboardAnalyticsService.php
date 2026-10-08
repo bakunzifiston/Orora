@@ -347,8 +347,8 @@ class DashboardAnalyticsService
                 'route' => 'animals.index',
                 'icon' => 'livestock',
                 'metrics' => [
-                    ['label' => 'Pregnant Cows', 'value' => number_format($this->herdGroupAnimalCount($farmId, 'Pregnant Cows'))],
-                    ['label' => 'Calves Group', 'value' => number_format($this->herdGroupAnimalCount($farmId, 'Calves Group'))],
+                    ['label' => 'Pregnant cows', 'value' => number_format($this->herdGroupAnimalCount($farmId, 'Pregnant Cows'))],
+                    ['label' => 'Calves group', 'value' => number_format($this->herdGroupAnimalCount($farmId, 'Calves Group'))],
                 ],
             ];
         }
@@ -378,7 +378,7 @@ class DashboardAnalyticsService
             ->map(fn (SaleTransaction $sale) => [
                 'number' => $sale->sale_number,
                 'type' => $sale->typeLabel(),
-                'customer' => $sale->customer?->display_name ?? 'Walk-in',
+                'customer' => $sale->customer?->display_name ?? __('Walk-in'),
                 'farm' => $sale->farm?->name ?? '—',
                 'amount' => (float) $sale->total_amount,
                 'currency' => $sale->currency,
@@ -464,7 +464,7 @@ class DashboardAnalyticsService
             $customer = $customers->get($row->customer_id);
 
             return [
-                'label' => $customer?->display_name ?? 'Customer',
+                'label' => $customer?->display_name ?? __('Customer'),
                 'value' => (float) $row->revenue,
                 'display' => number_format((float) $row->revenue, 0).' RWF',
                 'route' => $customer ? 'customers.show' : null,
@@ -610,8 +610,10 @@ class DashboardAnalyticsService
 
         return [
             'labels' => $rows->map(function ($r) {
-                return config('modules.sale_type_labels.'.$r->sale_type)
+                $label = config('modules.sale_type_labels.'.$r->sale_type)
                     ?? ucfirst(str_replace('_', ' ', (string) $r->sale_type));
+
+                return __($label);
             })->values()->all(),
             'values' => $rows->pluck('total')->map(fn ($v) => (float) $v)->values()->all(),
         ];
@@ -637,10 +639,15 @@ class DashboardAnalyticsService
             ->orderByDesc('total')
             ->get();
 
-        $labels = config('modules.expense_groups', []);
+        $groups = config('modules.expense_groups', []);
 
         return [
-            'labels' => $rows->map(fn ($r) => $labels[$r->expense_group] ?? ucfirst(str_replace('_', ' ', $r->expense_group)))->values()->all(),
+            'labels' => $rows->map(function ($r) use ($groups) {
+                $label = $groups[$r->expense_group]['label']
+                    ?? ucfirst(str_replace('_', ' ', (string) $r->expense_group));
+
+                return __($label);
+            })->values()->all(),
             'values' => $rows->pluck('total')->map(fn ($v) => (float) $v)->values()->all(),
         ];
     }
@@ -673,7 +680,7 @@ class DashboardAnalyticsService
             if ((int) $count === 0) {
                 continue;
             }
-            $labels[] = $status ?: 'Unset';
+            $labels[] = __($status ?: 'Unset');
             $values[] = (int) $count;
             $colors[] = $statusColors[$status] ?? '#94a3b8';
         }
@@ -690,12 +697,30 @@ class DashboardAnalyticsService
 
         $attention = $this->animalsNeedingAttention($farmId);
         if ($attention > 0) {
-            $alerts->push($this->alert('critical', 'Animals need attention', "{$attention} animal(s) require care.", 'health.overview', 'health', 'Health'));
+            $alerts->push($this->alert(
+                'critical',
+                'Animals need attention',
+                ':count animal(s) require care.',
+                'health.overview',
+                'health',
+                'Health',
+                null,
+                ['count' => $attention],
+            ));
         }
 
         $lowStock = $this->lowFeedStockCount($farmId);
         if ($lowStock > 0) {
-            $alerts->push($this->alert('warning', 'Feed inventory low', "{$lowStock} item(s) at or below reorder level.", 'feeding.overview', 'feeding', 'Feeding'));
+            $alerts->push($this->alert(
+                'warning',
+                'Feed inventory low',
+                ':count item(s) at or below reorder level.',
+                'feeding.overview',
+                'feeding',
+                'Feeding',
+                null,
+                ['count' => $lowStock],
+            ));
         }
 
         $vaccDue = Vaccination::query()
@@ -705,7 +730,16 @@ class DashboardAnalyticsService
             ->count();
 
         if ($vaccDue > 0) {
-            $alerts->push($this->alert('warning', 'Vaccinations due', "{$vaccDue} due within 30 days.", 'health.vaccinations', 'health', 'Health'));
+            $alerts->push($this->alert(
+                'warning',
+                'Vaccinations due',
+                ':count due within 30 days.',
+                'health.vaccinations',
+                'health',
+                'Health',
+                null,
+                ['count' => $vaccDue],
+            ));
         }
 
         $certExpiring = Certificate::query()
@@ -716,7 +750,16 @@ class DashboardAnalyticsService
             ->count();
 
         if ($certExpiring > 0) {
-            $alerts->push($this->alert('warning', 'Certificates expiring', "{$certExpiring} expire within 30 days.", 'certificates.index', 'certificate', 'Certificates'));
+            $alerts->push($this->alert(
+                'warning',
+                'Certificates expiring',
+                ':count expire within 30 days.',
+                'certificates.index',
+                'certificate',
+                'Certificates',
+                null,
+                ['count' => $certExpiring],
+            ));
         }
 
         $overLimit = Customer::query()
@@ -726,7 +769,16 @@ class DashboardAnalyticsService
             ->count();
 
         if ($overLimit > 0) {
-            $alerts->push($this->alert('critical', 'Credit limit exceeded', "{$overLimit} customer(s) over limit.", 'customers.directory', 'customer', 'Customers'));
+            $alerts->push($this->alert(
+                'critical',
+                'Credit limit exceeded',
+                ':count customer(s) over limit.',
+                'customers.directory',
+                'customer',
+                'Customers',
+                null,
+                ['count' => $overLimit],
+            ));
         }
 
         $calvingSoon = BreedingRecord::query()
@@ -736,7 +788,16 @@ class DashboardAnalyticsService
             ->count();
 
         if ($calvingSoon > 0) {
-            $alerts->push($this->alert('info', 'Calvings approaching', "{$calvingSoon} expected in 14 days.", 'breeding.overview', 'breeding', 'Breeding'));
+            $alerts->push($this->alert(
+                'info',
+                'Calvings approaching',
+                ':count expected in 14 days.',
+                'breeding.overview',
+                'breeding',
+                'Breeding',
+                null,
+                ['count' => $calvingSoon],
+            ));
         }
 
         $pregnancyChecksDue = $this->breedingReminders->dueCount($farmId);
@@ -745,11 +806,12 @@ class DashboardAnalyticsService
             $alerts->push($this->alert(
                 'warning',
                 'Pregnancy checks due',
-                "{$pregnancyChecksDue} breeding(s) need a pregnancy check ({$days} days after breeding).",
+                ':count breeding(s) need a pregnancy check (:days days after breeding).',
                 'breeding.overview',
                 'breeding',
                 'Breeding',
                 'pregnancy-check-due',
+                ['count' => $pregnancyChecksDue, 'days' => $days],
             ));
         }
 
@@ -759,13 +821,26 @@ class DashboardAnalyticsService
             ->count();
 
         if ($unpaidSales > 0) {
-            $alerts->push($this->alert('warning', 'Outstanding payments', "{$unpaidSales} sale(s) unpaid.", 'sales.overview', 'sale', 'Sales'));
+            $alerts->push($this->alert(
+                'warning',
+                'Outstanding payments',
+                ':count sale(s) unpaid.',
+                'sales.overview',
+                'sale',
+                'Sales',
+                null,
+                ['count' => $unpaidSales],
+            ));
         }
 
         return $alerts->values()->all();
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    /**
+     * @param  array<string, mixed>  $messageReplace
      * @return array<string, mixed>
      */
     private function alert(
@@ -776,11 +851,13 @@ class DashboardAnalyticsService
         string $icon,
         string $module,
         ?string $routeFragment = null,
+        array $messageReplace = [],
     ): array {
         return [
             'severity' => $severity,
             'title' => $title,
             'message' => $message,
+            'message_replace' => $messageReplace,
             'route' => $route && Route::has($route) ? $route : null,
             'route_fragment' => $routeFragment,
             'icon' => $icon,

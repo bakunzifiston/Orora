@@ -21,7 +21,7 @@ class EmployeeDocumentController extends Controller
 
         $this->employeeService->log($employee, 'updated', null, null, 'Document recorded.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Document recorded.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Document recorded.'));
     }
 
     public function destroy(Employee $employee, EmployeeDocument $document): RedirectResponse
@@ -31,6 +31,6 @@ class EmployeeDocumentController extends Controller
         $document->delete();
         $this->employeeService->log($employee, 'updated', null, null, 'Document removed.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Document removed.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Document removed.'));
     }
 }

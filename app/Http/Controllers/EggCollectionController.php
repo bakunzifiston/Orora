@@ -45,7 +45,7 @@ class EggCollectionController extends Controller
     {
         $this->collections->create($request->collectionAttributes());
 
-        return redirect()->route('eggs.collections')->with('success', 'Egg collection saved.');
+        return redirect()->route('eggs.collections')->with('success', __('Egg collection saved.'));
     }
 
     public function edit(EggCollection $eggCollection): View
@@ -60,14 +60,14 @@ class EggCollectionController extends Controller
     {
         $eggCollection->update($request->collectionAttributes());
 
-        return redirect()->route('eggs.collections')->with('success', 'Egg collection updated.');
+        return redirect()->route('eggs.collections')->with('success', __('Egg collection updated.'));
     }
 
     public function destroy(EggCollection $eggCollection): RedirectResponse
     {
         $eggCollection->delete();
 
-        return redirect()->route('eggs.collections')->with('success', 'Egg collection removed.');
+        return redirect()->route('eggs.collections')->with('success', __('Egg collection removed.'));
     }
 
     private function formOptions(): array

@@ -40,7 +40,7 @@ class HealthRecordController extends Controller
 
         return redirect()
             ->route($this->sectionRouteFor($request->input('return_section'), $record))
-            ->with('success', 'Health record logged successfully.');
+            ->with('success', __('Health record logged successfully.'));
     }
 
     public function edit(HealthRecord $record, Request $request): View
@@ -58,7 +58,7 @@ class HealthRecordController extends Controller
 
         return redirect()
             ->route($this->sectionRouteFor($request->input('return_section'), $record))
-            ->with('success', 'Health record updated successfully.');
+            ->with('success', __('Health record updated successfully.'));
     }
 
     public function destroy(HealthRecord $record, Request $request): RedirectResponse
@@ -68,7 +68,7 @@ class HealthRecordController extends Controller
 
         return redirect()
             ->route($this->sectionRouteFor($section))
-            ->with('success', 'Health record removed successfully.');
+            ->with('success', __('Health record removed successfully.'));
     }
 
     private function formOptions(): array

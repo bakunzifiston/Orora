@@ -31,7 +31,7 @@ class CertificateController extends Controller
     {
         Certificate::create($request->validate($this->rules()));
 
-        return redirect()->route('certificates.index')->with('success', 'Certificate created successfully.');
+        return redirect()->route('certificates.index')->with('success', __('Certificate created successfully.'));
     }
 
     public function edit(Certificate $certificate): View
@@ -43,14 +43,14 @@ class CertificateController extends Controller
     {
         $certificate->update($request->validate($this->rules()));
 
-        return redirect()->route('certificates.index')->with('success', 'Certificate updated successfully.');
+        return redirect()->route('certificates.index')->with('success', __('Certificate updated successfully.'));
     }
 
     public function destroy(Certificate $certificate): RedirectResponse
     {
         $certificate->delete();
 
-        return redirect()->route('certificates.index')->with('success', 'Certificate removed successfully.');
+        return redirect()->route('certificates.index')->with('success', __('Certificate removed successfully.'));
     }
 
     private function formOptions(): array

@@ -15,7 +15,7 @@ class EmployeeFarmAssignmentController extends Controller
     public function store(EmployeeFarmAssignmentRequest $request, Employee $employee): RedirectResponse
     {
         if ($employee->farmAssignments()->where('farm_id', $request->input('farm_id'))->exists()) {
-            return redirect()->route('employees.show', $employee)->with('error', 'Employee is already assigned to that farm.');
+            return redirect()->route('employees.show', $employee)->with('error', __('Employee is already assigned to that farm.'));
         }
 
         if ($request->boolean('is_primary')) {
@@ -25,7 +25,7 @@ class EmployeeFarmAssignmentController extends Controller
         $employee->farmAssignments()->create($request->validated());
         $this->employeeService->log($employee, 'updated', null, null, 'Farm assignment added.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Farm assignment added.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Farm assignment added.'));
     }
 
     public function destroy(Employee $employee, EmployeeFarmAssignment $employeeFarmAssignment): RedirectResponse
@@ -35,6 +35,6 @@ class EmployeeFarmAssignmentController extends Controller
         $employeeFarmAssignment->delete();
         $this->employeeService->log($employee, 'updated', null, null, 'Farm assignment removed.');
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Farm assignment removed.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Farm assignment removed.'));
     }
 }

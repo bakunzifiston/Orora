@@ -93,7 +93,7 @@ class AbattoirDispatchController extends Controller
             return $dispatch;
         });
 
-        return redirect()->route('sales.abattoir.show', $dispatch)->with('success', 'Animals dispatched to abattoir.');
+        return redirect()->route('sales.abattoir.show', $dispatch)->with('success', __('Animals dispatched to abattoir.'));
     }
 
     public function show(AbattoirDispatch $abattoirDispatch): View
@@ -122,6 +122,6 @@ class AbattoirDispatchController extends Controller
         $abattoirDispatch->returns()->create($validated);
         $abattoirDispatch->update(['dispatch_status' => 'returned']);
 
-        return redirect()->route('sales.abattoir.show', $abattoirDispatch)->with('success', 'Abattoir return recorded.');
+        return redirect()->route('sales.abattoir.show', $abattoirDispatch)->with('success', __('Abattoir return recorded.'));
     }
 }

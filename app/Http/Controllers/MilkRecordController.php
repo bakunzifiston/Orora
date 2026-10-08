@@ -25,7 +25,7 @@ class MilkRecordController extends Controller
 
         return redirect()
             ->route('milk.sessions.edit', $milkSession)
-            ->with('success', 'Animal yield recorded.');
+            ->with('success', __('Animal yield recorded.'));
     }
 
     public function bulkStore(MilkBulkRecordRequest $request, MilkSession $milkSession): RedirectResponse
@@ -65,7 +65,7 @@ class MilkRecordController extends Controller
 
         return redirect()
             ->route('milk.sessions.edit', $milkRecord->session)
-            ->with('success', 'Record updated.');
+            ->with('success', __('Record updated.'));
     }
 
     public function destroy(MilkRecord $milkRecord): RedirectResponse
@@ -80,6 +80,6 @@ class MilkRecordController extends Controller
 
         return redirect()
             ->route('milk.sessions.edit', $session)
-            ->with('success', 'Record removed.');
+            ->with('success', __('Record removed.'));
     }
 }

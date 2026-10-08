@@ -39,7 +39,7 @@ class TreatmentController extends Controller
 
         return redirect()
             ->route('health.treatments')
-            ->with('success', 'Treatment saved successfully.');
+            ->with('success', __('Treatment saved successfully.'));
     }
 
     public function edit(Treatment $treatment): View
@@ -63,7 +63,7 @@ class TreatmentController extends Controller
 
         return redirect()
             ->route('health.treatments')
-            ->with('success', 'Treatment updated successfully.');
+            ->with('success', __('Treatment updated successfully.'));
     }
 
     public function destroy(Treatment $treatment): RedirectResponse
@@ -78,7 +78,7 @@ class TreatmentController extends Controller
 
         return redirect()
             ->route('health.treatments')
-            ->with('success', 'Treatment removed successfully.');
+            ->with('success', __('Treatment removed successfully.'));
     }
 
     private function storeAttachment(TreatmentRequest $request, Treatment $treatment): void

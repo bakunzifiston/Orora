@@ -75,7 +75,7 @@ class BirthRecordController extends Controller
 
         return redirect()
             ->route('breeding.births.edit', $birth)
-            ->with('success', 'Birth recorded. Register offspring below.');
+            ->with('success', __('Birth recorded. Register offspring below.'));
     }
 
     public function edit(BirthRecord $birthRecord): View
@@ -97,7 +97,7 @@ class BirthRecordController extends Controller
             return back()->withErrors(['offspring' => $e->getMessage()]);
         }
 
-        return back()->with('success', 'Offspring updated.');
+        return back()->with('success', __('Offspring updated.'));
     }
 
     public function registerOffspring(OffspringRegisterRequest $request, BirthRecord $birthRecord, Offspring $offspring): RedirectResponse
@@ -112,6 +112,6 @@ class BirthRecordController extends Controller
             return back()->withInput()->withErrors(['register' => $e->getMessage()]);
         }
 
-        return back()->with('success', 'Offspring registered as a new animal.');
+        return back()->with('success', __('Offspring registered as a new animal.'));
     }
 }

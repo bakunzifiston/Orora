@@ -59,7 +59,7 @@ class DiseaseRecordController extends Controller
 
         return redirect()
             ->route('health.disease')
-            ->with('success', 'Disease record saved successfully.');
+            ->with('success', __('Disease record saved successfully.'));
     }
 
     public function edit(DiseaseRecord $diseaseRecord): View
@@ -92,7 +92,7 @@ class DiseaseRecordController extends Controller
 
         return redirect()
             ->route('health.disease')
-            ->with('success', 'Disease record updated successfully.');
+            ->with('success', __('Disease record updated successfully.'));
     }
 
     public function destroy(DiseaseRecord $diseaseRecord): RedirectResponse
@@ -107,7 +107,7 @@ class DiseaseRecordController extends Controller
 
         return redirect()
             ->route('health.disease')
-            ->with('success', 'Disease record removed successfully.');
+            ->with('success', __('Disease record removed successfully.'));
     }
 
     private function formOptions(?DiseaseRecord $diseaseRecord = null): array

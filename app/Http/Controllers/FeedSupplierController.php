@@ -30,7 +30,7 @@ class FeedSupplierController extends Controller
     {
         FeedSupplier::create($request->validated());
 
-        return redirect()->route('feeding.suppliers')->with('success', 'Supplier saved successfully.');
+        return redirect()->route('feeding.suppliers')->with('success', __('Supplier saved successfully.'));
     }
 
     public function edit(FeedSupplier $supplier): View
@@ -42,13 +42,13 @@ class FeedSupplierController extends Controller
     {
         $supplier->update($request->validated());
 
-        return redirect()->route('feeding.suppliers')->with('success', 'Supplier updated successfully.');
+        return redirect()->route('feeding.suppliers')->with('success', __('Supplier updated successfully.'));
     }
 
     public function destroy(FeedSupplier $supplier): RedirectResponse
     {
         $supplier->delete();
 
-        return redirect()->route('feeding.suppliers')->with('success', 'Supplier removed successfully.');
+        return redirect()->route('feeding.suppliers')->with('success', __('Supplier removed successfully.'));
     }
 }

@@ -14,6 +14,8 @@
         min-height: 100vh;
         font-family: inherit;
         background: var(--orora-surface);
+        overflow-x: hidden;
+        max-width: 100%;
     }
 
     .auth-split {
@@ -381,5 +383,26 @@
 
     .hidden {
         display: none !important;
+    }
+
+    @media (max-width: 640px) {
+        .auth-visual {
+            min-height: 220px;
+            padding: 1.25rem 1.15rem 1.5rem;
+        }
+        .auth-visual__quote {
+            font-size: 1.15rem;
+        }
+        .auth-main__shell {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .auth-form-title {
+            font-size: 1.5rem;
+        }
+        .auth-main__footer {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
     }
 </style>

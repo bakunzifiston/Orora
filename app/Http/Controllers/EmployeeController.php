@@ -104,7 +104,7 @@ class EmployeeController extends Controller
             $request->emergencyContactAttributes(),
         );
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Employee registered successfully.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Employee registered successfully.'));
     }
 
     public function show(Employee $employee): View
@@ -144,13 +144,13 @@ class EmployeeController extends Controller
             $request->profileAttributes(),
         );
 
-        return redirect()->route('employees.show', $employee)->with('success', 'Employee updated successfully.');
+        return redirect()->route('employees.show', $employee)->with('success', __('Employee updated successfully.'));
     }
 
     public function destroy(Employee $employee): RedirectResponse
     {
         $employee->delete();
 
-        return redirect()->route('employees.directory')->with('success', 'Employee removed successfully.');
+        return redirect()->route('employees.directory')->with('success', __('Employee removed successfully.'));
     }
 }

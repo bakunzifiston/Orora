@@ -42,6 +42,28 @@
         background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 55%, transparent 100%);
         border-radius: 0.75rem;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+    .dash-sidebar-close {
+        display: none;
+        width: 2.25rem;
+        height: 2.25rem;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        cursor: pointer;
+    }
+    .dash-sidebar-close:hover { background: rgba(255, 255, 255, 0.12); }
+    .dash-logo-wrap .dash-brand {
+        flex: 1;
+        min-width: 0;
     }
     .dash-brand {
         display: flex;
@@ -143,10 +165,64 @@
     .dash-topbar {
         background: var(--orora-surface); border-bottom: 1px solid #e5e7eb; padding: 0.85rem 1.5rem;
         display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        z-index: 40;
+    }
+    .dash-topbar__start {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        flex: 1;
+        min-width: 0;
+    }
+    .dash-topbar__label {
+        margin: 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--orora-gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dash-topbar-logout--link {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    .dash-nav-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        flex-shrink: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background: #fff;
+        color: #111;
+        cursor: pointer;
+    }
+    .dash-nav-toggle__bars {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 1.15rem;
+    }
+    .dash-nav-toggle__bars span {
+        display: block;
+        height: 2px;
+        width: 100%;
+        border-radius: 1px;
+        background: currentColor;
+    }
+    .dash-nav-overlay {
+        display: none;
     }
     .dash-search {
         flex: 1; max-width: 320px; display: flex; align-items: center; gap: 0.5rem;
         background: var(--orora-main-bg); border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.5rem 0.85rem;
+        min-width: 0;
     }
     .dash-search input {
         border: none; background: transparent; outline: none; font-size: 0.875rem; width: 100%; color: #111;
@@ -191,7 +267,7 @@
     .dash-content { flex: 1; padding: 1.5rem; overflow-y: auto; }
     .dash-welcome { font-size: 1.5rem; font-weight: 700; color: #111; margin-bottom: 1.25rem; }
     .dash-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
-    @media (max-width: 640px) { .dash-stats { grid-template-columns: 1fr; } .dash-sidebar { display: none; } }
+    @media (max-width: 640px) { .dash-stats { grid-template-columns: 1fr; } }
     .dash-stat-card {
         background: #fff; border-radius: 0.75rem; border: 1px solid #e5e7eb; padding: 1.15rem 1.4rem;
         display: flex; justify-content: space-between; align-items: flex-start;
@@ -3222,6 +3298,344 @@
         .employees-table thead th:nth-child(5),
         .employees-table tbody td:nth-child(5) {
             display: none;
+        }
+    }
+
+    /* Workspace users & access */
+    .workspace-users-page .farm-kpi { cursor: default; }
+    .workspace-users-page .farm-kpi:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--farm-border);
+    }
+    .workspace-users-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-top: 0.35rem;
+        font-size: 0.875rem;
+        font-weight: 550;
+        color: #334155;
+        cursor: pointer;
+    }
+    .workspace-users-toggle input {
+        width: 1rem;
+        height: 1rem;
+        accent-color: #002B2B;
+    }
+    .workspace-users-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .workspace-users-check input {
+        width: 1.05rem;
+        height: 1.05rem;
+        accent-color: #002B2B;
+        cursor: pointer;
+    }
+    .workspace-users-check input:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+    .workspace-permissions__wrap {
+        border: 0;
+        box-shadow: none;
+    }
+    .workspace-permissions__col {
+        width: 5.5rem;
+        text-align: center !important;
+    }
+    .workspace-permissions__table thead th.workspace-permissions__col {
+        text-align: center;
+        font-size: 0.6875rem;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+    @media (max-width: 720px) {
+        .workspace-permissions__table thead th:nth-child(n+3),
+        .workspace-permissions__table tbody td:nth-child(n+3) {
+            display: none;
+        }
+        .workspace-users-page .employees-table thead th:nth-child(3),
+        .workspace-users-page .employees-table tbody td:nth-child(3) {
+            display: none;
+        }
+    }
+
+    /* —— System-wide responsive shell —— */
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    .dash-app {
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    .dash-content,
+    .farm-dash,
+    .dash-panel,
+    .farm-panel,
+    .dash-table-wrap,
+    .dash-form-grid,
+    .dash-entity-grid,
+    .dash-farm-grid {
+        min-width: 0;
+        max-width: 100%;
+    }
+    .dash-table-wrap,
+    .employees-page__table-panel .dash-table-wrap,
+    .workspace-permissions__wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+    .dash-table,
+    .employees-table,
+    .animals-table,
+    .health-table,
+    .farm-table,
+    .workspace-permissions__table {
+        min-width: 0;
+    }
+
+    @media (max-width: 900px) {
+        .dash-nav-toggle {
+            display: inline-flex;
+        }
+        .dash-sidebar-close {
+            display: inline-flex;
+        }
+        .dash-sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: min(20rem, 88vw);
+            z-index: 60;
+            transform: translateX(-105%);
+            transition: transform 0.22s ease;
+            box-shadow: none;
+            height: 100vh;
+            height: 100dvh;
+        }
+        body.dash-nav-open .dash-sidebar {
+            transform: translateX(0);
+            box-shadow: 12px 0 40px rgba(0, 0, 0, 0.28);
+        }
+        .dash-nav-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: rgba(0, 20, 20, 0.48);
+            backdrop-filter: blur(2px);
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+        }
+        .dash-nav-overlay[hidden] {
+            display: none !important;
+        }
+        body.dash-nav-open {
+            overflow: hidden;
+        }
+        .dash-topbar {
+            padding: 0.7rem 0.85rem;
+            flex-wrap: nowrap;
+            gap: 0.55rem;
+        }
+        .dash-search {
+            max-width: none;
+            padding: 0.45rem 0.7rem;
+        }
+        .dash-search input {
+            font-size: 0.8125rem;
+        }
+        .dash-content {
+            padding: 1rem 0.85rem 1.5rem;
+        }
+        .dash-welcome {
+            font-size: 1.25rem;
+            margin-bottom: 0.85rem;
+        }
+        .dash-page-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .dash-page-header__actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+        .dash-page-header__actions > .dash-btn-save,
+        .dash-page-header__actions > .dash-btn-cancel,
+        .dash-page-header__actions > a,
+        .dash-page-header__actions > button {
+            flex: 1 1 auto;
+            text-align: center;
+            justify-content: center;
+        }
+        .dash-icon-btn--desktop,
+        .dash-topbar-logout--link.dash-icon-btn--desktop {
+            display: none !important;
+        }
+        .dash-topbar-profile {
+            gap: 0.35rem;
+        }
+        .dash-topbar-logout {
+            padding: 0.4rem 0.55rem;
+            font-size: 0.75rem;
+        }
+        .dash-form-actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+            gap: 0.55rem;
+        }
+        .dash-form-actions .dash-btn-save,
+        .dash-form-actions .dash-btn-cancel,
+        .dash-form-actions a,
+        .dash-form-actions button {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+        .dash-btn-cancel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.65rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background: #fff;
+        }
+        .farm-dash__kpis--4,
+        .farm-dash__kpis--3 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .farm-dash__charts--2,
+        .farm-dash__charts--3,
+        .dash-health-charts,
+        .dash-health-grid {
+            grid-template-columns: 1fr;
+        }
+        .farm-panel,
+        .dash-panel {
+            padding-left: 0.95rem;
+            padding-right: 0.95rem;
+        }
+        .employees-table__action-btns,
+        .animals-table__action-btns,
+        .health-table__action-btns,
+        .dash-table-actions {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        .dash-index-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .dash-index-toolbar__filters {
+            width: 100%;
+        }
+        .dash-entity-detail__row,
+        .dash-farm-detail__row {
+            grid-template-columns: 1fr;
+            gap: 0.2rem;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .dash-topbar__label {
+            display: none;
+        }
+        .dash-search {
+            min-width: 0;
+        }
+        .farm-dash__kpis--4,
+        .farm-dash__kpis--3,
+        .health-overview__kpis,
+        .health-overview__status {
+            grid-template-columns: 1fr;
+        }
+        .farm-kpi {
+            padding: 0.8rem 0.85rem;
+        }
+        .farm-kpi__value {
+            font-size: 1.15rem;
+        }
+        .dash-stat-value {
+            font-size: 1.25rem;
+        }
+        .dash-form-grid {
+            grid-template-columns: 1fr;
+        }
+        .dash-entity-grid,
+        .dash-farm-grid {
+            grid-template-columns: 1fr;
+        }
+        .employees-table,
+        .animals-table,
+        .health-table,
+        .farm-table,
+        .dash-table {
+            font-size: 0.8125rem;
+        }
+        .employees-table th,
+        .employees-table td,
+        .animals-table th,
+        .animals-table td,
+        .health-table th,
+        .health-table td,
+        .farm-table th,
+        .farm-table td,
+        .dash-table th,
+        .dash-table td {
+            padding: 0.65rem 0.6rem;
+        }
+        .employees-table__person {
+            max-width: 11rem;
+        }
+        .employees-table__name,
+        .employees-table__value {
+            white-space: normal;
+        }
+        .employees-table__actions,
+        .animals-table__actions {
+            text-align: left;
+        }
+        .workspace-permissions__col {
+            width: 3.75rem;
+        }
+        .dash-pagination {
+            overflow-x: auto;
+        }
+        .farm-registration,
+        .livestock-registration,
+        .animal-registration,
+        .health-registration,
+        .employee-import-form,
+        .customer-import-form,
+        .animal-import-form {
+            padding-left: 0;
+            padding-right: 0;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .dash-content {
+            padding: 0.85rem 0.7rem 1.25rem;
+        }
+        .dash-topbar {
+            padding: 0.6rem 0.7rem;
+        }
+        .dash-topbar-logout {
+            display: none;
+        }
+        .dash-locale__btn {
+            min-width: 1.75rem;
+            padding: 0.25rem 0.35rem;
         }
     }
 </style>

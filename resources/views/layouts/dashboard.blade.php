@@ -11,6 +11,7 @@
 </head>
 <body class="font-sans antialiased">
     <div class="dash-app">
+        @include('layouts.partials.dash-mobile-nav')
         @include('layouts.partials.dashboard-sidebar', [
             'navigation' => $navigation ?? config('modules.navigation'),
             'navigationGroups' => $navigationGroups ?? config('modules.navigation_groups'),
@@ -19,16 +20,30 @@
 
         <div class="dash-main">
             <header class="dash-topbar">
-                <div class="dash-search">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                    <input type="search" placeholder="{{ __('Search farms, animals, sales…') }}" aria-label="{{ __('Search farms, animals, sales…') }}">
+                <div class="dash-topbar__start">
+                    <button
+                        type="button"
+                        class="dash-nav-toggle dash-nav-toggle--bar"
+                        data-dash-nav-toggle
+                        aria-controls="dash-sidebar"
+                        aria-expanded="false"
+                        aria-label="{{ __('Open menu') }}"
+                    >
+                        <span class="dash-nav-toggle__bars" aria-hidden="true">
+                            <span></span><span></span><span></span>
+                        </span>
+                    </button>
+                    <div class="dash-search">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                        <input type="search" placeholder="{{ __('Search farms, animals, sales…') }}" aria-label="{{ __('Search farms, animals, sales…') }}">
+                    </div>
                 </div>
                 <div class="dash-topbar-actions">
                     @include('layouts.partials.locale-switcher')
-                    <button type="button" class="dash-icon-btn" aria-label="Security">
+                    <button type="button" class="dash-icon-btn dash-icon-btn--desktop" aria-label="Security">
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
                     </button>
-                    <button type="button" class="dash-icon-btn" aria-label="Notifications">
+                    <button type="button" class="dash-icon-btn dash-icon-btn--desktop" aria-label="Notifications">
                         <span class="dot"></span>
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
                     </button>

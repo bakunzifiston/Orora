@@ -52,7 +52,7 @@ class FeedingScheduleController extends Controller
 
         FeedingSchedule::create($data);
 
-        return redirect()->route('feeding.schedules')->with('success', 'Feeding schedule saved successfully.');
+        return redirect()->route('feeding.schedules')->with('success', __('Feeding schedule saved successfully.'));
     }
 
     public function edit(FeedingSchedule $schedule): View
@@ -73,14 +73,14 @@ class FeedingScheduleController extends Controller
 
         $schedule->update($data);
 
-        return redirect()->route('feeding.schedules')->with('success', 'Feeding schedule updated successfully.');
+        return redirect()->route('feeding.schedules')->with('success', __('Feeding schedule updated successfully.'));
     }
 
     public function destroy(FeedingSchedule $schedule): RedirectResponse
     {
         $schedule->delete();
 
-        return redirect()->route('feeding.schedules')->with('success', 'Feeding schedule removed successfully.');
+        return redirect()->route('feeding.schedules')->with('success', __('Feeding schedule removed successfully.'));
     }
 
     private function formOptions(): array

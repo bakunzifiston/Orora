@@ -21,7 +21,7 @@ class CustomerAddressController extends Controller
         $customer->addresses()->create($request->validated());
         $this->customerService->log($customer, 'updated', null, null, 'Address added.');
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Address added.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Address added.'));
     }
 
     public function destroy(Customer $customer, CustomerAddress $address): RedirectResponse
@@ -29,6 +29,6 @@ class CustomerAddressController extends Controller
         $address->delete();
         $this->customerService->log($customer, 'updated', null, null, 'Address removed.');
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Address removed.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Address removed.'));
     }
 }

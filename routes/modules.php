@@ -55,6 +55,7 @@ use App\Http\Controllers\SaleTransactionController;
 use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\VaccinationController;
 use App\Http\Controllers\VetVisitController;
+use App\Http\Controllers\WorkspaceUserController;
 use App\Http\Middleware\EnsureSpeciesModule;
 use Illuminate\Support\Facades\Route;
 
@@ -67,6 +68,17 @@ Route::middleware('auth')->group(function () {
         Route::get('villages', [RwandaLocationController::class, 'villages'])->name('villages');
     });
 
+    Route::middleware('workspace.admin')->prefix('workspace/users')->name('workspace.users.')->group(function () {
+        Route::get('/', [WorkspaceUserController::class, 'index'])->name('index');
+        Route::get('/create', [WorkspaceUserController::class, 'create'])->name('create');
+        Route::post('/', [WorkspaceUserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [WorkspaceUserController::class, 'edit'])->name('edit')->whereNumber('user');
+        Route::put('/{user}', [WorkspaceUserController::class, 'update'])->name('update')->whereNumber('user');
+        Route::post('/{user}/deactivate', [WorkspaceUserController::class, 'deactivate'])->name('deactivate')->whereNumber('user');
+        Route::post('/{user}/activate', [WorkspaceUserController::class, 'activate'])->name('activate')->whereNumber('user');
+    });
+
+    Route::middleware('module.access')->group(function () {
     Route::resource('farms', FarmController::class);
     Route::resource('livestock', LivestockController::class);
     Route::middleware(EnsureSpeciesModule::class)->group(function () {
@@ -256,4 +268,5 @@ Route::middleware('auth')->group(function () {
         Route::post('/{employee}/documents', [EmployeeDocumentController::class, 'store'])->name('documents.store');
         Route::delete('/{employee}/documents/{document}', [EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
     });
+    }); // module.access
 });

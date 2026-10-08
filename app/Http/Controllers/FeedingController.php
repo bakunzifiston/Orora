@@ -64,7 +64,7 @@ class FeedingController extends Controller
             return back()->withInput()->withErrors(['quantity' => $e->getMessage()]);
         }
 
-        return redirect()->route('feeding.records')->with('success', 'Feeding record created successfully.');
+        return redirect()->route('feeding.records')->with('success', __('Feeding record created successfully.'));
     }
 
     public function edit(Feeding $feeding): View
@@ -93,14 +93,14 @@ class FeedingController extends Controller
             'notes' => $request->input('notes'),
         ]);
 
-        return redirect()->route('feeding.records')->with('success', 'Feeding record updated successfully.');
+        return redirect()->route('feeding.records')->with('success', __('Feeding record updated successfully.'));
     }
 
     public function destroy(Feeding $feeding): RedirectResponse
     {
         $feeding->delete();
 
-        return redirect()->route('feeding.records')->with('success', 'Feeding record removed successfully.');
+        return redirect()->route('feeding.records')->with('success', __('Feeding record removed successfully.'));
     }
 
     private function formOptions(): array

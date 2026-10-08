@@ -108,7 +108,7 @@ class FarmController extends Controller
         $farm = Farm::create($request->farmAttributes());
         $this->syncMembers($farm, $request->memberRows());
 
-        return redirect()->route('farms.index')->with('success', 'Farm registered successfully.');
+        return redirect()->route('farms.index')->with('success', __('Farm registered successfully.'));
     }
 
     public function edit(Farm $farm): View
@@ -123,14 +123,14 @@ class FarmController extends Controller
         $farm->update($request->farmAttributes());
         $this->syncMembers($farm, $request->memberRows());
 
-        return redirect()->route('farms.index')->with('success', 'Farm updated successfully.');
+        return redirect()->route('farms.index')->with('success', __('Farm updated successfully.'));
     }
 
     public function destroy(Farm $farm): RedirectResponse
     {
         $farm->delete();
 
-        return redirect()->route('farms.index')->with('success', 'Farm removed successfully.');
+        return redirect()->route('farms.index')->with('success', __('Farm removed successfully.'));
     }
 
     private function formData(array $extra = []): array

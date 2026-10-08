@@ -33,7 +33,7 @@ class FeedTypeController extends Controller
     {
         FeedType::create($request->validated());
 
-        return redirect()->route('feeding.feed-types')->with('success', 'Feed type saved successfully.');
+        return redirect()->route('feeding.feed-types')->with('success', __('Feed type saved successfully.'));
     }
 
     public function edit(FeedType $feedType): View
@@ -48,13 +48,13 @@ class FeedTypeController extends Controller
     {
         $feedType->update($request->validated());
 
-        return redirect()->route('feeding.feed-types')->with('success', 'Feed type updated successfully.');
+        return redirect()->route('feeding.feed-types')->with('success', __('Feed type updated successfully.'));
     }
 
     public function destroy(FeedType $feedType): RedirectResponse
     {
         $feedType->delete();
 
-        return redirect()->route('feeding.feed-types')->with('success', 'Feed type removed successfully.');
+        return redirect()->route('feeding.feed-types')->with('success', __('Feed type removed successfully.'));
     }
 }

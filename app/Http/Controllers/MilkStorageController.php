@@ -42,7 +42,7 @@ class MilkStorageController extends Controller
     {
         $this->storageService->create($request->validated());
 
-        return redirect()->route('milk.storage')->with('success', 'Storage container added.');
+        return redirect()->route('milk.storage')->with('success', __('Storage container added.'));
     }
 
     public function edit(MilkStorage $milkStorage): View
@@ -61,7 +61,7 @@ class MilkStorageController extends Controller
         $milkStorage->update($request->validated());
         $this->storageService->refreshStatus($milkStorage);
 
-        return redirect()->route('milk.storage')->with('success', 'Storage updated.');
+        return redirect()->route('milk.storage')->with('success', __('Storage updated.'));
     }
 
     public function destroy(MilkStorage $milkStorage): RedirectResponse
@@ -72,6 +72,6 @@ class MilkStorageController extends Controller
 
         $milkStorage->delete();
 
-        return redirect()->route('milk.storage')->with('success', 'Storage container removed.');
+        return redirect()->route('milk.storage')->with('success', __('Storage container removed.'));
     }
 }

@@ -5,10 +5,20 @@
     $initials = collect(explode(' ', $user->name))->map(fn ($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
 @endphp
 
-<aside class="dash-sidebar">
+<aside class="dash-sidebar" id="dash-sidebar" data-dash-sidebar>
     <div class="dash-sidebar-inner">
         <div class="dash-logo-wrap">
             @include('layouts.partials.dashboard-brand')
+            <button
+                type="button"
+                class="dash-sidebar-close"
+                data-dash-nav-close
+                aria-label="{{ __('Close menu') }}"
+            >
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
 
         <nav class="dash-nav" aria-label="{{ __('Main navigation') }}">

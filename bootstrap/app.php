@@ -18,13 +18,27 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ResolveActiveFarm::class,
         ]);
 
+        $middleware->alias([
+            'module.access' => \App\Http\Middleware\EnsureModuleAccess::class,
+            'workspace.admin' => \App\Http\Middleware\EnsureWorkspaceAdmin::class,
+        ]);
+
         $middleware->appendToPriorityList(
             \Illuminate\Session\Middleware\StartSession::class,
             InitializeDefaultTenant::class,
         );
 
         $middleware->redirectGuestsTo('/login');
-        $middleware->redirectUsersTo('/dashboard');
+        $middleware->redirectUsersTo(function () {
+            if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
+                return '/admin';
+            }
+
+            $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+            $home = app(\App\Services\WorkspaceAccessService::class)->homeRouteFor($user);
+
+            return route($home);
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

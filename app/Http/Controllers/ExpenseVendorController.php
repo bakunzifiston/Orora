@@ -30,7 +30,7 @@ class ExpenseVendorController extends Controller
     {
         ExpenseVendor::create($request->validated());
 
-        return redirect()->route('expenses.vendors')->with('success', 'Vendor saved successfully.');
+        return redirect()->route('expenses.vendors')->with('success', __('Vendor saved successfully.'));
     }
 
     public function edit(ExpenseVendor $vendor): View
@@ -42,13 +42,13 @@ class ExpenseVendorController extends Controller
     {
         $vendor->update($request->validated());
 
-        return redirect()->route('expenses.vendors')->with('success', 'Vendor updated successfully.');
+        return redirect()->route('expenses.vendors')->with('success', __('Vendor updated successfully.'));
     }
 
     public function destroy(ExpenseVendor $vendor): RedirectResponse
     {
         $vendor->delete();
 
-        return redirect()->route('expenses.vendors')->with('success', 'Vendor removed successfully.');
+        return redirect()->route('expenses.vendors')->with('success', __('Vendor removed successfully.'));
     }
 }

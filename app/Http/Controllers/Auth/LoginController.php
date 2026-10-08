@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Central\AdminUser;
 use App\Services\TenantAccountService;
 use App\Services\TenantContext;
+use App\Services\WorkspaceAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,10 @@ use Illuminate\View\View;
 
 class LoginController extends Controller
 {
-    public function __construct(private readonly TenantAccountService $tenantAccounts) {}
+    public function __construct(
+        private readonly TenantAccountService $tenantAccounts,
+        private readonly WorkspaceAccessService $access,
+    ) {}
 
     public function create(): View|RedirectResponse
     {
@@ -24,7 +28,7 @@ class LoginController extends Controller
         }
 
         if (auth()->check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route($this->access->homeRouteFor(auth()->user()));
         }
 
         return view('auth.login');
@@ -70,7 +74,9 @@ class LoginController extends Controller
             $this->tenantAccounts->forgetTenantCookies();
         }
 
-        return redirect()->intended(route('dashboard'));
+        $home = route($this->access->homeRouteFor($user));
+
+        return redirect()->intended($home);
     }
 
     public function destroy(): RedirectResponse

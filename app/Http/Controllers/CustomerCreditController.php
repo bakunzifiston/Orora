@@ -15,6 +15,6 @@ class CustomerCreditController extends Controller
     {
         $this->customerService->updateCredit($customer, $request->validated());
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Credit settings updated.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Credit settings updated.'));
     }
 }

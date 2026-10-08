@@ -54,7 +54,7 @@ class FeedInventoryController extends Controller
             'quantity_on_hand' => 0,
         ]);
 
-        return redirect()->route('feeding.inventory')->with('success', 'Inventory item created successfully.');
+        return redirect()->route('feeding.inventory')->with('success', __('Inventory item created successfully.'));
     }
 
     public function edit(FeedInventory $feedInventory): View
@@ -79,14 +79,14 @@ class FeedInventoryController extends Controller
             'unit' => $feedType->unit,
         ]);
 
-        return redirect()->route('feeding.inventory')->with('success', 'Inventory updated successfully.');
+        return redirect()->route('feeding.inventory')->with('success', __('Inventory updated successfully.'));
     }
 
     public function destroy(FeedInventory $feedInventory): RedirectResponse
     {
         $feedInventory->delete();
 
-        return redirect()->route('feeding.inventory')->with('success', 'Inventory item removed successfully.');
+        return redirect()->route('feeding.inventory')->with('success', __('Inventory item removed successfully.'));
     }
 
     public function storeMovement(FeedInventoryMovementRequest $request, FeedInventory $feedInventory): RedirectResponse
@@ -115,6 +115,6 @@ class FeedInventoryController extends Controller
 
         return redirect()
             ->route('feeding.inventory.edit', $feedInventory)
-            ->with('success', 'Stock movement recorded successfully.');
+            ->with('success', __('Stock movement recorded successfully.'));
     }
 }

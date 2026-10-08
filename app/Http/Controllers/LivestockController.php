@@ -86,7 +86,7 @@ class LivestockController extends Controller
 
         return redirect()
             ->route('livestock.show', $group)
-            ->with('success', 'Livestock group created successfully.');
+            ->with('success', __('Livestock group created successfully.'));
     }
 
     public function edit(Livestock $livestock): View
@@ -100,14 +100,14 @@ class LivestockController extends Controller
 
         return redirect()
             ->route('livestock.show', $livestock)
-            ->with('success', 'Livestock group updated successfully.');
+            ->with('success', __('Livestock group updated successfully.'));
     }
 
     public function destroy(Livestock $livestock): RedirectResponse
     {
         $livestock->delete();
 
-        return redirect()->route('livestock.index')->with('success', 'Livestock group removed successfully.');
+        return redirect()->route('livestock.index')->with('success', __('Livestock group removed successfully.'));
     }
 
     private function livestockFormData(array $extra = []): array

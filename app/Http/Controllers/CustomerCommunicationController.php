@@ -45,6 +45,6 @@ class CustomerCommunicationController extends Controller
 
         $this->customerService->log($customer, 'updated', null, null, 'Communication logged.');
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Communication logged.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Communication logged.'));
     }
 }

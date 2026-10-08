@@ -14,9 +14,12 @@ class DashboardController extends Controller
     {
         $filters = $analytics->resolveFilters($request);
 
+        $access = app(\App\Services\WorkspaceAccessService::class);
+        $groups = $access->filterNavigationGroups($species->navigationGroups(), auth()->user());
+
         return view('dashboard.index', [
-            'navigation' => $species->navigation(),
-            'navigationGroups' => $species->navigationGroups(),
+            'navigation' => collect($groups)->flatMap(fn (array $g) => $g['items'] ?? [])->values()->all(),
+            'navigationGroups' => $groups,
             'activeNav' => 'dashboard',
             'dashboard' => $analytics->build($filters),
             'farms' => Farm::query()->orderBy('name')->get(),

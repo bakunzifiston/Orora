@@ -21,7 +21,7 @@ class CustomerContactController extends Controller
         $customer->contacts()->create($request->validated());
         $this->customerService->log($customer, 'updated', null, null, 'Contact added.');
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Contact added.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Contact added.'));
     }
 
     public function update(CustomerContactRequest $request, Customer $customer, CustomerContact $contact): RedirectResponse
@@ -33,7 +33,7 @@ class CustomerContactController extends Controller
         $contact->update($request->validated());
         $this->customerService->log($customer, 'updated', null, null, 'Contact updated.');
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Contact updated.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Contact updated.'));
     }
 
     public function destroy(Customer $customer, CustomerContact $contact): RedirectResponse
@@ -41,6 +41,6 @@ class CustomerContactController extends Controller
         $contact->delete();
         $this->customerService->log($customer, 'updated', null, null, 'Contact removed.');
 
-        return redirect()->route('customers.show', $customer)->with('success', 'Contact removed.');
+        return redirect()->route('customers.show', $customer)->with('success', __('Contact removed.'));
     }
 }

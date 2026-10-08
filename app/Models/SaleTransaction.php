@@ -95,12 +95,12 @@ class SaleTransaction extends TenantModel
 
     public function typeLabel(): string
     {
-        return config('modules.sale_type_labels.'.$this->sale_type, $this->sale_type);
+        return __(config('modules.sale_type_labels.'.$this->sale_type, $this->sale_type));
     }
 
     public function statusLabel(): string
     {
-        return config('modules.sale_status_labels.'.$this->sale_status, ucfirst(str_replace('_', ' ', $this->sale_status)));
+        return __(config('modules.sale_status_labels.'.$this->sale_status, ucfirst(str_replace('_', ' ', $this->sale_status))));
     }
 
     public function statusBadgeClass(): string
@@ -110,7 +110,7 @@ class SaleTransaction extends TenantModel
 
     public function paymentStatusLabel(): string
     {
-        return config('modules.sale_payment_status_labels.'.$this->payment_status, ucfirst(str_replace('_', ' ', (string) $this->payment_status)));
+        return __(config('modules.sale_payment_status_labels.'.$this->payment_status, ucfirst(str_replace('_', ' ', (string) $this->payment_status))));
     }
 
     public function paymentStatusBadgeClass(): string

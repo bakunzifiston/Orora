@@ -57,7 +57,7 @@ class ExpenseController extends Controller
 
         $this->storeAttachment($request, $expense);
 
-        return redirect()->route('expenses.records')->with('success', 'Expense recorded successfully.');
+        return redirect()->route('expenses.records')->with('success', __('Expense recorded successfully.'));
     }
 
     public function edit(Expense $expense): View|RedirectResponse
@@ -65,7 +65,7 @@ class ExpenseController extends Controller
         if ($expense->source_type) {
             return redirect()
                 ->route('expenses.records')
-                ->with('error', 'This expense is linked to another module. Edit it from the source record.');
+                ->with('error', __('This expense is linked to another module. Edit it from the source record.'));
         }
 
         return view('modules.expenses.records.edit', $this->expenseSectionData('records', array_merge(
@@ -77,19 +77,19 @@ class ExpenseController extends Controller
     public function update(ExpenseRequest $request, Expense $expense): RedirectResponse
     {
         if ($expense->source_type) {
-            return redirect()->route('expenses.records')->with('error', 'Linked expenses must be edited at the source.');
+            return redirect()->route('expenses.records')->with('error', __('Linked expenses must be edited at the source.'));
         }
 
         $expense->update($this->expenseAttributes($request));
         $this->storeAttachment($request, $expense);
 
-        return redirect()->route('expenses.records')->with('success', 'Expense updated successfully.');
+        return redirect()->route('expenses.records')->with('success', __('Expense updated successfully.'));
     }
 
     public function destroy(Expense $expense): RedirectResponse
     {
         if ($expense->source_type) {
-            return redirect()->route('expenses.records')->with('error', 'Delete the source record instead, or unlink first.');
+            return redirect()->route('expenses.records')->with('error', __('Delete the source record instead, or unlink first.'));
         }
 
         if ($expense->attachment_path) {
@@ -98,7 +98,7 @@ class ExpenseController extends Controller
 
         $expense->delete();
 
-        return redirect()->route('expenses.records')->with('success', 'Expense removed successfully.');
+        return redirect()->route('expenses.records')->with('success', __('Expense removed successfully.'));
     }
 
     private function expenseAttributes(ExpenseRequest $request): array
