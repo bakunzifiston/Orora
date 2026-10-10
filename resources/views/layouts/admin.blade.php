@@ -24,23 +24,21 @@
 
         <div class="dash-main">
             <header class="dash-topbar">
-                <div class="dash-topbar__start">
-                    <button
-                        type="button"
-                        class="dash-nav-toggle dash-nav-toggle--bar"
-                        data-dash-nav-toggle
-                        aria-controls="dash-sidebar"
-                        aria-expanded="false"
-                        aria-label="{{ __('Open menu') }}"
-                    >
-                        <span class="dash-nav-toggle__bars" aria-hidden="true">
-                            <span></span><span></span><span></span>
-                        </span>
-                    </button>
-                    <p class="dash-topbar__label">
-                        {{ __('Platform workspace') }}
-                    </p>
-                </div>
+                <button
+                    type="button"
+                    class="dash-nav-toggle"
+                    data-dash-nav-toggle
+                    aria-controls="dash-sidebar"
+                    aria-expanded="false"
+                    aria-label="{{ __('Open menu') }}"
+                >
+                    <span class="dash-nav-toggle__bars" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </span>
+                </button>
+                <p class="dash-topbar__label">
+                    {{ __('Platform workspace') }}
+                </p>
                 <div class="dash-topbar-actions">
                     @include('layouts.partials.locale-switcher')
                     <a href="{{ url('/') }}" target="_blank" rel="noopener" class="dash-topbar-logout dash-topbar-logout--link dash-icon-btn--desktop">

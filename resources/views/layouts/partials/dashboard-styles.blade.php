@@ -14,7 +14,8 @@
     .dash-sidebar {
         width: 260px; flex-shrink: 0; background: var(--orora-sidebar); color: var(--orora-gray-light);
         display: flex; flex-direction: column; border-right: 1px solid var(--orora-sidebar-border);
-        position: sticky; top: 0; overflow-x: hidden; min-height: 100vh; height: 100vh;
+        position: fixed; top: 0; left: 0; z-index: 30;
+        overflow-x: hidden; height: 100vh; height: 100dvh;
     }
     .dash-sidebar::before {
         content: ''; position: absolute; top: 0; left: 0; right: 0; height: 120px;
@@ -36,22 +37,21 @@
         background: linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0%, transparent 100%);
     }
     .dash-logo-wrap {
+        position: relative;
         padding: 1.25rem 1rem 1.15rem;
         margin: 0 0.75rem 1rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 55%, transparent 100%);
         border-radius: 0.75rem;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
     }
     .dash-sidebar-close {
         display: none;
+        position: absolute;
+        top: 1rem;
+        right: 0.85rem;
         width: 2.25rem;
         height: 2.25rem;
-        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         border: 1px solid rgba(255, 255, 255, 0.12);
@@ -61,10 +61,6 @@
         cursor: pointer;
     }
     .dash-sidebar-close:hover { background: rgba(255, 255, 255, 0.12); }
-    .dash-logo-wrap .dash-brand {
-        flex: 1;
-        min-width: 0;
-    }
     .dash-brand {
         display: flex;
         align-items: center;
@@ -161,20 +157,17 @@
         margin-top: 0.125rem;
     }
     .dash-logout-form { margin: 0; padding: 0 0.75rem; }
-    .dash-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .dash-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        margin-left: 260px;
+        width: calc(100% - 260px);
+    }
     .dash-topbar {
         background: var(--orora-surface); border-bottom: 1px solid #e5e7eb; padding: 0.85rem 1.5rem;
         display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-        position: sticky;
-        top: 0;
-        z-index: 40;
-    }
-    .dash-topbar__start {
-        display: flex;
-        align-items: center;
-        gap: 0.65rem;
-        flex: 1;
-        min-width: 0;
     }
     .dash-topbar__label {
         margin: 0;
@@ -222,7 +215,6 @@
     .dash-search {
         flex: 1; max-width: 320px; display: flex; align-items: center; gap: 0.5rem;
         background: var(--orora-main-bg); border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.5rem 0.85rem;
-        min-width: 0;
     }
     .dash-search input {
         border: none; background: transparent; outline: none; font-size: 0.875rem; width: 100%; color: #111;
@@ -3368,11 +3360,9 @@
     /* —— System-wide responsive shell —— */
     html, body {
         max-width: 100%;
-        overflow-x: hidden;
     }
     .dash-app {
-        max-width: 100vw;
-        overflow-x: hidden;
+        max-width: 100%;
     }
     .dash-content,
     .farm-dash,
@@ -3408,6 +3398,9 @@
         .dash-sidebar-close {
             display: inline-flex;
         }
+        .dash-logo-wrap {
+            padding-right: 3rem;
+        }
         .dash-sidebar {
             position: fixed;
             inset: 0 auto 0 0;
@@ -3418,6 +3411,10 @@
             box-shadow: none;
             height: 100vh;
             height: 100dvh;
+        }
+        .dash-main {
+            margin-left: 0;
+            width: 100%;
         }
         body.dash-nav-open .dash-sidebar {
             transform: translateX(0);

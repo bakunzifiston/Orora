@@ -20,23 +20,21 @@
 
         <div class="dash-main">
             <header class="dash-topbar">
-                <div class="dash-topbar__start">
-                    <button
-                        type="button"
-                        class="dash-nav-toggle dash-nav-toggle--bar"
-                        data-dash-nav-toggle
-                        aria-controls="dash-sidebar"
-                        aria-expanded="false"
-                        aria-label="{{ __('Open menu') }}"
-                    >
-                        <span class="dash-nav-toggle__bars" aria-hidden="true">
-                            <span></span><span></span><span></span>
-                        </span>
-                    </button>
-                    <div class="dash-search">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                        <input type="search" placeholder="{{ __('Search farms, animals, sales…') }}" aria-label="{{ __('Search farms, animals, sales…') }}">
-                    </div>
+                <button
+                    type="button"
+                    class="dash-nav-toggle"
+                    data-dash-nav-toggle
+                    aria-controls="dash-sidebar"
+                    aria-expanded="false"
+                    aria-label="{{ __('Open menu') }}"
+                >
+                    <span class="dash-nav-toggle__bars" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </span>
+                </button>
+                <div class="dash-search">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input type="search" placeholder="{{ __('Search farms, animals, sales…') }}" aria-label="{{ __('Search farms, animals, sales…') }}">
                 </div>
                 <div class="dash-topbar-actions">
                     @include('layouts.partials.locale-switcher')
