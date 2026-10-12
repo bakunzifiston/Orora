@@ -607,10 +607,38 @@ return [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'health.overview'],
         ['key' => 'vaccinations', 'label' => 'Vaccinations', 'route' => 'health.vaccinations'],
         ['key' => 'treatments', 'label' => 'Treatments', 'route' => 'health.treatments'],
+        ['key' => 'medicines', 'label' => 'Medicines', 'route' => 'health.medicines'],
         ['key' => 'disease', 'label' => 'Disease', 'route' => 'health.disease'],
         ['key' => 'vet-visits', 'label' => 'Vet visits', 'route' => 'health.vet-visits'],
         ['key' => 'mortality', 'label' => 'Mortality', 'route' => 'health.mortality'],
         ['key' => 'timeline', 'label' => 'Timeline', 'route' => 'health.timeline'],
+    ],
+
+    'medicine_categories' => [
+        'Antibiotic',
+        'Antiparasitic',
+        'Anti-inflammatory',
+        'Vaccine',
+        'Vitamin',
+        'Mineral',
+        'Disinfectant',
+        'Other',
+    ],
+
+    'medicine_units' => ['ml', 'mg', 'g', 'tablet', 'dose', 'vial', 'bottle', 'sachet'],
+
+    'medicine_movement_types' => [
+        'purchase',
+        'adjustment_in',
+        'adjustment_out',
+        'consumption',
+    ],
+
+    'medicine_movement_labels' => [
+        'purchase' => 'Purchase / stock in',
+        'adjustment_in' => 'Adjustment (add)',
+        'adjustment_out' => 'Adjustment (remove)',
+        'consumption' => 'Used in treatment',
     ],
 
     'health_record_types' => [

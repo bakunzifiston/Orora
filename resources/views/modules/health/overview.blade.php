@@ -89,6 +89,29 @@
             </div>
         </section>
 
+        @if (($stats['medicines_low_stock'] ?? 0) > 0 || ($stats['medicines_expired'] ?? 0) > 0)
+            <section class="farm-dash__section" aria-label="{{ __('Medicine alerts') }}">
+                <div class="farm-dash__kpis farm-dash__kpis--4">
+                    @if (($stats['medicines_low_stock'] ?? 0) > 0)
+                        <a href="{{ route('health.medicines') }}" class="farm-kpi farm-kpi--receivable">
+                            <div class="farm-kpi__body">
+                                <div class="farm-kpi__label">{{ __('Low stock medicines') }}</div>
+                                <div class="farm-kpi__value">{{ number_format($stats['medicines_low_stock']) }}</div>
+                            </div>
+                        </a>
+                    @endif
+                    @if (($stats['medicines_expired'] ?? 0) > 0)
+                        <a href="{{ route('health.medicines') }}" class="farm-kpi farm-kpi--expense">
+                            <div class="farm-kpi__body">
+                                <div class="farm-kpi__label">{{ __('Expired medicines') }}</div>
+                                <div class="farm-kpi__value">{{ number_format($stats['medicines_expired']) }}</div>
+                            </div>
+                        </a>
+                    @endif
+                </div>
+            </section>
+        @endif
+
         <section class="farm-dash__section" aria-label="{{ __('Health charts') }}">
             <div class="farm-dash__charts farm-dash__charts--3">
                 <article class="farm-panel">

@@ -17,3 +17,7 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/feeding-record-form.js'])
+@endpush

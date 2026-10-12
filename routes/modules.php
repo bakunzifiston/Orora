@@ -43,6 +43,7 @@ use App\Http\Controllers\FlockController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
+use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\MilkModuleController;
 use App\Http\Controllers\MilkRecordController;
 use App\Http\Controllers\MilkSessionController;
@@ -110,6 +111,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('vaccinations', VaccinationController::class)->except(['show', 'index']);
         Route::get('/treatments', [HealthController::class, 'treatments'])->name('treatments');
         Route::resource('treatments', TreatmentController::class)->except(['show', 'index']);
+        Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines');
+        Route::resource('medicines', MedicineController::class)->except(['index']);
+        Route::post('/medicines/{medicine}/movements', [MedicineController::class, 'storeMovement'])->name('medicines.movements.store');
         Route::get('/disease', [HealthController::class, 'disease'])->name('disease');
         Route::resource('disease', DiseaseRecordController::class)
             ->except(['show', 'index'])

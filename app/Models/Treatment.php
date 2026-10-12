@@ -19,7 +19,9 @@ class Treatment extends TenantModel
         'health_record_id',
         'disease_name',
         'medicine_name',
+        'medicine_id',
         'dosage',
+        'quantity_used',
         'treatment_method',
         'start_date',
         'end_date',
@@ -30,6 +32,7 @@ class Treatment extends TenantModel
         'diagnosis',
         'notes',
         'attachment_path',
+        'recorded_by',
     ];
 
     protected function casts(): array
@@ -38,6 +41,7 @@ class Treatment extends TenantModel
             'start_date' => 'date',
             'end_date' => 'date',
             'follow_up_date' => 'date',
+            'quantity_used' => 'decimal:2',
         ];
     }
 
@@ -49,6 +53,16 @@ class Treatment extends TenantModel
     public function animal(): BelongsTo
     {
         return $this->belongsTo(Animal::class);
+    }
+
+    public function medicine(): BelongsTo
+    {
+        return $this->belongsTo(Medicine::class);
+    }
+
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 
     public function healthRecord(): BelongsTo

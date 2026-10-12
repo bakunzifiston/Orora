@@ -1160,6 +1160,12 @@
         line-height: 1.45;
     }
     .dash-required { color: #dc2626; }
+    .dash-field-optional {
+        font-weight: 500;
+        color: var(--orora-gray);
+        text-transform: none;
+        letter-spacing: 0;
+    }
     .dash-form-section-header {
         display: flex; align-items: flex-start; justify-content: space-between;
         gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;

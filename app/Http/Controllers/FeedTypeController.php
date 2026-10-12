@@ -31,7 +31,7 @@ class FeedTypeController extends Controller
 
     public function store(FeedTypeRequest $request): RedirectResponse
     {
-        FeedType::create($request->validated());
+        FeedType::create($request->feedTypeAttributes());
 
         return redirect()->route('feeding.feed-types')->with('success', __('Feed type saved successfully.'));
     }
@@ -46,7 +46,7 @@ class FeedTypeController extends Controller
 
     public function update(FeedTypeRequest $request, FeedType $feedType): RedirectResponse
     {
-        $feedType->update($request->validated());
+        $feedType->update($request->feedTypeAttributes());
 
         return redirect()->route('feeding.feed-types')->with('success', __('Feed type updated successfully.'));
     }

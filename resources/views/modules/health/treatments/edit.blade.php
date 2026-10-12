@@ -21,5 +21,8 @@
             </div>
         </div>
     </form>
-    @vite(['resources/js/select-other-form.js'])
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/select-other-form.js'])
+@endpush

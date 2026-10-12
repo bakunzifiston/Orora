@@ -20,6 +20,7 @@ export default defineConfig({
                 'resources/js/animal-form.js',
                 'resources/js/health-form.js',
                 'resources/js/feed-calculator-form.js',
+                'resources/js/feeding-record-form.js',
                 'resources/js/health-overview-charts.js',
                 'resources/js/landing-page.js',
                 'resources/js/marketplace-shop.js',

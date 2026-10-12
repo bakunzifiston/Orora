@@ -108,7 +108,7 @@ class PlatformUserWorkspaceService
             ['key' => 'milk', 'label' => 'Milk sessions', 'icon' => 'milk', 'tables' => ['milk_sessions', 'milk_records']],
             ['key' => 'sales', 'label' => 'Sales', 'icon' => 'sale', 'tables' => ['sale_transactions', 'sales']],
             ['key' => 'expenses', 'label' => 'Expenses', 'icon' => 'expense', 'tables' => ['expenses']],
-            ['key' => 'health', 'label' => 'Health records', 'icon' => 'health', 'tables' => ['health_records', 'vaccinations', 'treatments', 'vet_visits', 'mortalities', 'disease_records']],
+            ['key' => 'health', 'label' => 'Health records', 'icon' => 'health', 'tables' => ['health_records', 'vaccinations', 'treatments', 'vet_visits', 'mortalities', 'disease_records', 'medicine_movements', 'medicines']],
             ['key' => 'breeding', 'label' => 'Breeding records', 'icon' => 'breeding', 'tables' => ['breeding_records']],
             ['key' => 'feeding', 'label' => 'Feedings', 'icon' => 'feeding', 'tables' => ['feedings', 'feeding_schedules']],
             ['key' => 'certificates', 'label' => 'Certificates', 'icon' => 'certificate', 'tables' => ['certificates']],

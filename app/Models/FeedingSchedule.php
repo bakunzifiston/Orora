@@ -70,4 +70,31 @@ class FeedingSchedule extends TenantModel
     {
         return $this->hasMany(Feeding::class);
     }
+
+    public function optionLabel(): string
+    {
+        $time = $this->scheduled_time
+            ? substr((string) $this->scheduled_time, 0, 5)
+            : null;
+
+        $target = $this->livestock?->name
+            ?? ($this->animal?->tag_number ? 'Animal '.$this->animal->tag_number : null)
+            ?? $this->flock?->label();
+
+        $details = collect([
+            $this->frequency ? ucfirst((string) $this->frequency) : null,
+            $time,
+            $target,
+        ])->filter()->implode(' · ');
+
+        $base = trim(sprintf(
+            '%s — %s (%s %s)',
+            $this->farm?->name ?? 'Farm',
+            $this->feedType?->name ?? 'Feed',
+            rtrim(rtrim(number_format((float) $this->quantity, 2, '.', ''), '0'), '.'),
+            $this->unit ?? ''
+        ));
+
+        return $details !== '' ? $base.' · '.$details : $base;
+    }
 }

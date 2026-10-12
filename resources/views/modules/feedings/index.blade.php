@@ -35,9 +35,9 @@
                         <tbody>
                             @foreach ($feedings as $feeding)
                                 @php
-                                    $targetLabel = $feeding->animal
-                                        ? $feeding->animal->tag_number
-                                        : ($feeding->livestock?->name ?? null);
+                                    $targetLabel = $feeding->animal?->tag_number
+                                        ?? $feeding->flock?->name
+                                        ?? $feeding->livestock?->name;
                                     $fromSchedule = (bool) $feeding->feedingSchedule;
                                 @endphp
                                 <tr>

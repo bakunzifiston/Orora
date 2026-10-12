@@ -6,11 +6,13 @@ use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\TreatmentRequest;
-use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
+use App\Models\Medicine;
 use App\Models\Treatment;
 use App\Services\ExpenseService;
+use App\Services\MedicineInventoryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -20,22 +22,43 @@ class TreatmentController extends Controller
     use ProvidesModuleNavigation;
     use ProvidesStockOptions;
 
-    public function __construct(private ExpenseService $expenseService) {}
+    public function __construct(
+        private ExpenseService $expenseService,
+        private MedicineInventoryService $medicineInventoryService,
+    ) {}
 
     public function create(): View
     {
         return view('modules.health.treatments.create', $this->healthSectionData('treatments', array_merge($this->stockOptions(), [
-            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
+            'medicines' => Medicine::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
 
     public function store(TreatmentRequest $request): RedirectResponse
     {
-        $treatment = Treatment::create(array_merge($request->treatmentAttributes(), $request->resolvedStockAttributes()));
+        try {
+            DB::transaction(function () use ($request) {
+                $attributes = $request->treatmentAttributes();
 
-        $this->storeAttachment($request, $treatment);
-        $this->syncHealthRecord($treatment);
-        $this->expenseService->syncFromRequest($request, $treatment, 'health.treatment', ExpenseService::treatmentContext($treatment));
+                if ($request->wantsNewMedicine()) {
+                    $medicine = Medicine::create($request->newMedicineAttributes());
+                    $attributes['medicine_id'] = $medicine->id;
+                    $attributes['medicine_name'] = $medicine->name;
+                }
+
+                $treatment = Treatment::create(array_merge(
+                    $attributes,
+                    $request->resolvedStockAttributes(),
+                    ['recorded_by' => auth()->id()],
+                ));
+
+                $this->storeAttachment($request, $treatment);
+                $this->medicineInventoryService->deductForTreatment($treatment);
+                $this->syncHealthRecord($treatment);
+            });
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['quantity_used' => $e->getMessage()]);
+        }
 
         return redirect()
             ->route('health.treatments')
@@ -44,22 +67,43 @@ class TreatmentController extends Controller
 
     public function edit(Treatment $treatment): View
     {
-        $treatment->load(['animal', 'farm', 'expense.vendor']);
+        $treatment->load(['animal', 'farm', 'medicine']);
 
         return view('modules.health.treatments.edit', $this->healthSectionData('treatments', array_merge($this->stockOptions(), [
             'treatment' => $treatment,
-            'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
+            'medicines' => Medicine::query()
+                ->where(function ($query) use ($treatment) {
+                    $query->where('is_active', true);
+
+                    if ($treatment->medicine_id) {
+                        $query->orWhereKey($treatment->medicine_id);
+                    }
+                })
+                ->orderBy('name')
+                ->get(),
         ])));
     }
 
     public function update(TreatmentRequest $request, Treatment $treatment): RedirectResponse
     {
-        $treatment->update(array_merge($request->treatmentAttributes(), $request->resolvedStockAttributes()));
+        try {
+            DB::transaction(function () use ($request, $treatment) {
+                $previous = $treatment->replicate();
+                $previous->id = $treatment->id;
+                $previous->exists = true;
 
-        $this->storeAttachment($request, $treatment);
-        $treatment = $treatment->fresh();
-        $this->syncHealthRecord($treatment);
-        $this->expenseService->syncFromRequest($request, $treatment, 'health.treatment', ExpenseService::treatmentContext($treatment));
+                $treatment->update(array_merge(
+                    $request->treatmentAttributes(),
+                    $request->resolvedStockAttributes(),
+                ));
+
+                $this->storeAttachment($request, $treatment);
+                $this->medicineInventoryService->syncForTreatment($treatment->fresh(), $previous);
+                $this->syncHealthRecord($treatment->fresh());
+            });
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['quantity_used' => $e->getMessage()]);
+        }
 
         return redirect()
             ->route('health.treatments')
@@ -68,13 +112,16 @@ class TreatmentController extends Controller
 
     public function destroy(Treatment $treatment): RedirectResponse
     {
-        if ($treatment->attachment_path) {
-            Storage::disk('public')->delete($treatment->attachment_path);
-        }
+        DB::transaction(function () use ($treatment) {
+            if ($treatment->attachment_path) {
+                Storage::disk('public')->delete($treatment->attachment_path);
+            }
 
-        $this->expenseService->deleteForSource($treatment);
-        $treatment->healthRecord?->delete();
-        $treatment->delete();
+            $this->medicineInventoryService->restoreForTreatment($treatment);
+            $this->expenseService->deleteForSource($treatment);
+            $treatment->healthRecord?->delete();
+            $treatment->delete();
+        });
 
         return redirect()
             ->route('health.treatments')
@@ -97,9 +144,9 @@ class TreatmentController extends Controller
 
     private function syncHealthRecord(Treatment $treatment): void
     {
-        $treatment->load(['animal', 'flock']);
+        $treatment->load(['animal', 'flock', 'medicine']);
 
-        $title = collect([$treatment->disease_name, $treatment->medicine_name])
+        $title = collect([$treatment->disease_name, $treatment->medicine?->name ?? $treatment->medicine_name])
             ->filter()
             ->implode(' · ');
 
@@ -118,7 +165,7 @@ class TreatmentController extends Controller
             'health_status' => $this->healthStatusForTreatment($treatment),
             'title' => $title,
             'treatment' => $treatment->treatment_method ?? $treatment->dosage,
-            'medication' => $treatment->medicine_name,
+            'medication' => $treatment->medicine?->name ?? $treatment->medicine_name,
             'veterinarian' => $treatment->veterinarian_name,
             'next_follow_up' => $treatment->follow_up_date,
             'notes' => $notes !== '' ? $notes : null,

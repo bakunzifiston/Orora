@@ -40,7 +40,7 @@ class FeedingScheduleController extends Controller
 
     public function store(FeedingScheduleRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['feed_target']);
         $feedType = FeedType::query()->findOrFail($data['feed_type_id']);
 
         $data['feed_inventory_id'] = $data['feed_inventory_id']
@@ -65,7 +65,7 @@ class FeedingScheduleController extends Controller
 
     public function update(FeedingScheduleRequest $request, FeedingSchedule $schedule): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['feed_target']);
         $feedType = FeedType::query()->findOrFail($data['feed_type_id']);
 
         $data['feed_inventory_id'] = $data['feed_inventory_id']
@@ -89,7 +89,7 @@ class FeedingScheduleController extends Controller
             'farms' => Farm::query()->orderBy('name')->get(),
             'feedTypes' => FeedType::query()->where('is_active', true)->orderBy('name')->get(),
             'inventories' => FeedInventory::query()->with(['farm', 'feedType'])->get(),
-            'livestockGroups' => Livestock::query()->orderBy('name')->get(),
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             ...$this->stockOptions(),
         ];
     }

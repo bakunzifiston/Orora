@@ -1,24 +1,116 @@
-@php $treatment = $treatment ?? null; @endphp
+@php
+    $treatment = $treatment ?? null;
+    $allowNewMedicine = $allowNewMedicine ?? ($treatment === null);
+    $medicineMode = old('medicine_mode', 'existing');
+    if (! $allowNewMedicine) {
+        $medicineMode = 'existing';
+    }
+@endphp
 
 <div class="treatment-form">
     @component('modules.farms._form-section', [
         'number' => '1',
         'title' => 'Animal and treatment',
-        'description' => 'Select the animal and enter disease and medication details.',
+        'description' => 'Select the farm and animal or flock, then enter disease and medication details.',
     ])
         <div class="dash-form-grid">
-            @include('modules.partials.stock-picker', ['record' => $treatment])
+            @include('modules.partials.stock-picker', ['record' => $treatment, 'farms' => $farms ?? collect()])
             <div class="dash-form-field">
                 <label for="disease_name">Disease name <span class="dash-required">*</span></label>
                 <input type="text" name="disease_name" id="disease_name" value="{{ old('disease_name', $treatment?->disease_name) }}" required placeholder="e.g. Mastitis">
             </div>
+
+            @if ($allowNewMedicine)
+                <div class="dash-form-field dash-form-field--full">
+                    <label>{{ __('Medicine source') }}</label>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <label class="dash-checkbox">
+                            <input type="radio" name="medicine_mode" value="existing" @checked($medicineMode !== 'new') data-medicine-mode>
+                            <span>{{ __('Use existing medicine') }}</span>
+                        </label>
+                        <label class="dash-checkbox">
+                            <input type="radio" name="medicine_mode" value="new" @checked($medicineMode === 'new') data-medicine-mode>
+                            <span>{{ __('Register new medicine') }}</span>
+                        </label>
+                    </div>
+                </div>
+            @else
+                <input type="hidden" name="medicine_mode" value="existing">
+            @endif
+
+            <div class="dash-form-field" data-existing-medicine-field @if ($medicineMode === 'new') hidden @endif>
+                <label for="medicine_id">{{ __('Medicine') }} <span class="dash-required">*</span></label>
+                <select name="medicine_id" id="medicine_id" data-treatment-medicine @if ($medicineMode !== 'new') required @endif>
+                    <option value="">{{ __('Select medicine') }}</option>
+                    @forelse (($medicines ?? collect()) as $medicine)
+                        @php
+                            $isCurrent = (string) old('medicine_id', $treatment?->medicine_id) === (string) $medicine->id;
+                            $isExpired = $medicine->isExpired(old('start_date', $treatment?->start_date));
+                            $isOutOfStock = (float) $medicine->quantity_on_hand <= 0;
+                            $isUnavailable = ($isExpired || $isOutOfStock) && ! $isCurrent;
+                            $statusBits = collect([
+                                $medicine->stockLabel(),
+                                $medicine->expiry_date ? __('exp').' '.$medicine->expiry_date->format('Y-m-d') : null,
+                                $isExpired ? __('Expired') : null,
+                                $isOutOfStock ? __('Out of stock') : null,
+                            ])->filter()->implode(' · ');
+                        @endphp
+                        <option
+                            value="{{ $medicine->id }}"
+                            data-unit="{{ $medicine->unit }}"
+                            data-stock="{{ $medicine->quantity_on_hand }}"
+                            data-instructions="{{ $medicine->dosage_instructions }}"
+                            data-expired="{{ $isExpired ? '1' : '0' }}"
+                            data-out-of-stock="{{ $isOutOfStock ? '1' : '0' }}"
+                            @disabled($isUnavailable)
+                            @selected($isCurrent)
+                        >
+                            {{ $medicine->name }} ({{ $statusBits }})
+                        </option>
+                    @empty
+                        <option value="" disabled>{{ __('No medicines registered yet') }}</option>
+                    @endforelse
+                </select>
+                <p class="dash-field-hint">
+                    {{ __('Out-of-stock or expired medicines cannot be used. Add stock first in') }}
+                    <a href="{{ route('health.medicines') }}">{{ __('Medicines') }}</a>.
+                </p>
+                @error('medicine_id')<p class="dash-form-error">{{ $message }}</p>@enderror
+            </div>
+
+            <div data-new-medicine-fields style="display: contents;" @if ($medicineMode !== 'new') hidden @endif>
+                <div class="dash-form-field">
+                    <label for="new_medicine_name">{{ __('New medicine name') }} <span class="dash-required">*</span></label>
+                    <input type="text" name="new_medicine_name" id="new_medicine_name" value="{{ old('new_medicine_name') }}" placeholder="e.g. Oxytetracycline" @if ($medicineMode === 'new') required @endif>
+                    @error('new_medicine_name')<p class="dash-form-error">{{ $message }}</p>@enderror
+                </div>
+                <div class="dash-form-field">
+                    <label for="new_medicine_unit">{{ __('Unit') }} <span class="dash-required">*</span></label>
+                    <select name="new_medicine_unit" id="new_medicine_unit" @if ($medicineMode === 'new') required @endif>
+                        @foreach (config('modules.medicine_units') as $unit)
+                            <option value="{{ $unit }}" @selected(old('new_medicine_unit', 'ml') === $unit)>{{ $unit }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="dash-form-field">
+                    <label for="new_medicine_quantity">{{ __('Opening stock') }} <span class="dash-required">*</span></label>
+                    <input type="number" step="0.01" min="0.01" name="new_medicine_quantity" id="new_medicine_quantity" value="{{ old('new_medicine_quantity') }}" @if ($medicineMode === 'new') required @endif>
+                    <p class="dash-field-hint">{{ __('Must cover the quantity used for this treatment. Remaining stock stays in Medicines.') }}</p>
+                    @error('new_medicine_quantity')<p class="dash-form-error">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
             <div class="dash-form-field">
-                <label for="medicine_name">Medicine name <span class="dash-required">*</span></label>
-                <input type="text" name="medicine_name" id="medicine_name" value="{{ old('medicine_name', $treatment?->medicine_name) }}" required placeholder="e.g. Oxytetracycline">
+                <label for="quantity_used">{{ __('Quantity used') }} <span class="dash-required">*</span></label>
+                <input type="number" step="0.01" min="0.01" name="quantity_used" id="quantity_used" value="{{ old('quantity_used', $treatment?->quantity_used) }}" required>
+                <p class="dash-field-hint" data-medicine-stock-hint>
+                    {{ __('Deducted from medicine inventory when saved.') }}
+                </p>
+                @error('quantity_used')<p class="dash-form-error">{{ $message }}</p>@enderror
             </div>
             <div class="dash-form-field">
-                <label for="dosage">Dosage</label>
-                <input type="text" name="dosage" id="dosage" value="{{ old('dosage', $treatment?->dosage) }}" placeholder="e.g. 10 ml twice daily">
+                <label for="dosage">{{ __('Dosage') }}</label>
+                <input type="text" name="dosage" id="dosage" value="{{ old('dosage', $treatment?->dosage) }}" placeholder="e.g. 10 ml twice daily" data-treatment-dosage>
             </div>
             @include('modules.partials.select-with-other', [
                 'name' => 'treatment_method',
@@ -97,11 +189,88 @@
             </div>
         </div>
     @endcomponent
-
-    @include('modules.expenses.partials.linked-expense-fields', [
-        'expense' => $treatment?->expense,
-        'defaultVendorName' => $treatment?->veterinarian_name,
-        'vendors' => $vendors ?? [],
-        'sectionNumber' => '4',
-    ])
 </div>
+
+@once
+    @push('scripts')
+        <script>
+            (() => {
+                const form = document.querySelector('.treatment-form');
+                if (!form) return;
+
+                const modeRadios = form.querySelectorAll('[data-medicine-mode]');
+                const existingField = form.querySelector('[data-existing-medicine-field]');
+                const newFields = form.querySelector('[data-new-medicine-fields]');
+                const medicineSelect = form.querySelector('[data-treatment-medicine]');
+                const newName = form.querySelector('#new_medicine_name');
+                const newUnit = form.querySelector('#new_medicine_unit');
+                const newQty = form.querySelector('#new_medicine_quantity');
+                const dosage = form.querySelector('[data-treatment-dosage]');
+                const hint = form.querySelector('[data-medicine-stock-hint]');
+                const usedQty = form.querySelector('#quantity_used');
+
+                const currentMode = () =>
+                    form.querySelector('[data-medicine-mode]:checked')?.value || 'existing';
+
+                const syncMode = () => {
+                    const isNew = currentMode() === 'new';
+
+                    if (existingField) existingField.hidden = isNew;
+                    if (newFields) {
+                        newFields.hidden = !isNew;
+                        newFields.style.display = isNew ? 'contents' : 'none';
+                    }
+
+                    if (medicineSelect) {
+                        medicineSelect.required = !isNew;
+                        if (isNew) medicineSelect.value = '';
+                    }
+
+                    [newName, newUnit, newQty].forEach((input) => {
+                        if (!input) return;
+                        input.required = isNew;
+                        if (!isNew) {
+                            if (input.tagName === 'SELECT') return;
+                            // keep typed values for when user toggles back
+                        }
+                    });
+
+                    if (isNew && hint) {
+                        hint.textContent = @json(__('Opening stock is registered, then this treatment quantity is deducted.'));
+                    } else {
+                        syncExistingStockHint();
+                    }
+                };
+
+                const syncExistingStockHint = () => {
+                    if (!medicineSelect || !hint || currentMode() === 'new') return;
+
+                    const option = medicineSelect.selectedOptions?.[0];
+                    if (!option?.value) {
+                        hint.textContent = @json(__('Deducted from medicine inventory when saved.'));
+                        return;
+                    }
+
+                    const stock = option.dataset.stock || '0';
+                    const unit = option.dataset.unit || '';
+                    hint.textContent = @json(__('Available')) + `: ${stock} ${unit}`.trim()
+                        + ' — ' + @json(__('Deducted from medicine inventory when saved.'));
+
+                    if (dosage && !dosage.value && option.dataset.instructions) {
+                        dosage.placeholder = option.dataset.instructions;
+                    }
+                };
+
+                // Prefill opening stock from quantity used when empty.
+                usedQty?.addEventListener('change', () => {
+                    if (currentMode() !== 'new' || !newQty || newQty.value) return;
+                    newQty.value = usedQty.value;
+                });
+
+                modeRadios.forEach((radio) => radio.addEventListener('change', syncMode));
+                medicineSelect?.addEventListener('change', syncExistingStockHint);
+                syncMode();
+            })();
+        </script>
+    @endpush
+@endonce

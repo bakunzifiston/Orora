@@ -16,4 +16,5 @@
             </div>
         </form>
     </div>
+    @vite(['resources/js/select-other-form.js'])
 @endsection

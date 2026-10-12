@@ -135,7 +135,7 @@ class ExpenseService
             'farm_id' => $treatment->farm_id,
             'animal_id' => $treatment->animal_id,
             'expense_date' => $treatment->start_date,
-            'title' => 'Treatment: '.$treatment->disease_name.' — '.$treatment->medicine_name,
+            'title' => 'Treatment: '.$treatment->disease_name.' — '.($treatment->medicine?->name ?? $treatment->medicine_name),
             'default_vendor_name' => $treatment->veterinarian_name,
         ];
     }

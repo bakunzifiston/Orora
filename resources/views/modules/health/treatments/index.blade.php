@@ -63,10 +63,17 @@
                                     </td>
                                     <td>
                                         <div class="health-table__stack">
-                                            <span class="health-table__value">{{ $treatment->medicine_name }}</span>
-                                            @if ($treatment->dosage)
-                                                <span class="health-table__meta">{{ $treatment->dosage }}</span>
-                                            @endif
+                                            <span class="health-table__value">{{ $treatment->medicine?->name ?? $treatment->medicine_name }}</span>
+                                            <span class="health-table__meta">
+                                                @if ($treatment->quantity_used !== null)
+                                                    {{ rtrim(rtrim(number_format((float) $treatment->quantity_used, 2, '.', ''), '0'), '.') }}
+                                                    {{ $treatment->medicine?->unit }}
+                                                    @if ($treatment->dosage)
+                                                        <span aria-hidden="true">·</span>
+                                                    @endif
+                                                @endif
+                                                {{ $treatment->dosage }}
+                                            </span>
                                         </div>
                                     </td>
                                     <td>

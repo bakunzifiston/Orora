@@ -35,6 +35,8 @@
                     'record' => $diseaseRecord,
                     'required' => true,
                     'fullWidth' => true,
+                    'showFarmSelect' => false,
+                    'farmSelectId' => 'farm_id',
                 ])
             </div>
         </div>

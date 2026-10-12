@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Models\Animal;
 use App\Models\DiseaseRecord;
 use App\Models\HealthRecord;
+use App\Models\Medicine;
 use App\Models\Mortality;
 use App\Models\Treatment;
 use App\Models\VetVisit;
@@ -26,6 +27,8 @@ class HealthController extends Controller
     {
         $diseaseReady = Schema::hasTable('disease_records');
 
+        $medicinesReady = Schema::hasTable('medicines');
+
         $stats = [
             'vaccinations' => Vaccination::query()->count(),
             'treatments' => Treatment::query()->count(),
@@ -39,6 +42,12 @@ class HealthController extends Controller
                 ->whereDate('next_follow_up', '>=', now()->toDateString())
                 ->whereDate('next_follow_up', '<=', now()->addDays(30)->toDateString())
                 ->count(),
+            'medicines_low_stock' => $medicinesReady
+                ? Medicine::query()->whereNotNull('reorder_level')->whereColumn('quantity_on_hand', '<=', 'reorder_level')->count()
+                : 0,
+            'medicines_expired' => $medicinesReady
+                ? Medicine::query()->whereNotNull('expiry_date')->whereDate('expiry_date', '<', now()->toDateString())->count()
+                : 0,
         ];
 
         $recentRecords = HealthRecord::query()
@@ -65,7 +74,7 @@ class HealthController extends Controller
     public function treatments(): View
     {
         $treatments = Treatment::query()
-            ->with(['farm', 'animal', 'flock'])
+            ->with(['farm', 'animal', 'flock', 'medicine', 'recordedBy'])
             ->orderByDesc('start_date')
             ->paginate(15);
 

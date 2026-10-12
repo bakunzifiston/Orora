@@ -13,6 +13,7 @@ use App\Models\FeedInventory;
 use App\Models\Livestock;
 use App\Services\FeedInventoryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FeedingController extends Controller
@@ -38,29 +39,32 @@ class FeedingController extends Controller
         return view('modules.feedings.create', $this->feedingSectionData('records', $this->formOptions()));
     }
 
+
     public function store(FeedingRecordRequest $request): RedirectResponse
     {
-        $inventory = FeedInventory::query()->with('feedType')->findOrFail($request->input('feed_inventory_id'));
-
-        $feeding = Feeding::create([
-            'farm_id' => $request->input('farm_id'),
-            'feed_type_id' => $inventory->feed_type_id,
-            'feed_inventory_id' => $inventory->id,
-            'feeding_schedule_id' => $request->input('feeding_schedule_id'),
-            'livestock_id' => $request->input('livestock_id'),
-            'animal_id' => $request->input('animal_id'),
-            'flock_id' => $request->input('flock_id'),
-            'quantity' => $request->input('quantity'),
-            'unit' => $inventory->unit,
-            'fed_on' => $request->input('fed_on'),
-            'notes' => $request->input('notes'),
-        ]);
-
         try {
-            $this->inventoryService->deductForFeeding($feeding);
-        } catch (\InvalidArgumentException $e) {
-            $feeding->delete();
+            DB::transaction(function () use ($request) {
+                $inventory = FeedInventory::query()
+                    ->with('feedType')
+                    ->findOrFail($request->input('feed_inventory_id'));
 
+                $feeding = Feeding::create([
+                    'farm_id' => $request->input('farm_id'),
+                    'feed_type_id' => $inventory->feed_type_id,
+                    'feed_inventory_id' => $inventory->id,
+                    'feeding_schedule_id' => $request->input('feeding_schedule_id'),
+                    'livestock_id' => $request->input('livestock_id'),
+                    'animal_id' => $request->input('animal_id'),
+                    'flock_id' => $request->input('flock_id'),
+                    'quantity' => $request->input('quantity'),
+                    'unit' => $inventory->unit,
+                    'fed_on' => $request->input('fed_on'),
+                    'notes' => $request->input('notes'),
+                ]);
+
+                $this->inventoryService->deductForFeeding($feeding);
+            });
+        } catch (\InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['quantity' => $e->getMessage()]);
         }
 
@@ -70,47 +74,99 @@ class FeedingController extends Controller
     public function edit(Feeding $feeding): View
     {
         return view('modules.feedings.edit', $this->feedingSectionData('records', array_merge(
-            $this->formOptions(),
+            $this->formOptions($feeding),
             compact('feeding'),
         )));
     }
 
     public function update(FeedingRecordRequest $request, Feeding $feeding): RedirectResponse
     {
-        $inventory = FeedInventory::query()->findOrFail($request->input('feed_inventory_id'));
+        try {
+            DB::transaction(function () use ($request, $feeding) {
+                $inventory = FeedInventory::query()
+                    ->with('feedType')
+                    ->findOrFail($request->input('feed_inventory_id'));
 
-        $feeding->update([
-            'farm_id' => $request->input('farm_id'),
-            'feed_type_id' => $inventory->feed_type_id,
-            'feed_inventory_id' => $inventory->id,
-            'feeding_schedule_id' => $request->input('feeding_schedule_id'),
-            'livestock_id' => $request->input('livestock_id'),
-            'animal_id' => $request->input('animal_id'),
-            'flock_id' => $request->input('flock_id'),
-            'quantity' => $request->input('quantity'),
-            'unit' => $inventory->unit,
-            'fed_on' => $request->input('fed_on'),
-            'notes' => $request->input('notes'),
-        ]);
+                // Put previous consumption back before applying the new values.
+                $this->inventoryService->restoreForFeeding($feeding);
+
+                $feeding->update([
+                    'farm_id' => $request->input('farm_id'),
+                    'feed_type_id' => $inventory->feed_type_id,
+                    'feed_inventory_id' => $inventory->id,
+                    'feeding_schedule_id' => $request->input('feeding_schedule_id'),
+                    'livestock_id' => $request->input('livestock_id'),
+                    'animal_id' => $request->input('animal_id'),
+                    'flock_id' => $request->input('flock_id'),
+                    'quantity' => $request->input('quantity'),
+                    'unit' => $inventory->unit,
+                    'fed_on' => $request->input('fed_on'),
+                    'notes' => $request->input('notes'),
+                ]);
+
+                $this->inventoryService->deductForFeeding($feeding->fresh(['feedInventory.feedType']));
+            });
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['quantity' => $e->getMessage()]);
+        }
 
         return redirect()->route('feeding.records')->with('success', __('Feeding record updated successfully.'));
     }
 
     public function destroy(Feeding $feeding): RedirectResponse
     {
-        $feeding->delete();
+        DB::transaction(function () use ($feeding) {
+            $this->inventoryService->restoreForFeeding($feeding);
+            $feeding->delete();
+        });
 
         return redirect()->route('feeding.records')->with('success', __('Feeding record removed successfully.'));
     }
 
-    private function formOptions(): array
+    private function formOptions(?Feeding $feeding = null): array
     {
+        $inventories = FeedInventory::query()
+            ->with(['farm', 'feedType'])
+            ->where(function ($q) use ($feeding) {
+                $q->whereHas('feedType', fn ($type) => $type->where('is_active', true));
+
+                if ($feeding?->feed_inventory_id) {
+                    $q->orWhere('id', $feeding->feed_inventory_id);
+                }
+            })
+            ->orderBy('farm_id')
+            ->get();
+
         return [
             'farms' => Farm::query()->orderBy('name')->get(),
-            'inventories' => FeedInventory::query()->with(['farm', 'feedType'])->get(),
-            'schedules' => FeedingSchedule::query()->where('status', 'active')->orderBy('farm_id')->get(),
-            'livestockGroups' => Livestock::query()->orderBy('name')->get(),
+            'inventories' => $inventories,
+            'schedules' => $this->scheduleOptions(),
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             ...$this->stockOptions(),
         ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, FeedingSchedule>
+     */
+    private function scheduleOptions()
+    {
+        $schedules = FeedingSchedule::query()
+            ->with(['farm', 'feedType', 'livestock', 'animal', 'flock'])
+            ->where('status', 'active')
+            ->orderBy('farm_id')
+            ->orderBy('scheduled_time')
+            ->get();
+
+        $labelCounts = $schedules->countBy(fn (FeedingSchedule $schedule) => $schedule->optionLabel());
+
+        return $schedules->each(function (FeedingSchedule $schedule) use ($labelCounts) {
+            $label = $schedule->optionLabel();
+
+            $schedule->setAttribute(
+                'select_label',
+                ($labelCounts[$label] ?? 0) > 1 ? $label.' · #'.$schedule->id : $label
+            );
+        });
     }
 }
