@@ -8,6 +8,7 @@ use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\VaccinationRequest;
 use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
+use App\Models\Livestock;
 use App\Models\Vaccination;
 use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,7 @@ class VaccinationController extends Controller
     public function create(): View
     {
         return view('modules.health.vaccinations.create', $this->healthSectionData('vaccinations', array_merge($this->stockOptions(), [
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
@@ -44,10 +46,11 @@ class VaccinationController extends Controller
 
     public function edit(Vaccination $vaccination): View
     {
-        $vaccination->load(['animal', 'farm', 'expense.vendor']);
+        $vaccination->load(['animal', 'farm', 'livestock', 'expense.vendor']);
 
         return view('modules.health.vaccinations.edit', $this->healthSectionData('vaccinations', array_merge($this->stockOptions(), [
             'vaccination' => $vaccination,
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
@@ -97,13 +100,20 @@ class VaccinationController extends Controller
 
     private function syncHealthRecord(Vaccination $vaccination): void
     {
-        $vaccination->load(['animal', 'flock']);
+        $vaccination->load(['animal', 'flock', 'livestock']);
 
         $summary = collect([
             $vaccination->vaccine_name,
             $vaccination->vaccine_type,
             $vaccination->batch_number ? 'Batch '.$vaccination->batch_number : null,
         ])->filter()->implode(' · ');
+
+        $notes = collect([
+            $vaccination->livestock && ! $vaccination->animal_id && ! $vaccination->flock_id
+                ? 'Livestock group: '.$vaccination->livestock->name
+                : null,
+            $vaccination->notes,
+        ])->filter()->implode("\n\n");
 
         $healthData = [
             'farm_id' => $vaccination->farm_id,
@@ -117,7 +127,7 @@ class VaccinationController extends Controller
             'medication' => $vaccination->vaccine_name,
             'veterinarian' => $vaccination->veterinarian_name,
             'next_follow_up' => $vaccination->next_due_date,
-            'notes' => $vaccination->notes,
+            'notes' => $notes !== '' ? $notes : null,
         ];
 
         if ($vaccination->health_record_id) {

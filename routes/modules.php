@@ -15,6 +15,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerCreditController;
 use App\Http\Controllers\CustomerImportExportController;
 use App\Http\Controllers\CustomerModuleController;
+use App\Http\Controllers\DewormingController;
 use App\Http\Controllers\DiseaseRecordController;
 use App\Http\Controllers\EggCollectionController;
 use App\Http\Controllers\EggModuleController;
@@ -109,6 +110,8 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/index', '/health');
         Route::get('/vaccinations', [HealthController::class, 'vaccinations'])->name('vaccinations');
         Route::resource('vaccinations', VaccinationController::class)->except(['show', 'index']);
+        Route::get('/dewormings', [HealthController::class, 'dewormings'])->name('dewormings');
+        Route::resource('dewormings', DewormingController::class)->except(['show', 'index']);
         Route::get('/treatments', [HealthController::class, 'treatments'])->name('treatments');
         Route::resource('treatments', TreatmentController::class)->except(['show', 'index']);
         Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines');

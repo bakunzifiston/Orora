@@ -5,16 +5,112 @@
     if (! $allowNewMedicine) {
         $medicineMode = 'existing';
     }
+
+    $selectedFarmId = old('farm_id', $treatment?->farm_id);
+    $selectedLivestockId = old('livestock_id', $treatment?->livestock_id);
+    $selectedAnimalId = old('animal_id', $treatment?->animal_id);
+    $selectedFlockId = old('flock_id', $treatment?->flock_id);
+    $selectedFarm = ($farms ?? collect())->firstWhere('id', (int) $selectedFarmId);
+    $isPoultryFarm = $selectedFarm?->isPoultry() ?? false;
+    $treatmentTarget = old('treatment_target');
+
+    if ($treatmentTarget === null) {
+        $treatmentTarget = $selectedAnimalId ? 'animal' : 'group';
+    }
+
+    if (! in_array($treatmentTarget, ['group', 'animal'], true)) {
+        $treatmentTarget = 'group';
+    }
 @endphp
 
-<div class="treatment-form">
+<div class="treatment-form" data-treatment-target-form>
     @component('modules.farms._form-section', [
         'number' => '1',
-        'title' => 'Animal and treatment',
-        'description' => 'Select the farm and animal or flock, then enter disease and medication details.',
+        'title' => __('Who is treated'),
+        'description' => __('Choose the farm, then a whole livestock group or one animal. Poultry farms use a flock.'),
     ])
         <div class="dash-form-grid">
-            @include('modules.partials.stock-picker', ['record' => $treatment, 'farms' => $farms ?? collect()])
+            <div class="dash-form-field">
+                <label for="farm_id">{{ __('Farm') }} <span class="dash-required">*</span></label>
+                <select name="farm_id" id="farm_id" required data-treatment-farm>
+                    <option value="">{{ __('Select farm') }}</option>
+                    @foreach (($farms ?? collect()) as $farm)
+                        <option
+                            value="{{ $farm->id }}"
+                            data-species="{{ $farm->primary_species ?: 'cattle' }}"
+                            @selected((string) $selectedFarmId === (string) $farm->id)
+                        >{{ $farm->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div data-treatment-cattle-target style="display: contents;" @if ($isPoultryFarm) hidden @endif>
+                <div class="dash-form-field dash-form-field--full">
+                    <label>{{ __('Treat') }}</label>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <label class="dash-checkbox">
+                            <input type="radio" name="treatment_target" value="group" @checked($treatmentTarget === 'group') data-treatment-target>
+                            <span>{{ __('Entire livestock group') }}</span>
+                        </label>
+                        <label class="dash-checkbox">
+                            <input type="radio" name="treatment_target" value="animal" @checked($treatmentTarget === 'animal') data-treatment-target>
+                            <span>{{ __('One animal') }}</span>
+                        </label>
+                    </div>
+                    <p class="dash-field-hint">{{ __('Choose a whole group or a single animal from that group—not both.') }}</p>
+                </div>
+
+                <div class="dash-form-field" data-treatment-livestock-field @if ($isPoultryFarm) hidden @endif>
+                    <label for="livestock_id">{{ __('Livestock group') }} <span class="dash-required">*</span></label>
+                    <select name="livestock_id" id="livestock_id" data-treatment-livestock>
+                        <option value="">{{ __('Select livestock group') }}</option>
+                        @foreach (($livestockGroups ?? collect()) as $group)
+                            <option
+                                value="{{ $group->id }}"
+                                data-farm-id="{{ $group->farm_id }}"
+                                @selected((string) $selectedLivestockId === (string) $group->id)
+                            >
+                                {{ $group->name }}@if ($group->farm) — {{ $group->farm->name }}@endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('livestock_id')<p class="dash-form-error">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="dash-form-field" data-treatment-animal-field @if ($treatmentTarget !== 'animal' || $isPoultryFarm) hidden @endif>
+                    <label for="animal_id">{{ __('Animal') }} <span class="dash-required">*</span></label>
+                    <select name="animal_id" id="animal_id" data-treatment-animal>
+                        <option value="">{{ __('Select animal') }}</option>
+                        @foreach (($animals ?? collect()) as $animal)
+                            <option
+                                value="{{ $animal->id }}"
+                                data-farm-id="{{ $animal->farm_id }}"
+                                data-livestock-id="{{ $animal->livestock_id }}"
+                                @selected((string) $selectedAnimalId === (string) $animal->id)
+                            >
+                                {{ $animal->tag_number }}@if ($animal->name) — {{ $animal->name }}@endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('animal_id')<p class="dash-form-error">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
+            <div class="dash-form-field" data-treatment-flock-field @if (! $isPoultryFarm) hidden @endif>
+                <label for="flock_id">{{ __('Flock') }} <span class="dash-required">*</span></label>
+                <select name="flock_id" id="flock_id" data-treatment-flock>
+                    <option value="">{{ __('Select flock') }}</option>
+                    @foreach (($flocks ?? collect()) as $flock)
+                        <option
+                            value="{{ $flock->id }}"
+                            data-farm-id="{{ $flock->farm_id }}"
+                            @selected((string) $selectedFlockId === (string) $flock->id)
+                        >{{ $flock->label() }}@if ($flock->farm) — {{ $flock->farm->name }}@endif</option>
+                    @endforeach
+                </select>
+                @error('flock_id')<p class="dash-form-error">{{ $message }}</p>@enderror
+            </div>
+
             <div class="dash-form-field">
                 <label for="disease_name">Disease name <span class="dash-required">*</span></label>
                 <input type="text" name="disease_name" id="disease_name" value="{{ old('disease_name', $treatment?->disease_name) }}" required placeholder="e.g. Mastitis">
@@ -195,8 +291,18 @@
     @push('scripts')
         <script>
             (() => {
-                const form = document.querySelector('.treatment-form');
+                const form = document.querySelector('[data-treatment-target-form]') || document.querySelector('.treatment-form');
                 if (!form) return;
+
+                const farmSelect = form.querySelector('[data-treatment-farm]');
+                const cattleTarget = form.querySelector('[data-treatment-cattle-target]');
+                const livestockSelect = form.querySelector('[data-treatment-livestock]');
+                const animalSelect = form.querySelector('[data-treatment-animal]');
+                const flockSelect = form.querySelector('[data-treatment-flock]');
+                const livestockField = form.querySelector('[data-treatment-livestock-field]');
+                const animalField = form.querySelector('[data-treatment-animal-field]');
+                const flockField = form.querySelector('[data-treatment-flock-field]');
+                const targetRadios = form.querySelectorAll('[data-treatment-target]');
 
                 const modeRadios = form.querySelectorAll('[data-medicine-mode]');
                 const existingField = form.querySelector('[data-existing-medicine-field]');
@@ -208,6 +314,96 @@
                 const dosage = form.querySelector('[data-treatment-dosage]');
                 const hint = form.querySelector('[data-medicine-stock-hint]');
                 const usedQty = form.querySelector('#quantity_used');
+
+                const filterOptions = (select, predicate) => {
+                    if (!select) return;
+                    let keep = false;
+                    Array.from(select.options).forEach((option) => {
+                        if (!option.value) {
+                            option.hidden = false;
+                            return;
+                        }
+                        const matches = predicate(option);
+                        option.hidden = !matches;
+                        if (option.selected && matches) keep = true;
+                    });
+                    if (!keep) select.value = '';
+                };
+
+                const species = () => farmSelect?.selectedOptions?.[0]?.dataset?.species || 'cattle';
+                const isPoultry = () => species() === 'poultry';
+                const currentTarget = () =>
+                    form.querySelector('[data-treatment-target]:checked')?.value || 'group';
+
+                const syncSpecies = () => {
+                    const poultry = isPoultry();
+                    const farmId = farmSelect?.value || '';
+
+                    if (cattleTarget) {
+                        cattleTarget.hidden = poultry;
+                        cattleTarget.style.display = poultry ? 'none' : 'contents';
+                    }
+                    if (flockField) flockField.hidden = !poultry;
+
+                    filterOptions(livestockSelect, (option) => !farmId || option.dataset.farmId === farmId);
+                    filterOptions(animalSelect, (option) => {
+                        const farmOk = !farmId || option.dataset.farmId === farmId;
+                        const livestockId = livestockSelect?.value || '';
+                        const livestockOk = !livestockId || option.dataset.livestockId === livestockId;
+                        return farmOk && livestockOk;
+                    });
+                    filterOptions(flockSelect, (option) => !farmId || option.dataset.farmId === farmId);
+
+                    if (poultry) {
+                        if (livestockSelect) {
+                            livestockSelect.value = '';
+                            livestockSelect.required = false;
+                        }
+                        if (animalSelect) {
+                            animalSelect.value = '';
+                            animalSelect.required = false;
+                        }
+                        if (livestockField) livestockField.hidden = true;
+                        if (animalField) animalField.hidden = true;
+                        if (flockSelect) flockSelect.required = !!farmId;
+                        return;
+                    }
+
+                    if (flockSelect) {
+                        flockSelect.value = '';
+                        flockSelect.required = false;
+                    }
+
+                    const groupRadio = form.querySelector('[data-treatment-target][value="group"]');
+                    if (groupRadio && !form.querySelector('[data-treatment-target]:checked')) {
+                        groupRadio.checked = true;
+                    }
+
+                    syncTarget();
+                };
+
+                const syncTarget = () => {
+                    if (isPoultry()) return;
+
+                    const target = currentTarget();
+                    const showAnimal = target === 'animal';
+
+                    if (livestockField) livestockField.hidden = false;
+                    if (animalField) animalField.hidden = !showAnimal;
+                    if (livestockSelect) livestockSelect.required = true;
+                    if (animalSelect) {
+                        animalSelect.required = showAnimal;
+                        if (!showAnimal) animalSelect.value = '';
+                    }
+
+                    filterOptions(animalSelect, (option) => {
+                        const farmId = farmSelect?.value || '';
+                        const livestockId = livestockSelect?.value || '';
+                        const farmOk = !farmId || option.dataset.farmId === farmId;
+                        const livestockOk = !livestockId || option.dataset.livestockId === livestockId;
+                        return farmOk && livestockOk;
+                    });
+                };
 
                 const currentMode = () =>
                     form.querySelector('[data-medicine-mode]:checked')?.value || 'existing';
@@ -227,12 +423,7 @@
                     }
 
                     [newName, newUnit, newQty].forEach((input) => {
-                        if (!input) return;
-                        input.required = isNew;
-                        if (!isNew) {
-                            if (input.tagName === 'SELECT') return;
-                            // keep typed values for when user toggles back
-                        }
+                        if (input) input.required = isNew;
                     });
 
                     if (isNew && hint) {
@@ -261,14 +452,18 @@
                     }
                 };
 
-                // Prefill opening stock from quantity used when empty.
                 usedQty?.addEventListener('change', () => {
                     if (currentMode() !== 'new' || !newQty || newQty.value) return;
                     newQty.value = usedQty.value;
                 });
 
+                farmSelect?.addEventListener('change', syncSpecies);
+                livestockSelect?.addEventListener('change', syncTarget);
+                targetRadios.forEach((radio) => radio.addEventListener('change', syncTarget));
                 modeRadios.forEach((radio) => radio.addEventListener('change', syncMode));
                 medicineSelect?.addEventListener('change', syncExistingStockHint);
+
+                syncSpecies();
                 syncMode();
             })();
         </script>

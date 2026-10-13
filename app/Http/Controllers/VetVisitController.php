@@ -8,6 +8,7 @@ use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\VetVisitRequest;
 use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
+use App\Models\Livestock;
 use App\Models\VetVisit;
 use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,7 @@ class VetVisitController extends Controller
     public function create(): View
     {
         return view('modules.health.vet-visits.create', $this->healthSectionData('vet-visits', array_merge($this->stockOptions(), [
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
@@ -44,10 +46,11 @@ class VetVisitController extends Controller
 
     public function edit(VetVisit $vetVisit): View
     {
-        $vetVisit->load(['animal', 'farm', 'expense.vendor']);
+        $vetVisit->load(['animal', 'farm', 'livestock', 'expense.vendor']);
 
         return view('modules.health.vet-visits.edit', $this->healthSectionData('vet-visits', array_merge($this->stockOptions(), [
             'vetVisit' => $vetVisit,
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
@@ -97,13 +100,16 @@ class VetVisitController extends Controller
 
     private function syncHealthRecord(VetVisit $vetVisit): void
     {
-        $vetVisit->load(['animal', 'flock']);
+        $vetVisit->load(['animal', 'flock', 'livestock']);
 
         $title = collect([$vetVisit->disease_name, $vetVisit->medicine_name])
             ->filter()
             ->implode(' · ');
 
         $notes = collect([
+            $vetVisit->livestock && ! $vetVisit->animal_id && ! $vetVisit->flock_id
+                ? 'Livestock group: '.$vetVisit->livestock->name
+                : null,
             $vetVisit->symptoms ? 'Symptoms: '.$vetVisit->symptoms : null,
             $vetVisit->diagnosis ? 'Diagnosis: '.$vetVisit->diagnosis : null,
             $vetVisit->notes,

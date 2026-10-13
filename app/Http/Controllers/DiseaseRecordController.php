@@ -6,10 +6,8 @@ use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\DiseaseRecordRequest;
-use App\Models\Animal;
 use App\Models\DiseaseRecord;
 use App\Models\ExpenseVendor;
-use App\Models\Farm;
 use App\Models\HealthRecord;
 use App\Models\Livestock;
 use App\Services\DiseaseRecordService;
@@ -112,66 +110,21 @@ class DiseaseRecordController extends Controller
 
     private function formOptions(?DiseaseRecord $diseaseRecord = null): array
     {
-        $farmId = $diseaseRecord?->farm_id ?? old('farm_id');
-        $livestockId = $diseaseRecord?->livestock_id ?? old('livestock_id');
-
-        $livestockByFarm = Livestock::query()
-            ->select(['id', 'farm_id', 'name'])
-            ->orderBy('name')
-            ->get()
-            ->groupBy('farm_id')
-            ->map(fn ($groups) => $groups->map(fn (Livestock $group) => [
-                'id' => $group->id,
-                'name' => $group->name,
-            ])->values())
-            ->toArray();
-
-        $animals = Animal::query()
-            ->with('farm:id,name')
-            ->orderBy('tag_number')
-            ->get(['id', 'farm_id', 'livestock_id', 'tag_number', 'name']);
-
-        $animalsByLivestock = $animals
-            ->groupBy('livestock_id')
-            ->map(fn ($group) => $group->map(fn (Animal $animal) => [
-                'id' => $animal->id,
-                'label' => collect([
-                    $animal->tag_number,
-                    $animal->name,
-                    $animal->farm?->name,
-                ])->filter()->implode(' · '),
-            ])->values())
-            ->toArray();
-
-        return [
-            'farms' => Farm::query()->orderBy('name')->get(),
-            'livestockGroups' => Livestock::query()
-                ->when($farmId, fn ($query) => $query->where('farm_id', $farmId))
-                ->orderBy('name')
-                ->get(),
-            'livestockByFarm' => $livestockByFarm,
-            'animalsByLivestock' => $animalsByLivestock,
-            'selectedFarmId' => $farmId,
-            'selectedLivestockId' => $livestockId,
+        return array_merge($this->stockOptions(), [
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
+            'selectedFarmId' => $diseaseRecord?->farm_id ?? old('farm_id'),
+            'selectedLivestockId' => $diseaseRecord?->livestock_id ?? old('livestock_id'),
             'selectedAnimalId' => $diseaseRecord?->animal_id ?? old('animal_id'),
             'selectedFlockId' => $diseaseRecord?->flock_id ?? old('flock_id'),
-            ...$this->stockOptions(),
-        ];
+        ]);
     }
 
     private function diseasePayload(DiseaseRecordRequest $request): array
     {
-        $attributes = $request->diseaseRecordAttributes();
-
-        if ($request->filled('flock_id')) {
-            $stock = $request->resolvedStockAttributes();
-            $attributes['farm_id'] = $stock['farm_id'];
-            $attributes['flock_id'] = $stock['flock_id'];
-            $attributes['animal_id'] = null;
-            $attributes['livestock_id'] = $attributes['livestock_id'] ?: $stock['livestock_id'];
-        }
-
-        return $attributes;
+        return array_merge(
+            $request->diseaseRecordAttributes(),
+            $request->resolvedStockAttributes(),
+        );
     }
 
     private function storeAttachment(DiseaseRecordRequest $request, DiseaseRecord $diseaseRecord): void
@@ -190,9 +143,12 @@ class DiseaseRecordController extends Controller
 
     private function syncHealthRecord(DiseaseRecord $diseaseRecord): void
     {
-        $diseaseRecord->load(['animal', 'farm']);
+        $diseaseRecord->load(['animal', 'farm', 'livestock', 'flock']);
 
         $notes = collect([
+            $diseaseRecord->livestock && ! $diseaseRecord->animal_id && ! $diseaseRecord->flock_id
+                ? 'Livestock group: '.$diseaseRecord->livestock->name
+                : null,
             $diseaseRecord->symptoms ? 'Symptoms: '.$diseaseRecord->symptoms : null,
             'Severity: '.$diseaseRecord->severityLabel(),
             'Recovery: '.$diseaseRecord->recoveryLabel(),

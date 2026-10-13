@@ -75,6 +75,9 @@ class PoultryWorkflowTest extends TenantTestCase
         $animal = FarmTestFixtures::animal($farm, $livestock);
 
         $this->post(route('health.vaccinations.store'), [
+            'farm_id' => $farm->id,
+            'vaccination_target' => 'animal',
+            'livestock_id' => $livestock->id,
             'animal_id' => $animal->id,
             'vaccine_name' => 'FMD vaccine',
             'vaccination_date' => now()->toDateString(),
@@ -83,6 +86,7 @@ class PoultryWorkflowTest extends TenantTestCase
 
         $this->assertDatabaseHas('vaccinations', [
             'animal_id' => $animal->id,
+            'livestock_id' => $livestock->id,
             'flock_id' => null,
             'vaccine_name' => 'FMD vaccine',
         ]);
@@ -90,6 +94,31 @@ class PoultryWorkflowTest extends TenantTestCase
         $vaccination = Vaccination::query()->where('animal_id', $animal->id)->first();
         $this->assertNotNull($vaccination);
         $this->assertSame($farm->id, $vaccination->farm_id);
+    }
+
+    public function test_cattle_health_vaccination_can_target_livestock_group(): void
+    {
+        $this->actingAsTenantUser();
+
+        $farm = FarmTestFixtures::farm(['primary_species' => 'cattle']);
+        $livestock = FarmTestFixtures::livestock($farm);
+
+        $this->post(route('health.vaccinations.store'), [
+            'farm_id' => $farm->id,
+            'vaccination_target' => 'group',
+            'livestock_id' => $livestock->id,
+            'vaccine_name' => 'Herd FMD vaccine',
+            'vaccination_date' => now()->toDateString(),
+            'status' => 'Completed',
+        ])->assertRedirect(route('health.vaccinations'));
+
+        $this->assertDatabaseHas('vaccinations', [
+            'livestock_id' => $livestock->id,
+            'animal_id' => null,
+            'flock_id' => null,
+            'vaccine_name' => 'Herd FMD vaccine',
+            'farm_id' => $farm->id,
+        ]);
     }
 
     public function test_poultry_health_vaccination_targets_flock(): void

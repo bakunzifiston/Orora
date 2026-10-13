@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Controllers\Concerns\ProvidesStockOptions;
 use App\Http\Requests\TreatmentRequest;
 use App\Models\HealthRecord;
+use App\Models\Livestock;
 use App\Models\Medicine;
 use App\Models\Treatment;
 use App\Services\ExpenseService;
@@ -30,6 +31,7 @@ class TreatmentController extends Controller
     public function create(): View
     {
         return view('modules.health.treatments.create', $this->healthSectionData('treatments', array_merge($this->stockOptions(), [
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             'medicines' => Medicine::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
@@ -67,10 +69,11 @@ class TreatmentController extends Controller
 
     public function edit(Treatment $treatment): View
     {
-        $treatment->load(['animal', 'farm', 'medicine']);
+        $treatment->load(['animal', 'farm', 'livestock', 'medicine']);
 
         return view('modules.health.treatments.edit', $this->healthSectionData('treatments', array_merge($this->stockOptions(), [
             'treatment' => $treatment,
+            'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
             'medicines' => Medicine::query()
                 ->where(function ($query) use ($treatment) {
                     $query->where('is_active', true);
@@ -144,13 +147,16 @@ class TreatmentController extends Controller
 
     private function syncHealthRecord(Treatment $treatment): void
     {
-        $treatment->load(['animal', 'flock', 'medicine']);
+        $treatment->load(['animal', 'flock', 'livestock', 'medicine']);
 
         $title = collect([$treatment->disease_name, $treatment->medicine?->name ?? $treatment->medicine_name])
             ->filter()
             ->implode(' · ');
 
         $notes = collect([
+            $treatment->livestock && ! $treatment->animal_id && ! $treatment->flock_id
+                ? 'Livestock group: '.$treatment->livestock->name
+                : null,
             $treatment->symptoms ? 'Symptoms: '.$treatment->symptoms : null,
             $treatment->diagnosis ? 'Diagnosis: '.$treatment->diagnosis : null,
             $treatment->notes,

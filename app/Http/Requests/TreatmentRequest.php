@@ -2,7 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Http\Requests\Concerns\ValidatesStockSubject;
+use App\Http\Requests\Concerns\ValidatesFarmRelations;
+use App\Models\Animal;
+use App\Models\Farm;
+use App\Models\Flock;
+use App\Models\Livestock;
 use App\Models\Medicine;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,7 +14,7 @@ use Illuminate\Validation\Validator;
 
 class TreatmentRequest extends FormRequest
 {
-    use ValidatesStockSubject;
+    use ValidatesFarmRelations;
 
     public function authorize(): bool
     {
@@ -23,29 +27,64 @@ class TreatmentRequest extends FormRequest
             $this->merge(['treatment_method' => null]);
         }
 
-        foreach (['medicine_id', 'quantity_used', 'dosage', 'new_medicine_name', 'new_medicine_quantity'] as $field) {
+        foreach ([
+            'medicine_id', 'quantity_used', 'dosage', 'new_medicine_name', 'new_medicine_quantity',
+            'livestock_id', 'animal_id', 'flock_id', 'farm_id',
+        ] as $field) {
             if ($this->input($field) === '') {
                 $this->merge([$field => null]);
             }
         }
 
         if (! in_array($this->input('medicine_mode'), ['existing', 'new'], true)) {
-            $this->merge([
-                'medicine_mode' => $this->filled('medicine_id') ? 'existing' : 'existing',
-            ]);
+            $this->merge(['medicine_mode' => 'existing']);
         }
 
         if ($this->input('medicine_mode') === 'new') {
             $this->merge(['medicine_id' => null]);
         }
 
-        $this->prepareStockSubject();
+        $farm = $this->filled('farm_id')
+            ? Farm::query()->find($this->input('farm_id'))
+            : null;
+
+        $target = $this->input('treatment_target');
+
+        if ($farm?->isPoultry()) {
+            $this->merge([
+                'treatment_target' => 'flock',
+                'livestock_id' => null,
+                'animal_id' => null,
+            ]);
+        } else {
+            $this->merge(['flock_id' => null]);
+
+            if (! in_array($target, ['group', 'animal'], true)) {
+                $target = $this->filled('animal_id') ? 'animal' : 'group';
+                $this->merge(['treatment_target' => $target]);
+            }
+
+            if ($target === 'group') {
+                $this->merge(['animal_id' => null]);
+            }
+
+            if ($target === 'animal' && $this->filled('animal_id') && ! $this->filled('livestock_id')) {
+                $animal = Animal::query()->find($this->input('animal_id'));
+
+                if ($animal?->livestock_id) {
+                    $this->merge(['livestock_id' => $animal->livestock_id]);
+                }
+            }
+        }
     }
 
     public function rules(): array
     {
         $isNewMedicine = $this->input('medicine_mode') === 'new';
         $currentMedicineId = $this->route('treatment')?->medicine_id;
+        $isPoultry = $this->filled('farm_id')
+            && Farm::query()->whereKey($this->input('farm_id'))->where('primary_species', 'poultry')->exists();
+        $target = $isPoultry ? 'flock' : ($this->input('treatment_target', 'group'));
 
         $medicineIdRules = $isNewMedicine
             ? ['nullable']
@@ -67,7 +106,14 @@ class TreatmentRequest extends FormRequest
                 }),
             ];
 
-        return array_merge($this->stockSubjectRules(), [
+        return array_merge([
+            'farm_id' => ['required', 'exists:farms,id'],
+            'treatment_target' => $isPoultry
+                ? ['nullable', Rule::in(['flock', 'group', 'animal'])]
+                : ['required', Rule::in(['group', 'animal'])],
+            'livestock_id' => $this->livestockRulesForTarget($target),
+            'animal_id' => $this->animalRulesForTarget($target),
+            'flock_id' => $this->flockRulesForTarget($target),
             'disease_name' => ['required', 'string', 'max:255'],
             'medicine_mode' => ['required', Rule::in(['existing', 'new'])],
             'medicine_id' => $medicineIdRules,
@@ -157,6 +203,8 @@ class TreatmentRequest extends FormRequest
             'new_medicine_name' => 'new medicine name',
             'new_medicine_unit' => 'unit',
             'new_medicine_quantity' => 'opening stock',
+            'livestock_id' => 'livestock group',
+            'treatment_target' => 'treatment target',
         ];
     }
 
@@ -169,6 +217,11 @@ class TreatmentRequest extends FormRequest
             'new_medicine_name',
             'new_medicine_unit',
             'new_medicine_quantity',
+            'treatment_target',
+            'farm_id',
+            'livestock_id',
+            'animal_id',
+            'flock_id',
         ]);
 
         if (($attributes['treatment_method'] ?? null) === 'Other') {
@@ -187,6 +240,43 @@ class TreatmentRequest extends FormRequest
         return $attributes;
     }
 
+    /**
+     * @return array{farm_id: int, livestock_id: int|null, animal_id: int|null, flock_id: int|null}
+     */
+    public function resolvedStockAttributes(): array
+    {
+        if ($this->filled('flock_id')) {
+            $flock = Flock::query()->findOrFail($this->input('flock_id'));
+
+            return [
+                'farm_id' => $flock->farm_id,
+                'livestock_id' => $flock->livestock_id,
+                'animal_id' => null,
+                'flock_id' => $flock->id,
+            ];
+        }
+
+        if ($this->input('treatment_target') === 'group' || ($this->filled('livestock_id') && ! $this->filled('animal_id'))) {
+            $group = Livestock::query()->findOrFail($this->input('livestock_id'));
+
+            return [
+                'farm_id' => $group->farm_id,
+                'livestock_id' => $group->id,
+                'animal_id' => null,
+                'flock_id' => null,
+            ];
+        }
+
+        $animal = Animal::query()->findOrFail($this->input('animal_id'));
+
+        return [
+            'farm_id' => $animal->farm_id,
+            'livestock_id' => $animal->livestock_id,
+            'animal_id' => $animal->id,
+            'flock_id' => null,
+        ];
+    }
+
     public function wantsNewMedicine(): bool
     {
         return $this->input('medicine_mode') === 'new';
@@ -203,5 +293,55 @@ class TreatmentRequest extends FormRequest
             'quantity_on_hand' => (float) $this->input('new_medicine_quantity'),
             'is_active' => true,
         ];
+    }
+
+    /**
+     * @return list<string|\Illuminate\Validation\Rules\Exists>
+     */
+    private function livestockRulesForTarget(string $target): array
+    {
+        if ($target === 'flock') {
+            return ['nullable'];
+        }
+
+        $rules = $this->optionalLivestockBelongsToFarm();
+        $rules[0] = 'required';
+
+        return $rules;
+    }
+
+    /**
+     * @return list<string|\Illuminate\Validation\Rules\Exists>
+     */
+    private function animalRulesForTarget(string $target): array
+    {
+        if ($target !== 'animal') {
+            return ['nullable', 'prohibits:flock_id'];
+        }
+
+        if ($this->filled('livestock_id') && $this->filled('farm_id')) {
+            return ['required', $this->animalBelongsToLivestock(), 'prohibits:flock_id'];
+        }
+
+        $rules = $this->optionalAnimalBelongsToFarm();
+        $rules[0] = 'required';
+        $rules[] = 'prohibits:flock_id';
+
+        return $rules;
+    }
+
+    /**
+     * @return list<string|\Illuminate\Validation\Rules\Exists>
+     */
+    private function flockRulesForTarget(string $target): array
+    {
+        if ($target !== 'flock') {
+            return ['nullable'];
+        }
+
+        $rules = $this->optionalFlockBelongsToFarm();
+        $rules[0] = 'required';
+
+        return $rules;
     }
 }

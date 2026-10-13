@@ -33,7 +33,7 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Disease') }}</th>
-                                <th>{{ __('Animal') }}</th>
+                                <th>{{ __('Affected') }}</th>
                                 <th>{{ __('Severity') }}</th>
                                 <th>{{ __('Recovery') }}</th>
                                 <th class="health-table__actions">{{ __('Actions') }}</th>

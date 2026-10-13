@@ -26,7 +26,7 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Visit') }}</th>
-                                <th>{{ __('Animal') }}</th>
+                                <th>{{ __('Visited') }}</th>
                                 <th>{{ __('Veterinarian') }}</th>
                                 <th>{{ __('Status') }}</th>
                                 <th class="health-table__actions">{{ __('Actions') }}</th>

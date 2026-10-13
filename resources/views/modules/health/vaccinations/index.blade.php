@@ -26,7 +26,7 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Vaccine') }}</th>
-                                <th>{{ __('Animal') }}</th>
+                                <th>{{ __('Vaccinated') }}</th>
                                 <th>{{ __('Status') }}</th>
                                 <th>{{ __('Next due') }}</th>
                                 <th class="health-table__actions">{{ __('Actions') }}</th>

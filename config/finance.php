@@ -7,6 +7,7 @@ return [
         'feed.transport' => '5300',
         'feed.storage' => '5000',
         'health.vaccination' => '5100',
+        'health.deworming' => '5100',
         'health.treatment' => '5100',
         'health.vet_visit' => '5100',
         'health.diagnostics' => '5100',

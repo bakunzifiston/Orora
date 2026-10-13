@@ -9,6 +9,7 @@ use App\Models\PregnancyCheck;
 use App\Models\ExpenseCategory;
 use App\Models\ExpenseVendor;
 use App\Models\FeedInventoryMovement;
+use App\Models\Deworming;
 use App\Models\DiseaseRecord;
 use App\Models\Treatment;
 use App\Models\Vaccination;
@@ -123,9 +124,22 @@ class ExpenseService
         return [
             'farm_id' => $vaccination->farm_id,
             'animal_id' => $vaccination->animal_id,
+            'livestock_id' => $vaccination->livestock_id,
             'expense_date' => $vaccination->vaccination_date,
             'title' => 'Vaccination: '.$vaccination->vaccine_name,
             'default_vendor_name' => $vaccination->veterinary_clinic ?: $vaccination->veterinarian_name,
+        ];
+    }
+
+    public static function dewormingContext(Deworming $deworming): array
+    {
+        return [
+            'farm_id' => $deworming->farm_id,
+            'animal_id' => $deworming->animal_id,
+            'livestock_id' => $deworming->livestock_id,
+            'expense_date' => $deworming->deworming_date,
+            'title' => 'Deworming: '.$deworming->product_name,
+            'default_vendor_name' => $deworming->veterinarian_name,
         ];
     }
 
@@ -157,6 +171,7 @@ class ExpenseService
         return [
             'farm_id' => $visit->farm_id,
             'animal_id' => $visit->animal_id,
+            'livestock_id' => $visit->livestock_id,
             'expense_date' => $visit->start_date,
             'title' => 'Vet visit: '.$visit->disease_name,
             'default_vendor_name' => $visit->veterinarian_name,

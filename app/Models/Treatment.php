@@ -14,6 +14,7 @@ class Treatment extends TenantModel
 
     protected $fillable = [
         'farm_id',
+        'livestock_id',
         'animal_id',
         'flock_id',
         'health_record_id',
@@ -50,6 +51,11 @@ class Treatment extends TenantModel
         return $this->belongsTo(Farm::class);
     }
 
+    public function livestock(): BelongsTo
+    {
+        return $this->belongsTo(Livestock::class);
+    }
+
     public function animal(): BelongsTo
     {
         return $this->belongsTo(Animal::class);
@@ -58,6 +64,23 @@ class Treatment extends TenantModel
     public function medicine(): BelongsTo
     {
         return $this->belongsTo(Medicine::class);
+    }
+
+    public function stockLabel(): string
+    {
+        if ($this->flock) {
+            return $this->flock->label();
+        }
+
+        if ($this->animal) {
+            return collect([$this->animal->tag_number, $this->animal->name])->filter()->implode(' — ');
+        }
+
+        if ($this->livestock) {
+            return $this->livestock->name;
+        }
+
+        return '—';
     }
 
     public function recordedBy(): BelongsTo

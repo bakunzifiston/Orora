@@ -14,6 +14,7 @@ class Vaccination extends TenantModel
 
     protected $fillable = [
         'farm_id',
+        'livestock_id',
         'animal_id',
         'flock_id',
         'health_record_id',
@@ -46,6 +47,11 @@ class Vaccination extends TenantModel
     public function farm(): BelongsTo
     {
         return $this->belongsTo(Farm::class);
+    }
+
+    public function livestock(): BelongsTo
+    {
+        return $this->belongsTo(Livestock::class);
     }
 
     public function animal(): BelongsTo

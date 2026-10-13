@@ -606,12 +606,24 @@ return [
     'health_sections' => [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'health.overview'],
         ['key' => 'vaccinations', 'label' => 'Vaccinations', 'route' => 'health.vaccinations'],
+        ['key' => 'dewormings', 'label' => 'Deworming', 'route' => 'health.dewormings'],
         ['key' => 'treatments', 'label' => 'Treatments', 'route' => 'health.treatments'],
         ['key' => 'medicines', 'label' => 'Medicines', 'route' => 'health.medicines'],
         ['key' => 'disease', 'label' => 'Disease', 'route' => 'health.disease'],
         ['key' => 'vet-visits', 'label' => 'Vet visits', 'route' => 'health.vet-visits'],
         ['key' => 'mortality', 'label' => 'Mortality', 'route' => 'health.mortality'],
         ['key' => 'timeline', 'label' => 'Timeline', 'route' => 'health.timeline'],
+    ],
+
+    'dewormer_types' => [
+        'Endoparasiticide',
+        'Ectoparasiticide',
+        'Endectocide',
+        'Oral drench',
+        'Injectable',
+        'Pour-on',
+        'Bolus',
+        'Other',
     ],
 
     'medicine_categories' => [
@@ -708,6 +720,7 @@ return [
 
     'health_section_record_types' => [
         'vaccinations' => ['Vaccination'],
+        'dewormings' => ['Deworming'],
         'treatments' => ['Treatment'],
         'disease' => ['Illness'],
         'vet-visits' => ['Vet visit', 'Health checkup'],

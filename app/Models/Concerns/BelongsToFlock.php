@@ -22,6 +22,10 @@ trait BelongsToFlock
             return collect([$this->animal->tag_number, $this->animal->name])->filter()->implode(' — ');
         }
 
+        if (method_exists($this, 'livestock') && $this->livestock) {
+            return $this->livestock->name;
+        }
+
         return '—';
     }
 }

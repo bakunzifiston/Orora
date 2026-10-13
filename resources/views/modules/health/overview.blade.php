@@ -23,6 +23,15 @@
                         <div class="farm-kpi__value">{{ number_format($stats['vaccinations']) }}</div>
                     </div>
                 </a>
+                <a href="{{ route('health.dewormings') }}" class="farm-kpi farm-kpi--stock">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Deworming') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['dewormings'] ?? 0) }}</div>
+                    </div>
+                </a>
                 <a href="{{ route('health.treatments') }}" class="farm-kpi farm-kpi--health">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])

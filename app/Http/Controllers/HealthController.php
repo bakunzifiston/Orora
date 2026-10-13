@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\HealthSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Models\Animal;
+use App\Models\Deworming;
 use App\Models\DiseaseRecord;
 use App\Models\HealthRecord;
 use App\Models\Medicine;
@@ -29,8 +30,11 @@ class HealthController extends Controller
 
         $medicinesReady = Schema::hasTable('medicines');
 
+        $dewormingsReady = Schema::hasTable('dewormings');
+
         $stats = [
             'vaccinations' => Vaccination::query()->count(),
+            'dewormings' => $dewormingsReady ? Deworming::query()->count() : 0,
             'treatments' => Treatment::query()->count(),
             'disease' => $diseaseReady ? DiseaseRecord::query()->count() : 0,
             'vet_visits' => VetVisit::query()->count(),
@@ -64,17 +68,27 @@ class HealthController extends Controller
     public function vaccinations(): View
     {
         $vaccinations = Vaccination::query()
-            ->with(['farm', 'animal', 'flock'])
+            ->with(['farm', 'animal', 'flock', 'livestock'])
             ->orderByDesc('vaccination_date')
             ->paginate(15);
 
         return view('modules.health.vaccinations.index', $this->healthSectionData('vaccinations', compact('vaccinations')));
     }
 
+    public function dewormings(): View
+    {
+        $dewormings = Deworming::query()
+            ->with(['farm', 'animal', 'flock', 'livestock'])
+            ->orderByDesc('deworming_date')
+            ->paginate(15);
+
+        return view('modules.health.dewormings.index', $this->healthSectionData('dewormings', compact('dewormings')));
+    }
+
     public function treatments(): View
     {
         $treatments = Treatment::query()
-            ->with(['farm', 'animal', 'flock', 'medicine', 'recordedBy'])
+            ->with(['farm', 'animal', 'flock', 'livestock', 'medicine', 'recordedBy'])
             ->orderByDesc('start_date')
             ->paginate(15);
 
@@ -98,7 +112,7 @@ class HealthController extends Controller
     public function vetVisits(): View
     {
         $vetVisits = VetVisit::query()
-            ->with(['farm', 'animal', 'flock'])
+            ->with(['farm', 'animal', 'flock', 'livestock'])
             ->orderByDesc('start_date')
             ->paginate(15);
 
