@@ -10,8 +10,11 @@ use App\Models\Deworming;
 use App\Models\ExpenseVendor;
 use App\Models\HealthRecord;
 use App\Models\Livestock;
+use App\Models\Medicine;
 use App\Services\ExpenseService;
+use App\Services\MedicineInventoryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -21,23 +24,34 @@ class DewormingController extends Controller
     use ProvidesModuleNavigation;
     use ProvidesStockOptions;
 
-    public function __construct(private ExpenseService $expenseService) {}
+    public function __construct(
+        private ExpenseService $expenseService,
+        private MedicineInventoryService $medicineInventoryService,
+    ) {}
 
     public function create(): View
     {
         return view('modules.health.dewormings.create', $this->healthSectionData('dewormings', array_merge($this->stockOptions(), [
             'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
+            'medicines' => Medicine::query()->where('is_active', true)->orderBy('name')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
 
     public function store(DewormingRequest $request): RedirectResponse
     {
-        $deworming = Deworming::create(array_merge($request->dewormingAttributes(), $request->resolvedStockAttributes()));
+        try {
+            DB::transaction(function () use ($request) {
+                $deworming = Deworming::create(array_merge($request->dewormingAttributes(), $request->resolvedStockAttributes()));
 
-        $this->storeAttachment($request, $deworming);
-        $this->syncHealthRecord($deworming);
-        $this->expenseService->syncFromRequest($request, $deworming, 'health.deworming', ExpenseService::dewormingContext($deworming));
+                $this->storeAttachment($request, $deworming);
+                $this->medicineInventoryService->deductForDeworming($deworming);
+                $this->syncHealthRecord($deworming);
+                $this->expenseService->syncFromRequest($request, $deworming, 'health.deworming', ExpenseService::dewormingContext($deworming));
+            });
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['quantity_used' => $e->getMessage()]);
+        }
 
         return redirect()
             ->route('health.dewormings')
@@ -51,18 +65,36 @@ class DewormingController extends Controller
         return view('modules.health.dewormings.edit', $this->healthSectionData('dewormings', array_merge($this->stockOptions(), [
             'deworming' => $deworming,
             'livestockGroups' => Livestock::query()->with('farm')->orderBy('name')->get(),
+            'medicines' => Medicine::query()->where(function ($query) use ($deworming) {
+                $query->where('is_active', true);
+
+                if ($deworming->medicine_id) {
+                    $query->orWhereKey($deworming->medicine_id);
+                }
+            })->orderBy('name')->get(),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
         ])));
     }
 
     public function update(DewormingRequest $request, Deworming $deworming): RedirectResponse
     {
-        $deworming->update(array_merge($request->dewormingAttributes(), $request->resolvedStockAttributes()));
+        try {
+            DB::transaction(function () use ($request, $deworming) {
+                $previous = $deworming->replicate();
+                $previous->id = $deworming->id;
+                $previous->exists = true;
 
-        $this->storeAttachment($request, $deworming);
-        $deworming = $deworming->fresh();
-        $this->syncHealthRecord($deworming);
-        $this->expenseService->syncFromRequest($request, $deworming, 'health.deworming', ExpenseService::dewormingContext($deworming));
+                $deworming->update(array_merge($request->dewormingAttributes(), $request->resolvedStockAttributes()));
+
+                $this->storeAttachment($request, $deworming);
+                $this->medicineInventoryService->syncForDeworming($deworming->fresh(), $previous);
+                $deworming = $deworming->fresh();
+                $this->syncHealthRecord($deworming);
+                $this->expenseService->syncFromRequest($request, $deworming, 'health.deworming', ExpenseService::dewormingContext($deworming));
+            });
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['quantity_used' => $e->getMessage()]);
+        }
 
         return redirect()
             ->route('health.dewormings')
@@ -71,13 +103,16 @@ class DewormingController extends Controller
 
     public function destroy(Deworming $deworming): RedirectResponse
     {
-        if ($deworming->attachment_path) {
-            Storage::disk('public')->delete($deworming->attachment_path);
-        }
+        DB::transaction(function () use ($deworming) {
+            if ($deworming->attachment_path) {
+                Storage::disk('public')->delete($deworming->attachment_path);
+            }
 
-        $this->expenseService->deleteForSource($deworming);
-        $deworming->healthRecord?->delete();
-        $deworming->delete();
+            $this->medicineInventoryService->restoreForDeworming($deworming);
+            $this->expenseService->deleteForSource($deworming);
+            $deworming->healthRecord?->delete();
+            $deworming->delete();
+        });
 
         return redirect()
             ->route('health.dewormings')

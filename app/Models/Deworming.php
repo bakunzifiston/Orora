@@ -18,6 +18,8 @@ class Deworming extends TenantModel
         'flock_id',
         'health_record_id',
         'product_name',
+        'medicine_id',
+        'quantity_used',
         'product_type',
         'active_ingredient',
         'manufacturer',
@@ -38,6 +40,7 @@ class Deworming extends TenantModel
         return [
             'deworming_date' => 'date',
             'next_due_date' => 'date',
+            'quantity_used' => 'decimal:2',
         ];
     }
 
@@ -54,6 +57,11 @@ class Deworming extends TenantModel
     public function animal(): BelongsTo
     {
         return $this->belongsTo(Animal::class);
+    }
+
+    public function medicine(): BelongsTo
+    {
+        return $this->belongsTo(Medicine::class);
     }
 
     public function healthRecord(): BelongsTo

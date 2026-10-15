@@ -7,6 +7,7 @@ use App\Models\BirthRecord;
 use App\Models\BreedingRecord;
 use App\Models\Certificate;
 use App\Models\Customer;
+use App\Models\Deworming;
 use App\Models\EggCollection;
 use App\Models\EmployeeDocument;
 use App\Models\Expense;
@@ -739,6 +740,26 @@ class DashboardAnalyticsService
                 'Health',
                 null,
                 ['count' => $vaccDue],
+            ));
+        }
+
+        $dewormingsScheduled = Deworming::query()
+            ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
+            ->where('status', 'Scheduled')
+            ->whereDate('deworming_date', '>=', now()->toDateString())
+            ->whereDate('deworming_date', '<=', now()->addDays(7)->toDateString())
+            ->count();
+
+        if ($dewormingsScheduled > 0) {
+            $alerts->push($this->alert(
+                'warning',
+                'Deworming scheduled soon',
+                ':count scheduled deworming(s) within 7 days.',
+                'health.dewormings',
+                'health',
+                'Health',
+                null,
+                ['count' => $dewormingsScheduled],
             ));
         }
 

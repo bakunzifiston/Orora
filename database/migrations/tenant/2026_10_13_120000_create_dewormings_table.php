@@ -11,12 +11,15 @@ return new class extends Migration
     {
         Schema::create('dewormings', function (Blueprint $table) {
             $table->id();
+            $table->string('tenant_id')->nullable()->index();
             $table->foreignId('farm_id')->constrained()->cascadeOnDelete();
             $table->foreignId('livestock_id')->nullable()->constrained('livestock')->nullOnDelete();
             $table->foreignId('animal_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('flock_id')->nullable()->constrained('flocks')->nullOnDelete();
             $table->foreignId('health_record_id')->nullable()->constrained()->nullOnDelete();
             $table->string('product_name');
+            $table->foreignId('medicine_id')->nullable()->constrained('medicines')->nullOnDelete();
+            $table->decimal('quantity_used', 12, 2)->nullable();
             $table->string('product_type')->nullable();
             $table->string('active_ingredient')->nullable();
             $table->string('manufacturer')->nullable();
@@ -32,6 +35,7 @@ return new class extends Migration
             $table->string('attachment_path')->nullable();
             $table->timestamps();
 
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->index(['farm_id', 'deworming_date']);
         });
 

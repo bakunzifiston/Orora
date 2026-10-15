@@ -109,6 +109,27 @@
                 <label for="product_name">{{ __('Product name') }} <span class="dash-required">*</span></label>
                 <input type="text" name="product_name" id="product_name" value="{{ old('product_name', $deworming?->product_name) }}" required placeholder="e.g. Ivomec, Albendazole">
             </div>
+
+            <div class="dash-form-field">
+                <label for="medicine_id">{{ __('Medicine inventory item') }}</label>
+                <select name="medicine_id" id="medicine_id">
+                    <option value="">{{ __('Select medicine from inventory (optional)') }}</option>
+                    @foreach (($medicines ?? collect()) as $medicine)
+                        <option value="{{ $medicine->id }}" @selected((string) old('medicine_id', $deworming?->medicine_id) === (string) $medicine->id)>
+                            {{ $medicine->name }} ({{ $medicine->stockLabel() }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('medicine_id')<p class="dash-form-error">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="dash-form-field">
+                <label for="quantity_used">{{ __('Quantity used') }}</label>
+                <input type="number" step="0.01" min="0.01" name="quantity_used" id="quantity_used" value="{{ old('quantity_used', $deworming?->quantity_used) }}" placeholder="0.00">
+                <p class="dash-field-hint">{{ __('Deducted from the medicine inventory when saved.') }}</p>
+                @error('quantity_used')<p class="dash-form-error">{{ $message }}</p>@enderror
+            </div>
+
             @include('modules.partials.select-with-other', [
                 'name' => 'product_type',
                 'otherName' => 'product_type_other',

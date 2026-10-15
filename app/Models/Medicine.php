@@ -43,7 +43,7 @@ class Medicine extends TenantModel
         return $this->hasMany(MedicineMovement::class)->orderByDesc('moved_at')->orderByDesc('id');
     }
 
-    public function isExpired(?\DateTimeInterface $on = null): bool
+    public function isExpired(\DateTimeInterface|string|null $on = null): bool
     {
         if (! $this->expiry_date) {
             return false;

@@ -633,6 +633,33 @@
         background: var(--orora-button);
         color: var(--orora-black);
     }
+    .dash-health-subnav--buttons {
+        gap: 0.5rem;
+        padding: 0;
+        background: transparent;
+        border: 0;
+    }
+    .dash-health-subnav--buttons .dash-health-subnav__link {
+        padding: 0.55rem 0.9rem;
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 0.625rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    .dash-health-subnav--buttons .dash-health-subnav__link:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+    .dash-health-subnav--buttons .dash-health-subnav__link.is-active {
+        background: var(--orora-button);
+        border-color: var(--orora-button);
+        color: var(--orora-black);
+        box-shadow: none;
+    }
+    .dash-health-subnav--buttons .dash-health-subnav__link:focus-visible {
+        outline: 2px solid #002b2b;
+        outline-offset: 2px;
+    }
     .dash-health-stats {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

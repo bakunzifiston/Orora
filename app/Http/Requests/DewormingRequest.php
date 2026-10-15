@@ -8,8 +8,10 @@ use App\Models\Animal;
 use App\Models\Farm;
 use App\Models\Flock;
 use App\Models\Livestock;
+use App\Models\Medicine;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class DewormingRequest extends FormRequest
 {
@@ -33,7 +35,7 @@ class DewormingRequest extends FormRequest
             $merge['administration_method'] = null;
         }
 
-        foreach (['livestock_id', 'animal_id', 'flock_id', 'farm_id'] as $field) {
+        foreach (['livestock_id', 'animal_id', 'flock_id', 'farm_id', 'medicine_id', 'quantity_used'] as $field) {
             if ($this->input($field) === '') {
                 $merge[$field] = null;
             }
@@ -116,6 +118,8 @@ class DewormingRequest extends FormRequest
             'animal_id' => $this->animalRulesForTarget($target),
             'flock_id' => $this->flockRulesForTarget($target),
             'product_name' => ['required', 'string', 'max:255'],
+            'medicine_id' => ['nullable', 'exists:medicines,id'],
+            'quantity_used' => ['nullable', 'numeric', 'min:0.01'],
             'product_type' => ['nullable', Rule::in(config('modules.dewormer_types'))],
             'product_type_other' => [
                 Rule::requiredIf(fn () => $this->input('product_type') === 'Other'),
@@ -144,11 +148,52 @@ class DewormingRequest extends FormRequest
         ], $this->linkedExpenseRules());
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->filled('medicine_id')) {
+                return;
+            }
+
+            $medicine = Medicine::query()->find($this->input('medicine_id'));
+
+            if (! $medicine) {
+                return;
+            }
+
+            if (! $this->filled('quantity_used')) {
+                $validator->errors()->add('quantity_used', __('Quantity used is required when a medicine is selected.'));
+                return;
+            }
+
+            if ($medicine->isExpired($this->input('deworming_date'))) {
+                $validator->errors()->add('medicine_id', __('This medicine has expired and cannot be used for deworming.'));
+            }
+
+            if (! $medicine->is_active) {
+                $validator->errors()->add('medicine_id', __('This medicine is inactive and cannot be used for deworming.'));
+            }
+
+            $available = (float) $medicine->quantity_on_hand;
+            $currentDeworming = $this->route('deworming');
+
+            if ($currentDeworming && (int) $currentDeworming->medicine_id === (int) $medicine->id) {
+                $available += (float) ($currentDeworming->quantity_used ?? 0);
+            }
+
+            if ((float) $this->input('quantity_used') > $available) {
+                $validator->errors()->add('quantity_used', __('Insufficient medicine stock for this deworming.'));
+            }
+        });
+    }
+
     public function attributes(): array
     {
         return [
             'product_type_other' => 'other product type',
             'administration_method_other' => 'other administration method',
+            'medicine_id' => 'medicine',
+            'quantity_used' => 'quantity used',
             'livestock_id' => 'livestock group',
             'deworming_target' => 'deworming target',
         ];

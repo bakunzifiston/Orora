@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Deworming;
 use App\Models\Medicine;
 use App\Models\MedicineMovement;
 use App\Models\Treatment;
@@ -130,6 +131,101 @@ class MedicineInventoryService
 
                 $movement->delete();
             }
+        });
+    }
+
+    public function deduceForDeworming(Deworming $deworming): void
+    {
+        if (! $deworming->medicine_id || $deworming->quantity_used === null) {
+            return;
+        }
+
+        $quantity = (float) $deworming->quantity_used;
+
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $medicine = Medicine::query()->findOrFail($deworming->medicine_id);
+
+        if ($medicine->isExpired($deworming->deworming_date)) {
+            throw new InvalidArgumentException(__('This medicine has expired and cannot be used for deworming.'));
+        }
+
+        if (! $medicine->is_active) {
+            throw new InvalidArgumentException(__('This medicine is inactive and cannot be used for deworming.'));
+        }
+
+        $this->recordMovement(
+            $medicine,
+            'consumption',
+            $quantity,
+            $deworming->notes,
+            $deworming,
+            $deworming->deworming_date,
+        );
+    }
+
+    public function deductForDeworming(Deworming $deworming): void
+    {
+        $this->deduceForDeworming($deworming);
+    }
+
+    public function restoreForDeworming(Deworming $deworming): void
+    {
+        if (! $deworming->medicine_id || $deworming->quantity_used === null) {
+            return;
+        }
+
+        DB::transaction(function () use ($deworming) {
+            $movements = MedicineMovement::query()
+                ->where('medicine_id', $deworming->medicine_id)
+                ->where('movement_type', 'consumption')
+                ->where('reference_type', $deworming::class)
+                ->where('reference_id', $deworming->getKey())
+                ->get();
+
+            if ($movements->isEmpty()) {
+                $quantity = (float) $deworming->quantity_used;
+
+                if ($quantity <= 0) {
+                    return;
+                }
+
+                $medicine = Medicine::query()->lockForUpdate()->find($deworming->medicine_id);
+
+                if ($medicine) {
+                    $medicine->update([
+                        'quantity_on_hand' => (float) $medicine->quantity_on_hand + $quantity,
+                    ]);
+                }
+
+                return;
+            }
+
+            foreach ($movements as $movement) {
+                $medicine = Medicine::query()->lockForUpdate()->find($movement->medicine_id);
+
+                if ($medicine) {
+                    $medicine->update([
+                        'quantity_on_hand' => (float) $medicine->quantity_on_hand + (float) $movement->quantity,
+                    ]);
+                }
+
+                $movement->delete();
+            }
+        });
+    }
+
+    public function syncForDeworming(Deworming $deworming, ?Deworming $previous = null): void
+    {
+        DB::transaction(function () use ($deworming, $previous) {
+            if ($previous) {
+                $this->restoreForDeworming($previous);
+            }
+
+            $deworming->refresh();
+            $this->deductForDeworming($deworming);
         });
     }
 
