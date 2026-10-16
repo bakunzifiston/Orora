@@ -27,6 +27,7 @@
 
         <div class="lp-nav__actions">
             @auth
+                <a href="{{ route('marketplace.shop.mine') }}" class="lp-btn lp-btn--outline-sm">My listings</a>
                 <a href="{{ route('dashboard') }}" class="lp-btn lp-btn--outline-sm">Dashboard</a>
             @else
                 <a href="{{ route('login') }}" class="lp-btn lp-btn--outline-sm">Login</a>
@@ -50,6 +51,7 @@
         @endforeach
         <div class="lp-nav__mobile-actions">
             @auth
+                <a href="{{ route('marketplace.shop.mine') }}" class="lp-nav__mobile-link">My listings</a>
                 <a href="{{ route('dashboard') }}" class="lp-btn lp-btn--gold lp-btn--block">Dashboard</a>
             @else
                 <a href="{{ route('login') }}" class="lp-btn lp-btn--outline lp-btn--block">Login</a>

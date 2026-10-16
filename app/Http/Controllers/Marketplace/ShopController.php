@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Marketplace\MarketplaceInquiryRequest;
 use App\Http\Requests\Marketplace\StoreMarketplaceListingRequest;
 use App\Http\Requests\Marketplace\UpdateMarketplaceListingRequest;
+use App\Models\Animal;
 use App\Models\Central\MarketplaceCategory;
 use App\Models\Central\MarketplaceInquiry;
 use App\Models\Central\MarketplaceListing;
+use App\Models\Farm;
 use App\Services\Marketplace\MarketplaceDatabase;
 use App\Services\Marketplace\MarketplaceListingService;
+use App\Services\Marketplace\MarketplaceListingStatusService;
 use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,6 +66,21 @@ class ShopController extends Controller
         return view('marketplace.shop.create', $this->formData());
     }
 
+    public function mine(): View
+    {
+        $tenantId = TenantContext::id() ?? auth()->user()?->tenant_id;
+        abort_unless($tenantId, 403);
+
+        return view('marketplace.shop.mine', [
+            'activePage' => 'shop',
+            'listings' => MarketplaceListing::query()
+                ->where('tenant_id', $tenantId)
+                ->with('farm')
+                ->orderByDesc('created_at')
+                ->paginate(15),
+        ]);
+    }
+
     public function store(StoreMarketplaceListingRequest $request): RedirectResponse
     {
         $tenantId = TenantContext::id() ?? auth()->user()?->tenant_id;
@@ -75,8 +93,8 @@ class ShopController extends Controller
         );
 
         return redirect()
-            ->route('marketplace.shop.show', $listing)
-            ->with('success', __('Your listing has been posted successfully.'));
+            ->route('marketplace.shop.mine')
+            ->with('success', __('Your animal listing has been submitted for review.'));
     }
 
     public function edit(MarketplaceListing $listing): View
@@ -100,18 +118,18 @@ class ShopController extends Controller
         );
 
         return redirect()
-            ->route('marketplace.shop.show', $listing)
-            ->with('success', __('Listing updated successfully.'));
+            ->route('marketplace.shop.mine')
+            ->with('success', __('Your listing has been resubmitted for review.'));
     }
 
-    public function destroy(MarketplaceListing $listing): RedirectResponse
+    public function destroy(MarketplaceListing $listing, MarketplaceListingStatusService $statuses): RedirectResponse
     {
         $this->authorizeOwner($listing);
 
-        $listing->update(['status' => 'expired']);
+        $statuses->change($listing, 'inactive', __('Removed by seller.'));
 
         return redirect()
-            ->route('marketplace.shop')
+            ->route('marketplace.shop.mine')
             ->with('success', __('Listing removed.'));
     }
 
@@ -142,6 +160,7 @@ class ShopController extends Controller
     private function formData(): array
     {
         $user = auth()->user();
+        $tenantId = TenantContext::id() ?? $user?->tenant_id;
 
         return [
             'activePage' => 'shop',
@@ -155,6 +174,16 @@ class ShopController extends Controller
             'priceTypes' => config('marketplace.shop.price_types', []),
             'sellerTypes' => config('marketplace.shop.seller_types', []),
             'districts' => config('marketplace.shop.districts', []),
+            'farms' => Farm::query()
+                ->where('tenant_id', $tenantId)
+                ->orderBy('name')
+                ->get(),
+            'animals' => Animal::query()
+                ->with('farm')
+                ->whereHas('farm', fn ($query) => $query->where('tenant_id', $tenantId))
+                ->orderBy('tag_number')
+                ->limit(500)
+                ->get(),
             'defaultSeller' => [
                 'seller_name' => $user?->name,
                 'seller_email' => $user?->email,

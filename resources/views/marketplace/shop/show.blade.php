@@ -45,8 +45,14 @@
                     <p class="shop-detail__price">{{ $listing->formattedPrice() }}</p>
 
                     <dl class="shop-detail__specs">
+                        @if ($listing->animal_species)
+                            <div><dt>Species</dt><dd>{{ ucfirst($listing->animal_species) }}</dd></div>
+                        @endif
                         @if ($listing->breed)
                             <div><dt>Breed</dt><dd>{{ $listing->breed }}</dd></div>
+                        @endif
+                        @if ($listing->animal_sex)
+                            <div><dt>Sex</dt><dd>{{ ucfirst($listing->animal_sex) }}</dd></div>
                         @endif
                         @if ($listing->age)
                             <div><dt>Age</dt><dd>{{ $listing->age }}</dd></div>

@@ -17,6 +17,39 @@
     <fieldset class="shop-form__section">
         <legend>Listing details</legend>
 
+        <div class="shop-form__row">
+            <div class="mp-field">
+                <label for="farm_id">Farm</label>
+                <select id="farm_id" name="farm_id">
+                    <option value="">Select farm (optional)</option>
+                    @foreach ($farms as $farm)
+                        <option value="{{ $farm->id }}" @selected((string) old('farm_id', $listing?->farm_id) === (string) $farm->id)>
+                            {{ $farm->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('farm_id')<p class="mp-field-error">{{ $message }}</p>@enderror
+            </div>
+            <div class="mp-field">
+                <label for="animal_id">Link an existing animal (optional)</label>
+                <select id="animal_id" name="animal_id">
+                    <option value="">Manual listing — no animal record</option>
+                    @foreach ($animals as $animal)
+                        <option
+                            value="{{ $animal->id }}"
+                            data-farm-id="{{ $animal->farm_id }}"
+                            @selected((string) old('animal_id', $listing?->animal_id) === (string) $animal->id)
+                        >
+                            {{ $animal->tag_number }} — {{ $animal->name ?: $animal->species }}
+                            @if ($animal->breed) · {{ $animal->breed }}@endif
+                        </option>
+                    @endforeach
+                </select>
+                <p class="shop-form__hint">Linking an animal reuses its farm record and animal details; it does not create another animal.</p>
+                @error('animal_id')<p class="mp-field-error">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
         <div class="shop-form__group">
             <span class="shop-form__label">Category *</span>
             <div class="shop-form__radios">
@@ -55,6 +88,14 @@
         </div>
 
         <div class="shop-form__row">
+            <div class="mp-field">
+                <label for="animal_species">Species</label>
+                <input type="text" id="animal_species" name="animal_species" value="{{ old('animal_species', $listing?->animal_species) }}" maxlength="80">
+            </div>
+            <div class="mp-field">
+                <label for="animal_sex">Sex</label>
+                <input type="text" id="animal_sex" name="animal_sex" value="{{ old('animal_sex', $listing?->animal_sex) }}" maxlength="40">
+            </div>
             <div class="mp-field">
                 <label for="breed">Breed</label>
                 <input type="text" id="breed" name="breed" value="{{ old('breed', $listing?->breed) }}">
@@ -172,12 +213,19 @@
     </fieldset>
 
     <div class="shop-form__actions">
-        <a href="{{ $isEdit ? route('marketplace.shop.show', $listing) : route('marketplace.shop') }}" class="lp-btn lp-btn--outline">Cancel</a>
+        <a href="{{ $isEdit ? route('marketplace.shop.mine') : route('marketplace.shop') }}" class="lp-btn lp-btn--outline">Cancel</a>
         <button type="submit" class="lp-btn lp-btn--primary">{{ $isEdit ? 'Save Changes' : 'Post Listing' }}</button>
     </div>
 </form>
 
 <script>
+    const animalSelect = document.getElementById('animal_id');
+    const farmSelect = document.getElementById('farm_id');
+    animalSelect?.addEventListener('change', () => {
+        const farmId = animalSelect.selectedOptions[0]?.dataset.farmId;
+        if (farmId && farmSelect) farmSelect.value = farmId;
+    });
+
     document.querySelectorAll('[name="category_id"]').forEach((input) => {
         input.addEventListener('change', () => {
             if (input.checked) {

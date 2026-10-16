@@ -329,6 +329,16 @@ return [
     ],
 
     'shop' => [
+        'listing_statuses' => [
+            'draft' => 'Draft',
+            'pending_review' => 'Pending review',
+            'approved' => 'Approved',
+            'active' => 'Published',
+            'rejected' => 'Rejected',
+            'sold' => 'Sold',
+            'inactive' => 'Inactive',
+        ],
+
         'listing_types' => [
             'animal' => 'Live Animals',
             'meat' => 'Meat Products',

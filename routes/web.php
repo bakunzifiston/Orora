@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Central\AdminDashboardController;
 use App\Http\Controllers\Central\Auth\AdminLoginController;
 use App\Http\Controllers\Central\ContactMessageController;
-use App\Http\Controllers\Central\MarketplaceAdminController;
+use App\Http\Controllers\Central\EcommerceAdminController;
 use App\Http\Controllers\Central\PlatformUserController;
 use App\Http\Controllers\Central\TenantController;
 use App\Http\Controllers\Central\UserDirectoryController;
@@ -88,7 +88,15 @@ $registerAppRoutes = function (): void {
                     'destroy' => 'tenants.destroy',
                 ]);
 
-            Route::get('/marketplace', [MarketplaceAdminController::class, 'index'])->name('marketplace.index');
+            Route::redirect('/marketplace', '/admin/ecommerce')->name('marketplace.index');
+            Route::get('/ecommerce', [EcommerceAdminController::class, 'index'])->name('ecommerce.index');
+            Route::get('/ecommerce/listings/create', [EcommerceAdminController::class, 'create'])->name('ecommerce.listings.create');
+            Route::post('/ecommerce/listings', [EcommerceAdminController::class, 'store'])->name('ecommerce.listings.store');
+            Route::get('/ecommerce/listings/{listing}/edit', [EcommerceAdminController::class, 'edit'])->name('ecommerce.listings.edit');
+            Route::get('/ecommerce/listings/{listing}', [EcommerceAdminController::class, 'show'])->name('ecommerce.listings.show');
+            Route::put('/ecommerce/listings/{listing}', [EcommerceAdminController::class, 'update'])->name('ecommerce.listings.update');
+            Route::patch('/ecommerce/listings/{listing}/status', [EcommerceAdminController::class, 'updateStatus'])->name('ecommerce.listings.status');
+            Route::patch('/ecommerce/inquiries/{inquiry}', [EcommerceAdminController::class, 'updateInquiry'])->name('ecommerce.inquiries.update');
             Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
             Route::patch('/contact-messages/{contactMessage}', [ContactMessageController::class, 'update'])->name('contact-messages.update');
         });

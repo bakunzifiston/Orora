@@ -2,7 +2,9 @@
 
 namespace App\Models\Central;
 
+use App\Models\Animal;
 use App\Models\Tenant;
+use App\Models\Farm;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,6 +14,10 @@ class MarketplaceListing extends CentralModel
 {
     protected $fillable = [
         'tenant_id',
+        'farm_id',
+        'animal_id',
+        'animal_species',
+        'animal_sex',
         'category_id',
         'listing_code',
         'listing_type',
@@ -59,6 +65,16 @@ class MarketplaceListing extends CentralModel
         return $this->belongsTo(Tenant::class);
     }
 
+    public function farm(): BelongsTo
+    {
+        return $this->belongsTo(Farm::class);
+    }
+
+    public function animal(): BelongsTo
+    {
+        return $this->belongsTo(Animal::class);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(MarketplaceCategory::class, 'category_id');
@@ -67,6 +83,11 @@ class MarketplaceListing extends CentralModel
     public function inquiries(): HasMany
     {
         return $this->hasMany(MarketplaceInquiry::class, 'listing_id');
+    }
+
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(MarketplaceListingStatusChange::class, 'listing_id')->latest();
     }
 
     public function getRouteKeyName(): string

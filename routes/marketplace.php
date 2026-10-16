@@ -19,6 +19,7 @@ Route::get('/about', [AboutController::class, 'index'])->name('marketplace.about
 Route::get('/shop', [ShopController::class, 'index'])->name('marketplace.shop');
 Route::middleware('auth')->group(function () {
     Route::get('/shop/create', [ShopController::class, 'create'])->name('marketplace.shop.create');
+    Route::get('/shop/my-listings', [ShopController::class, 'mine'])->name('marketplace.shop.mine');
     Route::post('/shop', [ShopController::class, 'store'])->name('marketplace.shop.store');
     Route::get('/shop/{listing}/edit', [ShopController::class, 'edit'])->name('marketplace.shop.edit');
     Route::put('/shop/{listing}', [ShopController::class, 'update'])->name('marketplace.shop.update');
