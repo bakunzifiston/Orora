@@ -76,5 +76,7 @@ return [
         'locale',
         'api.rwanda',
         'stancl.tenancy',
+        'notifications',
+        'whats-new',
     ],
 ];

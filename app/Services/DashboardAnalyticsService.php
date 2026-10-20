@@ -33,6 +33,19 @@ use Illuminate\Support\Facades\Route;
 
 class DashboardAnalyticsService
 {
+    /** Plain-language next step shown with each dashboard alert, keyed by alert title. */
+    private const ALERT_HINTS = [
+        'Animals need attention' => 'Open Health to see which animals are sick, injured or under treatment, and record the care given.',
+        'Feed inventory low' => 'Restock these feeds, or lower their reorder level if it is set too high.',
+        'Vaccinations due' => 'Plan these vaccinations and record each one once it is given.',
+        'Deworming scheduled soon' => 'Make sure the products and staff are ready, then mark each deworming as done.',
+        'Certificates expiring' => 'Renew these certificates before they expire so animals can still be moved and sold.',
+        'Credit limit exceeded' => 'Collect payment, or raise the limit, before selling to these customers on credit again.',
+        'Calvings approaching' => 'Prepare the calving area and watch these cows closely.',
+        'Pregnancy checks due' => 'Check whether these animals are pregnant and record the result.',
+        'Outstanding payments' => 'Follow up with the buyers and record payments as they come in.',
+    ];
+
     private const ACTIVITY_LIMIT = 15;
 
     private const TREND_MONTHS = 6;
@@ -878,6 +891,7 @@ class DashboardAnalyticsService
             'severity' => $severity,
             'title' => $title,
             'message' => $message,
+            'hint' => self::ALERT_HINTS[$title] ?? null,
             'message_replace' => $messageReplace,
             'route' => $route && Route::has($route) ? $route : null,
             'route_fragment' => $routeFragment,

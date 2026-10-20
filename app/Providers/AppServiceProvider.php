@@ -76,6 +76,23 @@ class AppServiceProvider extends ServiceProvider
             $view->with('navigation', collect($groups)->flatMap(fn (array $g) => $g['items'] ?? [])->values()->all());
         });
 
+        View::composer('layouts.partials.notification-bell', function ($view) {
+            $user = auth('web')->user();
+            $unread = 0;
+            $latest = collect();
+
+            if ($user) {
+                try {
+                    $unread = $user->unreadNotifications()->count();
+                    $latest = $user->notifications()->limit((int) config('releases.bell_limit', 8))->get();
+                } catch (\Illuminate\Database\QueryException) {
+                    // Notifications table not migrated yet — show an empty bell.
+                }
+            }
+
+            $view->with('bellUnread', $unread)->with('bellNotifications', $latest);
+        });
+
         Route::middleware('web')
             ->get('/tenancy/assets/{path?}', [TenantAssetsController::class, 'asset'])
             ->where('path', '(.*)')

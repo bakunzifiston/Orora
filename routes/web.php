@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Central\PlatformReleaseController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\WhatsNewController;
 use App\Http\Controllers\Api\RwandaLocationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -54,6 +57,11 @@ $registerAppRoutes = function (): void {
         Route::middleware('auth')->group(function () {
             Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
+            Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+            Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+            Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open')->whereUuid('notification');
+            Route::get('/whats-new', [WhatsNewController::class, 'index'])->name('whats-new.index');
+
             require __DIR__.'/modules.php';
         });
     });
@@ -97,6 +105,11 @@ $registerAppRoutes = function (): void {
             Route::put('/ecommerce/listings/{listing}', [EcommerceAdminController::class, 'update'])->name('ecommerce.listings.update');
             Route::patch('/ecommerce/listings/{listing}/status', [EcommerceAdminController::class, 'updateStatus'])->name('ecommerce.listings.status');
             Route::patch('/ecommerce/inquiries/{inquiry}', [EcommerceAdminController::class, 'updateInquiry'])->name('ecommerce.inquiries.update');
+            Route::resource('releases', PlatformReleaseController::class)
+                ->except(['show'])
+                ->names('releases');
+            Route::post('/releases/{release}/publish', [PlatformReleaseController::class, 'publish'])->name('releases.publish');
+
             Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
             Route::patch('/contact-messages/{contactMessage}', [ContactMessageController::class, 'update'])->name('contact-messages.update');
         });

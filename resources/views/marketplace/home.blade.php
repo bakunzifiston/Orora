@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $heroImage = asset(config('branding.auth_background'));
+        $heroImage = asset('images/hero-cows.webp');
         $ps = config('marketplace.problem_solution');
     @endphp
 

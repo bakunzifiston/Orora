@@ -69,25 +69,132 @@
     <div class="farm-dash">
         @include('dashboard.partials.toolbar')
 
-        <nav class="dash-ops-alert-strip farm-dash__alerts" aria-label="{{ __('Alert summary') }}">
-            <a href="#dashboard-alerts" class="dash-ops-alert-strip__item" data-alert-filter="all">
-                <strong>{{ number_format($strip['total'] ?? 0) }}</strong> {{ __('alerts') }}
-            </a>
-            <a href="#dashboard-alerts-critical" class="dash-ops-alert-strip__item dash-ops-alert-strip__item--critical" data-alert-filter="critical">
-                <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
-                <strong>{{ number_format($strip['critical'] ?? 0) }}</strong> {{ __('critical') }}
-            </a>
-            <a href="#dashboard-alerts-warning" class="dash-ops-alert-strip__item dash-ops-alert-strip__item--warning" data-alert-filter="warning">
-                <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
-                <strong>{{ number_format($strip['warning'] ?? 0) }}</strong> {{ __('warnings') }}
-            </a>
-            @if (($strip['info'] ?? 0) > 0)
-                <a href="#dashboard-alerts-info" class="dash-ops-alert-strip__item dash-ops-alert-strip__item--info" data-alert-filter="info">
-                    <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
-                    <strong>{{ number_format($strip['info']) }}</strong> {{ __('info') }}
-                </a>
+        @php
+            $severityOrder = ['critical' => 0, 'warning' => 1, 'info' => 2];
+            $allAlerts = collect($alertGroups ?? [])->flatten(1)
+                ->sortBy(fn ($alert) => $severityOrder[$alert['severity']] ?? 9)
+                ->values();
+            $severityLabels = [
+                'critical' => __('Critical'),
+                'warning' => __('Warning'),
+                'info' => __('For your information'),
+            ];
+            $releaseUpdates = collect();
+            try {
+                $releaseUpdates = auth()->user()->unreadNotifications()->whereNotNull('platform_release_id')->limit(10)->get();
+            } catch (\Illuminate\Database\QueryException) {
+                // Notifications table not migrated yet.
+            }
+            $releaseTones = config('releases.category_tones', []);
+            $severityMeaning = [
+                'update' => __('New OroraFarm features and changes you have not read yet.'),
+                'all' => __('Everything on your farms that needs attention, most urgent first.'),
+                'critical' => __('Critical: act today. These can harm animals or cost money if left.'),
+                'warning' => __('Warnings: act soon, usually within the next days or weeks.'),
+                'info' => __('For your information: nothing is wrong, but plan ahead.'),
+            ];
+        @endphp
+
+        <section class="farm-dash__alerts dash-alert-center" data-alert-center aria-label="{{ __('Alert summary') }}">
+            @if ($allAlerts->isEmpty() && $releaseUpdates->isEmpty())
+                <div class="dash-ops-alert-strip dash-alert-center__clear">
+                    <span class="dash-alert-center__ok" aria-hidden="true">✓</span>
+                    <span><strong>{{ __('No alerts') }}</strong> · {{ __('Nothing needs your attention right now.') }}</span>
+                    <a href="{{ route('whats-new.index') }}" class="dash-alert-center__tab dash-alert-center__tab--update" style="margin-left: auto;">{{ __("What's new") }} →</a>
+                </div>
+            @else
+                <div class="dash-ops-alert-strip dash-alert-center__strip">
+                    <span class="dash-alert-center__label">{{ __('Needs attention') }}</span>
+                    @foreach (['all' => __('All'), 'critical' => __('Critical'), 'warning' => __('Warnings'), 'info' => __('Info')] as $key => $label)
+                        @php $count = $key === 'all' ? $allAlerts->count() : $allAlerts->where('severity', $key)->count(); @endphp
+                        @if ($key !== 'info' || $count > 0)
+                            <button
+                                type="button"
+                                class="dash-alert-center__tab dash-alert-center__tab--{{ $key }}"
+                                data-alert-filter="{{ $key }}"
+                                aria-expanded="false"
+                                aria-controls="dash-alert-drawer"
+                                @disabled($count === 0)
+                            >
+                                @if ($key !== 'all')<span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>@endif
+                                <strong>{{ $count }}</strong> {{ $label }}
+                            </button>
+                        @endif
+                    @endforeach
+                    @if ($releaseUpdates->isNotEmpty())
+                        <button
+                            type="button"
+                            class="dash-alert-center__tab dash-alert-center__tab--update"
+                            data-alert-filter="update"
+                            aria-expanded="false"
+                            aria-controls="dash-alert-drawer"
+                        >
+                            <span class="dash-ops-alert-strip__dot" aria-hidden="true"></span>
+                            <strong>{{ $releaseUpdates->count() }}</strong> {{ __("What's new") }}
+                        </button>
+                    @else
+                        <a href="{{ route('whats-new.index') }}" class="dash-alert-center__tab dash-alert-center__tab--update">
+                            {{ __("What's new") }} →
+                        </a>
+                    @endif
+                    <span class="dash-alert-center__tip">{{ __('Click to see details') }}</span>
+                </div>
+
+                <div class="dash-alert-center__drawer" id="dash-alert-drawer" data-alert-drawer hidden>
+                    <div class="dash-alert-center__drawer-head">
+                        <p class="dash-alert-center__meaning" data-alert-meaning aria-live="polite">{{ $severityMeaning['all'] }}</p>
+                        <button type="button" class="dash-alert-center__close" data-alert-close aria-label="{{ __('Close alert details') }}">✕</button>
+                    </div>
+                    <ul class="dash-alert-center__list">
+                        @foreach ($allAlerts as $alert)
+                            @php
+                                $alertUrl = $alert['route'] ? route($alert['route']).(! empty($alert['route_fragment']) ? '#'.$alert['route_fragment'] : '') : null;
+                            @endphp
+                            <li class="dash-alert-center__item dash-alert-center__item--{{ $alert['severity'] }}" data-alert-severity="{{ $alert['severity'] }}">
+                                <div class="dash-alert-center__icon" aria-hidden="true">
+                                    @include('layouts.partials.dashboard-nav-icon', ['icon' => $alert['icon'] ?? 'shield'])
+                                </div>
+                                <div class="dash-alert-center__text">
+                                    <div class="dash-alert-center__title-row">
+                                        <span class="dash-alert-center__badge dash-alert-center__badge--{{ $alert['severity'] }}">{{ $severityLabels[$alert['severity']] ?? ucfirst($alert['severity']) }}</span>
+                                        <strong>{{ __($alert['title']) }}</strong>
+                                        <span class="dash-alert-center__module">{{ __($alert['module']) }}</span>
+                                    </div>
+                                    <p class="dash-alert-center__message">{{ __($alert['message'], $alert['message_replace'] ?? []) }}</p>
+                                    @if (! empty($alert['hint']))
+                                        <p class="dash-alert-center__hint"><span>{{ __('What to do:') }}</span> {{ __($alert['hint']) }}</p>
+                                    @endif
+                                </div>
+                                @if ($alertUrl)
+                                    <a href="{{ $alertUrl }}" class="dash-alert-center__action">{{ __('Open :module', ['module' => __($alert['module'])]) }} →</a>
+                                @endif
+                            </li>
+                        @endforeach
+                        @foreach ($releaseUpdates as $update)
+                            @php $data = $update->data; @endphp
+                            <li class="dash-alert-center__item dash-alert-center__item--update" data-alert-severity="update">
+                                <div class="dash-alert-center__icon" aria-hidden="true">
+                                    @include('layouts.partials.dashboard-nav-icon', ['icon' => config('releases.category_icons.'.($data['category'] ?? ''), 'box')])
+                                </div>
+                                <div class="dash-alert-center__text">
+                                    <div class="dash-alert-center__title-row">
+                                        <span class="health-table__pill health-table__pill--{{ $releaseTones[$data['category'] ?? ''] ?? 'muted' }}">{{ __($data['category_label'] ?? 'Update') }}</span>
+                                        <strong>{{ $data['title'] ?? __('Update') }}</strong>
+                                        @if (! empty($data['version']))
+                                            <span class="dash-alert-center__module">{{ $data['version'] }} · {{ $update->created_at->diffForHumans() }}</span>
+                                        @endif
+                                    </div>
+                                    @if (! empty($data['message']))
+                                        <p class="dash-alert-center__hint">{{ $data['message'] }}</p>
+                                    @endif
+                                </div>
+                                <a href="{{ route('notifications.open', $update->id) }}" class="dash-alert-center__action">{{ __('Read more') }} →</a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
-        </nav>
+        </section>
 
         {{-- All KPIs --}}
         <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
@@ -624,48 +731,53 @@
                 if (!custom) document.getElementById('dash-filters-form')?.requestSubmit();
             });
 
-            const alertsPanel = document.getElementById('dashboard-alerts');
-            const stripLinks = document.querySelectorAll('[data-alert-filter]');
-            const filterEmpty = alertsPanel?.querySelector('.dash-ops-alerts-filter-empty');
+            const alertCenter = document.querySelector('[data-alert-center]');
+            const drawer = alertCenter?.querySelector('[data-alert-drawer]');
+            const tabs = alertCenter ? alertCenter.querySelectorAll('[data-alert-filter]') : [];
+            const meaning = drawer?.querySelector('[data-alert-meaning]');
+            const meanings = @js($severityMeaning);
+            let activeFilter = null;
 
-            function applyAlertFilter(filter) {
-                if (!alertsPanel) return;
+            function showAlerts(filter) {
+                if (!drawer) return;
 
-                const severity = filter === 'all' ? null : filter;
-                let visibleCount = 0;
+                activeFilter = filter;
+                drawer.hidden = filter === null;
 
-                alertsPanel.querySelectorAll('[data-alert-severity]').forEach((item) => {
-                    const show = !severity || item.dataset.alertSeverity === severity;
-                    item.hidden = !show;
-                    if (show) visibleCount++;
+                drawer.querySelectorAll('[data-alert-severity]').forEach((item) => {
+                    item.hidden = filter === 'all'
+                        ? item.dataset.alertSeverity === 'update'
+                        : item.dataset.alertSeverity !== filter;
                 });
 
-                alertsPanel.querySelectorAll('[data-alert-group]').forEach((group) => {
-                    group.hidden = !group.querySelector('[data-alert-severity]:not([hidden])');
+                if (meaning && filter) meaning.textContent = meanings[filter] || '';
+
+                tabs.forEach((tab) => {
+                    const on = tab.dataset.alertFilter === filter;
+                    tab.classList.toggle('is-active', on);
+                    tab.setAttribute('aria-expanded', on ? 'true' : 'false');
                 });
 
-                if (filterEmpty) filterEmpty.hidden = visibleCount > 0;
-
-                stripLinks.forEach((link) => {
-                    link.classList.toggle('is-active', link.dataset.alertFilter === filter);
-                });
+                history.replaceState(null, '', filter ? '#dashboard-alerts' + (filter === 'all' ? '' : '-' + filter) : location.pathname + location.search);
             }
 
-            stripLinks.forEach((link) => {
-                link.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    const filter = link.dataset.alertFilter || 'all';
-                    applyAlertFilter(filter);
-                    alertsPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    const hash = filter === 'all' ? 'dashboard-alerts' : 'dashboard-alerts-' + filter;
-                    history.replaceState(null, '', '#' + hash);
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    const filter = tab.dataset.alertFilter || 'all';
+                    showAlerts(activeFilter === filter ? null : filter);
                 });
             });
 
-            const hashFilter = location.hash.match(/^#dashboard-alerts(?:-(critical|warning|info))?$/);
-            if (hashFilter) {
-                applyAlertFilter(hashFilter[1] || 'all');
-                if (location.hash) alertsPanel?.scrollIntoView({ behavior: 'auto', block: 'start' });
+            drawer?.querySelector('[data-alert-close]')?.addEventListener('click', () => showAlerts(null));
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && activeFilter !== null) showAlerts(null);
+            });
+
+            const hashFilter = location.hash.match(/^#dashboard-alerts(?:-(critical|warning|info|update))?$/);
+            if (hashFilter && drawer) {
+                showAlerts(hashFilter[1] || 'all');
+                alertCenter.scrollIntoView({ behavior: 'auto', block: 'start' });
             }
         })();
     </script>

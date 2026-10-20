@@ -30,6 +30,7 @@ export default defineConfig({
                 'resources/js/marketplace-trace.js',
                 'resources/js/select-other-form.js',
                 'resources/js/milk-distribution-form.js',
+                'resources/js/notification-bell.js',
             ],
             refresh: true,
             fonts: [

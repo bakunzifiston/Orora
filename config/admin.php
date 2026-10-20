@@ -6,6 +6,7 @@ return [
         ['key' => 'accounts', 'label' => 'Users', 'route' => 'central.accounts.index', 'icon' => 'customer'],
         ['key' => 'farms', 'label' => 'Farms', 'route' => 'central.farms.index', 'icon' => 'farm'],
         ['key' => 'ecommerce', 'label' => 'Ecommerce', 'route' => 'central.ecommerce.index', 'icon' => 'box'],
+        ['key' => 'releases', 'label' => 'Releases', 'route' => 'central.releases.index', 'icon' => 'chart'],
         ['key' => 'contact', 'label' => 'Contact inbox', 'route' => 'central.contact-messages.index', 'icon' => 'mail'],
     ],
 
