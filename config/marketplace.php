@@ -218,7 +218,7 @@ return [
         ],
         [
             'name' => 'Pro',
-            'price' => '25,000',
+            'price' => '100,000',
             'period' => 'RWF/mo',
             'popular' => true,
             'features' => ['5 Farms', 'Unlimited animals', 'All modules', 'Finance & reports', 'Priority support'],

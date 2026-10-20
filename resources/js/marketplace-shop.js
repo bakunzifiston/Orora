@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     initFilterDrawer();
+    initDistrictCombobox();
     initLoadingStates();
     initImageReveal();
     initStickyCategories();
@@ -24,6 +25,12 @@ function initFilterDrawer() {
             backdrop.hidden = !open;
             backdrop.classList.toggle('is-visible', open);
         }
+
+        if (open) {
+            closeBtn?.focus();
+        } else if (sidebar.contains(document.activeElement)) {
+            toggle.focus();
+        }
     };
 
     toggle.addEventListener('click', () => {
@@ -34,7 +41,125 @@ function initFilterDrawer() {
     backdrop?.addEventListener('click', () => setOpen(false));
 
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') setOpen(false);
+        if (event.key === 'Escape' && sidebar.classList.contains('is-open')) setOpen(false);
+    });
+}
+
+function initDistrictCombobox() {
+    const wrap = document.querySelector('[data-shop-combobox]');
+    const select = wrap?.querySelector('select');
+    if (!select) return;
+
+    const options = [...select.options].map((option) => ({ value: option.value, label: option.textContent.trim() }));
+    const allLabel = options.find((option) => option.value === '')?.label ?? 'All';
+    const listId = `${select.id}-listbox`;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `${select.id}-search`;
+    input.className = 'shop-combobox__input';
+    input.placeholder = allLabel;
+    input.autocomplete = 'off';
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-controls', listId);
+
+    const list = document.createElement('ul');
+    list.id = listId;
+    list.className = 'shop-combobox__list';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+
+    wrap.classList.add('shop-combobox');
+    select.classList.add('shop-combobox__native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+    wrap.append(input, list);
+    document.querySelector(`label[for="${select.id}"]`)?.setAttribute('for', input.id);
+
+    let matches = [];
+    let active = -1;
+
+    const selectedLabel = () => (select.value ? select.selectedOptions[0]?.textContent.trim() ?? '' : '');
+
+    const render = () => {
+        const term = input.value.trim().toLowerCase();
+        matches = term ? options.filter((option) => option.value !== '' && option.label.toLowerCase().includes(term)) : options;
+        list.innerHTML = '';
+
+        matches.forEach((option, index) => {
+            const item = document.createElement('li');
+            item.id = `${listId}-${index}`;
+            item.className = 'shop-combobox__option';
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', option.value === select.value ? 'true' : 'false');
+            item.textContent = option.label;
+            item.classList.toggle('is-active', index === active);
+            item.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                choose(option);
+            });
+            list.appendChild(item);
+        });
+
+        if (!matches.length) {
+            const empty = document.createElement('li');
+            empty.className = 'shop-combobox__empty';
+            empty.textContent = 'No matching district';
+            list.appendChild(empty);
+        }
+
+        input.setAttribute('aria-activedescendant', active >= 0 ? `${listId}-${active}` : '');
+        list.children[active]?.scrollIntoView({ block: 'nearest' });
+    };
+
+    const open = () => {
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        render();
+    };
+
+    const close = () => {
+        list.hidden = true;
+        active = -1;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+        input.value = selectedLabel();
+    };
+
+    const choose = (option) => {
+        select.value = option.value;
+        close();
+    };
+
+    input.value = selectedLabel();
+
+    input.addEventListener('focus', () => {
+        input.select();
+        open();
+    });
+    input.addEventListener('click', open);
+    input.addEventListener('input', () => {
+        active = 0;
+        open();
+    });
+    input.addEventListener('blur', close);
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (list.hidden) open();
+            if (!matches.length) return;
+            const step = event.key === 'ArrowDown' ? 1 : -1;
+            active = (active + step + matches.length) % matches.length;
+            render();
+        } else if (event.key === 'Enter' && !list.hidden) {
+            event.preventDefault();
+            if (matches[active]) choose(matches[active]);
+        } else if (event.key === 'Escape' && !list.hidden) {
+            event.stopPropagation();
+            close();
+        }
     });
 }
 

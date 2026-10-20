@@ -1,19 +1,27 @@
 @props(['listing'])
 
 @php
-    $views = (int) ($listing->views_count ?? 0);
-    $interest = match (true) {
-        $views >= 100 => 5,
-        $views >= 40 => 4,
-        $views >= 15 => 3,
-        $views >= 5 => 2,
-        $views >= 1 => 1,
-        default => 0,
+    $details = array_filter([
+        $listing->breed,
+        $listing->age,
+        $listing->weight_kg ? number_format((float) $listing->weight_kg, 0).' kg' : null,
+    ]);
+
+    $priceUnit = match ($listing->price_type) {
+        'per_kg' => '/ kg',
+        'per_liter' => '/ litre',
+        default => null,
+    };
+    $priceNote = match ($listing->price_type) {
+        'negotiable' => 'Negotiable',
+        'fixed' => 'Fixed price',
+        'per_kg', 'per_liter' => null,
+        default => $listing->priceTypeLabel(),
     };
 @endphp
 
 <article class="shop-card">
-    <a href="{{ route('marketplace.shop.show', $listing) }}" class="shop-card__media">
+    <div class="shop-card__media">
         @if ($listing->mainImage())
             <img
                 src="{{ $listing->imageUrl() }}"
@@ -24,7 +32,7 @@
             >
         @else
             <div class="shop-card__placeholder" aria-hidden="true">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
                     <circle cx="8.5" cy="10" r="1.5" fill="currentColor"/>
                     <path d="M21 16l-5.5-5.5L7 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -32,69 +40,47 @@
             </div>
         @endif
 
-        <div class="shop-card__badges">
-            @if ($listing->is_featured)
-                <span class="shop-card__badge shop-card__badge--featured">Featured</span>
-            @endif
-            @if ($listing->is_verified)
-                <span class="shop-card__badge shop-card__badge--verified">Verified</span>
-            @endif
-        </div>
-
-        @if ($listing->category)
-            <span class="shop-card__category">{{ $listing->category->name }}</span>
+        @if ($listing->is_featured || $listing->is_verified)
+            <div class="shop-card__badges">
+                @if ($listing->is_featured)
+                    <span class="shop-card__badge shop-card__badge--featured">Featured</span>
+                @endif
+                @if ($listing->is_verified)
+                    <span class="shop-card__badge shop-card__badge--verified">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Verified
+                    </span>
+                @endif
+            </div>
         @endif
-
-        <span class="shop-card__media-overlay" aria-hidden="true"></span>
-    </a>
+    </div>
 
     <div class="shop-card__body">
-        <div class="shop-card__top">
-            <p class="shop-card__meta">{{ $listing->location_district ?: $listing->locationLabel() }}</p>
-            @if ($interest > 0)
-                <div class="shop-card__rating" title="{{ number_format($views) }} views" aria-label="{{ number_format($views) }} views">
-                    @for ($i = 1; $i <= 5; $i++)
-                        <span class="shop-card__star {{ $i <= $interest ? 'is-on' : '' }}" aria-hidden="true">★</span>
-                    @endfor
-                    <span class="shop-card__views">{{ number_format($views) }}</span>
-                </div>
-            @else
-                <span class="shop-card__new">New</span>
+        <p class="shop-card__meta">
+            @if ($listing->category)
+                <span>{{ $listing->category->name }}</span>
             @endif
-        </div>
+            <span>{{ $listing->location_district ?: $listing->locationLabel() }}</span>
+        </p>
 
         <h3 class="shop-card__title">
             <a href="{{ route('marketplace.shop.show', $listing) }}">{{ $listing->title }}</a>
         </h3>
 
-        @if ($listing->breed || $listing->age || $listing->weight_kg)
-            <div class="shop-card__details">
-                @if ($listing->breed)
-                    <span>{{ $listing->breed }}</span>
-                @endif
-                @if ($listing->age)
-                    <span>{{ $listing->age }}</span>
-                @endif
-                @if ($listing->weight_kg)
-                    <span>{{ number_format((float) $listing->weight_kg, 0) }} kg</span>
-                @endif
-            </div>
+        @if ($details)
+            <p class="shop-card__details">{{ implode(' · ', $details) }}</p>
         @endif
 
         <div class="shop-card__footer">
-            <div class="shop-card__pricing">
-                <p class="shop-card__price">
-                    <span class="shop-card__amount">{{ number_format((float) $listing->price, 0) }}</span>
-                    <span class="shop-card__currency">{{ $listing->currency }}</span>
-                </p>
-                <p class="shop-card__price-type">{{ $listing->priceTypeLabel() }}</p>
-            </div>
-            <a href="{{ route('marketplace.shop.show', $listing) }}" class="shop-card__cta">
-                View
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </a>
+            <p class="shop-card__price">
+                <span class="shop-card__amount">{{ number_format((float) $listing->price, 0) }}</span>
+                <span class="shop-card__currency">{{ $listing->currency }}{{ $priceUnit ? ' '.$priceUnit : '' }}</span>
+            </p>
+            @if ($priceNote)
+                <span class="shop-card__price-type {{ $listing->price_type === 'negotiable' ? 'is-negotiable' : '' }}">{{ $priceNote }}</span>
+            @endif
         </div>
     </div>
 </article>

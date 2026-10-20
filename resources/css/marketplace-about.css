@@ -116,7 +116,7 @@
 }
 
 .ab-btn--outline-dark:hover {
-    background: #1b5e200f;
+    background: #002b2b0f;
 }
 
 /* Hero */
@@ -132,7 +132,7 @@
 }
 
 .ab-hero__overlay {
-    background: linear-gradient(135deg, #1b5e20e6 0%, #144717d9 100%);
+    background: linear-gradient(135deg, #002b2be6 0%, #001c1cd9 100%);
     position: absolute;
     inset: 0;
 }
@@ -186,7 +186,7 @@
     object-fit: cover;
     width: 100%;
     aspect-ratio: 4 / 3;
-    box-shadow: var(--lp-shadow-lg, 0 12px 40px #1b5e201f);
+    box-shadow: var(--lp-shadow-lg, 0 12px 40px #002b2b1f);
 }
 
 .ab-story__copy {
@@ -222,7 +222,7 @@
     border-radius: var(--lp-radius, 12px);
     text-align: center;
     padding: 1.75rem 1.25rem;
-    box-shadow: var(--lp-shadow, 0 4px 24px #1b5e2014);
+    box-shadow: var(--lp-shadow, 0 4px 24px #002b2b14);
 }
 
 .ab-mission__pillar-icon {
@@ -262,7 +262,7 @@
 
 .ab-offer-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--lp-shadow-lg, 0 12px 40px #1b5e201f);
+    box-shadow: var(--lp-shadow-lg, 0 12px 40px #002b2b1f);
 }
 
 .ab-offer-card__icon {
@@ -366,7 +366,7 @@
     text-align: center;
     padding: 2rem 1.5rem;
     transition: transform 0.2s;
-    box-shadow: var(--lp-shadow, 0 4px 24px #1b5e2014);
+    box-shadow: var(--lp-shadow, 0 4px 24px #002b2b14);
 }
 
 .ab-team-card:hover {
@@ -507,7 +507,7 @@
 
 .ab-testimonials__dot {
     cursor: pointer;
-    background: #1b5e2040;
+    background: #002b2b40;
     border: none;
     border-radius: 50%;
     width: 0.625rem;

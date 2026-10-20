@@ -7,9 +7,23 @@
 
 /* =========================================================
    Homepage redesign — Orora brand system
-   Teal #002B2B · Lime #A4D400 · scoped to .lp-home
+   Teal #002B2B · Lime #A4D400 · applies to every marketplace page
    ========================================================= */
-.mp-body--home{
+.mp-body{
+    /* Legacy tokens used by about/contact/trace/detail styles, mapped onto the brand */
+    --lp-green:#002B2B;
+    --lp-green-dark:#001c1c;
+    --lp-green-light:#f4f7f4;
+    --lp-gold:#A4D400;
+    --lp-gold-dark:#8fb300;
+    --lp-text:#102020;
+    --lp-muted:#5b6b6b;
+    --lp-grey:#f4f7f4;
+    --lp-font:"Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    --lp-shadow:0 10px 30px rgba(0,43,43,.07);
+    --lp-shadow-lg:0 18px 44px rgba(0,43,43,.12);
+    --lp-radius:1rem;
+
     --lp-teal:#002B2B;
     --lp-teal-deep:#001c1c;
     --lp-lime:#A4D400;
@@ -27,96 +41,96 @@
     background:#fff;
 }
 
-.mp-body--home .lp-nav{
+.mp-body .lp-nav{
     backdrop-filter:saturate(1.1) blur(10px);
     background:rgba(255,255,255,.92);
 }
-.mp-body--home .lp-nav.is-scrolled{
+.mp-body .lp-nav.is-scrolled{
     border-bottom-color:var(--lp-line);
     box-shadow:0 4px 20px rgba(0,43,43,.06);
 }
-.mp-body--home .lp-nav__link{
+.mp-body .lp-nav__link{
     color:var(--lp-soft);
     border-radius:999px;
     font-weight:600;
 }
-.mp-body--home .lp-nav__link:hover,
-.mp-body--home .lp-nav__link.is-active{
+.mp-body .lp-nav__link:hover,
+.mp-body .lp-nav__link.is-active{
     color:var(--lp-teal);
     background:rgba(164,212,0,.14);
 }
-.mp-body--home .lp-btn{
+.mp-body .lp-btn{
     border-radius:999px;
     letter-spacing:-.01em;
     transition:background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
-.mp-body--home .lp-btn--primary{
+.mp-body .lp-btn--primary{
     background:var(--lp-teal);
     color:#fff;
     border-color:var(--lp-teal);
 }
-.mp-body--home .lp-btn--primary:hover{
+.mp-body .lp-btn--primary:hover{
     background:var(--lp-teal-deep);
     transform:translateY(-1px);
     box-shadow:0 10px 24px rgba(0,43,43,.18);
 }
-.mp-body--home .lp-btn--accent,
-.mp-body--home .lp-btn--gold{
+.mp-body .lp-btn--accent,
+.mp-body .lp-btn--gold{
     background:var(--lp-lime);
     color:var(--lp-teal);
     border-color:var(--lp-lime);
     font-weight:700;
 }
-.mp-body--home .lp-btn--accent:hover,
-.mp-body--home .lp-btn--gold:hover{
+.mp-body .lp-btn--accent:hover,
+.mp-body .lp-btn--gold:hover{
     background:var(--lp-lime-deep);
     color:var(--lp-teal-deep);
     transform:translateY(-1px);
     box-shadow:0 10px 24px rgba(164,212,0,.35);
 }
-.mp-body--home .lp-btn--outline{
+.mp-body .lp-btn--outline{
     color:var(--lp-teal);
     border-color:rgba(0,43,43,.2);
     background:transparent;
 }
-.mp-body--home .lp-btn--outline:hover{
+.mp-body .lp-btn--outline:hover{
     background:rgba(0,43,43,.04);
     border-color:var(--lp-teal);
 }
-.mp-body--home .lp-btn--outline-sm{
+.mp-body .lp-btn--outline-sm{
     color:var(--lp-teal);
     border-color:rgba(0,43,43,.18);
     border-radius:999px;
 }
-.mp-body--home .lp-btn--ghost-light{
+.mp-body .lp-btn--ghost-light{
     color:#fff;
     border:1.5px solid rgba(255,255,255,.55);
     background:transparent;
 }
-.mp-body--home .lp-btn--ghost-light:hover{
+.mp-body .lp-btn--ghost-light:hover{
     background:rgba(255,255,255,.12);
     border-color:#fff;
 }
-.mp-body--home .lp-btn--dark{
+.mp-body .lp-btn--dark{
     background:var(--lp-teal);
     color:#fff;
 }
-.mp-body--home .lp-btn--ghost-dark{
+.mp-body .lp-btn--ghost-dark{
     color:var(--lp-teal);
     border:1.5px solid rgba(0,43,43,.25);
     background:transparent;
 }
-.mp-body--home .lp-btn--lg{
+.mp-body .lp-btn--lg{
     min-height:3.1rem;
     padding:.9rem 1.55rem;
     font-size:1rem;
 }
-.mp-body--home .lp-link-arrow{
+.mp-body .lp-link-arrow{
     color:var(--lp-teal);
     font-weight:700;
     letter-spacing:-.01em;
 }
-.mp-body--home .lp-link-arrow:hover{color:var(--lp-lime-deep)}
+.mp-body .lp-link-arrow:hover{color:var(--lp-lime-deep)}
 
 .lp-home .lp-eyebrow{
     margin:0 0 .75rem;
@@ -148,6 +162,7 @@
     font-size:1.05rem;
     line-height:1.65;
 }
+.lp-home .lp-section__header--center .lp-section__subtitle{margin-inline:auto}
 .lp-home .lp-section__cta{margin-top:2.25rem}
 
 /* Hero */
@@ -604,12 +619,12 @@
 }
 
 /* Footer polish on homepage */
-.mp-body--home .lp-footer{
+.mp-body .lp-footer{
     background:var(--lp-teal-deep);
 }
-.mp-body--home .lp-footer__links a:hover,
-.mp-body--home .lp-footer__social a:hover,
-.mp-body--home .lp-footer__contact a{
+.mp-body .lp-footer__links a:hover,
+.mp-body .lp-footer__social a:hover,
+.mp-body .lp-footer__contact a{
     color:var(--lp-lime);
 }
 

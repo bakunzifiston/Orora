@@ -14,7 +14,7 @@
             ($filters['category'] ?? null) ? ['key' => 'category', 'label' => optional($categories->firstWhere('slug', $filters['category']))->name ?? $filters['category']] : null,
             ($filters['district'] ?? null) ? ['key' => 'district', 'label' => $filters['district']] : null,
             ($filters['price_min'] ?? null) || ($filters['price_max'] ?? null)
-                ? ['key' => 'price', 'label' => trim(($filters['price_min'] ?? '0').' – '.($filters['price_max'] ?? '∞').' RWF')]
+                ? ['key' => 'price', 'label' => number_format((float) ($filters['price_min'] ?? 0)).' – '.(($filters['price_max'] ?? null) ? number_format((float) $filters['price_max']) : 'any').' RWF']
                 : null,
             ($filters['verified'] ?? null) ? ['key' => 'verified', 'label' => 'Verified'] : null,
         ])->filter()->values();
@@ -26,47 +26,47 @@
 
     <div class="shop-page" data-shop-page>
         <section class="shop-hero">
-            <div class="mp-container shop-hero__inner">
-                <div class="shop-hero__copy">
-                    <p class="shop-hero__eyebrow">Orora Marketplace</p>
-                    <h1 class="shop-hero__title">Find farm products</h1>
-                    <p class="shop-hero__subtitle">Livestock, milk, feed, and supplies from sellers across Rwanda.</p>
+            <div class="mp-container">
+                <div class="shop-hero__head">
+                    <div>
+                        <h1 class="shop-hero__title">Find farm products</h1>
+                        <p class="shop-hero__subtitle">Livestock, milk, feed, and supplies from sellers across Rwanda.</p>
+                    </div>
+                    <a href="{{ auth()->check() ? route('marketplace.shop.create') : route('register') }}" class="lp-btn lp-btn--gold shop-hero__sell">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"/>
+                        </svg>
+                        Sell
+                    </a>
                 </div>
 
                 <form method="GET" action="{{ route('marketplace.shop') }}" class="shop-search" data-shop-form>
-                    @if ($filters['category'] ?? false)
-                        <input type="hidden" name="category" value="{{ $filters['category'] }}">
-                    @endif
-                    @if ($filters['district'] ?? false)
-                        <input type="hidden" name="district" value="{{ $filters['district'] }}">
-                    @endif
-                    @if ($filters['sort'] ?? false)
-                        <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
-                    @endif
-                    <label class="shop-search__field" for="shop-q">
-                        <svg class="shop-search__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-                            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <input
-                            id="shop-q"
-                            type="search"
-                            name="q"
-                            value="{{ $filters['q'] ?? '' }}"
-                            placeholder="Search animals, feed, milk…"
-                            aria-label="Search listings"
-                            autocomplete="off"
-                        >
-                        @if (! empty($filters['q']))
-                            <a href="{{ route('marketplace.shop', request()->except('q', 'page')) }}" class="shop-search__clear" aria-label="Clear search">×</a>
+                    @foreach (collect($filters)->except(['q', 'page']) as $key => $value)
+                        @if (is_array($value))
+                            @foreach ($value as $item)
+                                <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                            @endforeach
+                        @elseif ($value !== null && $value !== '')
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                         @endif
-                    </label>
+                    @endforeach
+                    <svg class="shop-search__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                        <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input
+                        id="shop-q"
+                        type="search"
+                        name="q"
+                        value="{{ $filters['q'] ?? '' }}"
+                        placeholder="Search livestock, milk, meat, feed…"
+                        aria-label="Search listings"
+                        autocomplete="off"
+                    >
+                    @if (! empty($filters['q']))
+                        <a href="{{ route('marketplace.shop', request()->except('q', 'page')) }}" class="shop-search__clear" aria-label="Clear search">×</a>
+                    @endif
                     <button type="submit" class="lp-btn lp-btn--primary shop-search__submit">Search</button>
-                    @auth
-                        <a href="{{ route('marketplace.shop.create') }}" class="lp-btn lp-btn--gold shop-search__sell">Sell</a>
-                    @else
-                        <a href="{{ route('register') }}" class="lp-btn lp-btn--gold shop-search__sell">Sell</a>
-                    @endauth
                 </form>
             </div>
         </section>
@@ -82,13 +82,58 @@
 
         <section class="shop-layout">
             <div class="mp-container shop-layout__inner">
-                <div class="shop-filters-bar">
-                    <button type="button" class="shop-filters-toggle lp-btn lp-btn--outline" data-shop-filters-toggle aria-expanded="false" aria-controls="shop-filters">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        Filters
-                    </button>
+                <div class="shop-filters-backdrop" data-shop-filters-backdrop hidden></div>
+
+                @include('marketplace.shop.partials.filters-sidebar', [
+                    'filters' => $filters,
+                    'districts' => $districts,
+                    'sellerTypes' => $sellerTypes,
+                    'sortOptions' => $sortOptions,
+                ])
+
+                <div class="shop-results" data-shop-results>
+                    <div class="shop-results__header">
+                        <p class="shop-results__count" aria-live="polite">
+                            <strong>{{ number_format($listings->total()) }}</strong>
+                            {{ $listings->total() === 1 ? 'listing' : 'listings' }}
+                            @if (! empty($filters['q']))
+                                for <span class="shop-results__query">“{{ $filters['q'] }}”</span>
+                            @endif
+                        </p>
+
+                        <div class="shop-results__controls">
+                            <button type="button" class="shop-filters-toggle" data-shop-filters-toggle aria-expanded="false" aria-controls="shop-filters">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Filters
+                                @php($panelCount = $activeFilters->whereNotIn('key', ['q', 'category'])->count() + ($sellerTypeLabels->isNotEmpty() ? 1 : 0))
+                                @if ($panelCount > 0)
+                                    <span class="shop-filters-toggle__count">{{ $panelCount }}</span>
+                                @endif
+                            </button>
+
+                            <form method="GET" action="{{ route('marketplace.shop') }}" class="shop-results__sort" data-shop-form>
+                                @foreach (collect($filters)->except('sort') as $key => $value)
+                                    @if (is_array($value))
+                                        @foreach ($value as $item)
+                                            <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                                        @endforeach
+                                    @elseif ($value !== null && $value !== '')
+                                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                    @endif
+                                @endforeach
+                                <label for="sort" class="shop-results__sort-label">Sort by</label>
+                                <div class="shop-select">
+                                    <select name="sort" id="sort" onchange="this.form.requestSubmit()">
+                                        @foreach ($sortOptions as $value => $label)
+                                            <option value="{{ $value }}" @selected(($filters['sort'] ?? 'newest') === $value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
                     @if ($activeFilters->isNotEmpty() || $sellerTypeLabels->isNotEmpty())
                         <div class="shop-active-filters" data-shop-active-filters>
@@ -107,49 +152,6 @@
                             <a href="{{ route('marketplace.shop') }}" class="shop-chip shop-chip--clear">Clear all</a>
                         </div>
                     @endif
-                </div>
-
-                <div class="shop-filters-backdrop" data-shop-filters-backdrop hidden></div>
-
-                @include('marketplace.shop.partials.filters-sidebar', [
-                    'filters' => $filters,
-                    'districts' => $districts,
-                    'sellerTypes' => $sellerTypes,
-                    'sortOptions' => $sortOptions,
-                ])
-
-                <div class="shop-results" data-shop-results>
-                    <div class="shop-results__header">
-                        <p class="shop-results__count">
-                            <strong>{{ number_format($listings->total()) }}</strong>
-                            {{ $listings->total() === 1 ? 'listing' : 'listings' }}
-                            @if ($listings->total() > 0)
-                                <span class="shop-results__range">
-                                    · showing {{ $listings->firstItem() }}–{{ $listings->lastItem() }}
-                                </span>
-                            @endif
-                        </p>
-
-                        <form method="GET" action="{{ route('marketplace.shop') }}" class="shop-results__sort" data-shop-form>
-                            @foreach (collect($filters)->except('sort') as $key => $value)
-                                @if (is_array($value))
-                                    @foreach ($value as $item)
-                                        <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
-                                    @endforeach
-                                @elseif ($value !== null && $value !== '')
-                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                                @endif
-                            @endforeach
-                            <label for="sort" class="shop-results__sort-label">Sort by</label>
-                            <div class="shop-select">
-                                <select name="sort" id="sort" onchange="this.form.requestSubmit()">
-                                    @foreach ($sortOptions as $value => $label)
-                                        <option value="{{ $value }}" @selected(($filters['sort'] ?? 'newest') === $value)>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </form>
-                    </div>
 
                     @if (session('success'))
                         <div class="mp-alert mp-alert--success">{{ session('success') }}</div>

@@ -227,7 +227,7 @@
                             <div class="lp-pricing-card__price">
                                 {{ $plan['price'] }}
                                 @if ($plan['period'])
-                                    <span>/ {{ $plan['period'] }}</span>
+                                    <span>{{ $plan['period'] }}</span>
                                 @endif
                             </div>
                             <ul class="lp-pricing-card__features">

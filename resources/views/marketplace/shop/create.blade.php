@@ -6,8 +6,10 @@
     <section class="shop-form-page">
         <div class="mp-container shop-form-page__inner">
             <header class="shop-form-page__header">
-                <h1>Sell on Orora</h1>
-                <p>List a farm product for buyers across Rwanda.</p>
+                <div>
+                    <h1>Sell on Orora</h1>
+                    <p>List a farm product for buyers across Rwanda.</p>
+                </div>
             </header>
 
             @if ($errors->any())

@@ -6,8 +6,10 @@
     <section class="shop-form-page">
         <div class="mp-container shop-form-page__inner">
             <header class="shop-form-page__header">
-                <h1>Edit listing</h1>
-                <p>{{ $listing->listing_code }}</p>
+                <div>
+                    <h1>Edit listing</h1>
+                    <p>{{ $listing->listing_code }}</p>
+                </div>
             </header>
 
             @if ($errors->any())
