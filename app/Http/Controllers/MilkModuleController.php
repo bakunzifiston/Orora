@@ -9,6 +9,7 @@ use App\Models\Farm;
 use App\Models\MilkRecord;
 use App\Models\MilkSession;
 use App\Services\Milk\MilkCostPerLitreService;
+use App\Services\Milk\MilkDistributionService;
 use App\Services\MilkOverviewAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class MilkModuleController extends Controller
         Request $request,
         MilkOverviewAnalyticsService $analytics,
         MilkCostPerLitreService $costPerLitre,
+        MilkDistributionService $distributionService,
     ): View {
         $selectedFarm = $request->filled('farm_id') ? $request->integer('farm_id') : null;
         $farmId = $selectedFarm;
@@ -105,6 +107,17 @@ class MilkModuleController extends Controller
             ->groupBy('session_shift')
             ->pluck('total', 'session_shift');
 
+        $distributionTotals = $distributionService->totalsByCategory($farmId, $rangeStart, $rangeEnd);
+        $distributedTotal = round(array_sum($distributionTotals), 2);
+        $distribution = [
+            'totals' => $distributionTotals,
+            'distributed' => $distributedTotal,
+            'given_away' => round(($distributionTotals['neighbor'] ?? 0) + ($distributionTotals['relative_visitor'] ?? 0), 2),
+            'unaccounted' => round($stats['period_total'] - $distributedTotal, 2),
+            'share' => $stats['period_total'] > 0 ? (int) round($distributedTotal / $stats['period_total'] * 100) : null,
+            'filters' => array_filter(['farm_id' => $farmId, 'period' => $period]),
+        ];
+
         $charts = $analytics->chartPayloadHydrated(
             farmId: $farmId,
             from: $rangeStart,
@@ -134,6 +147,7 @@ class MilkModuleController extends Controller
             'costCompareDelta',
             'costTrend',
             'expenseBreakdown',
+            'distribution',
         ) + [
             'farms' => Farm::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
         ]));

@@ -63,15 +63,16 @@
 
         <fieldset class="shop-filters__group">
             <legend class="shop-filters__label">Seller type</legend>
-            <div class="shop-filters__chips">
+            <div class="shop-filters__checks">
                 @foreach ($sellerTypes as $value => $label)
-                    <label class="shop-filters__chip">
+                    <label class="shop-filters__check">
                         <input
                             type="checkbox"
                             name="seller_type[]"
                             value="{{ $value }}"
                             @checked(in_array($value, $selectedSellerTypes, true))
                         >
+                        <span class="shop-filters__box" aria-hidden="true"></span>
                         <span>{{ $label }}</span>
                     </label>
                 @endforeach

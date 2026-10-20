@@ -45,6 +45,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\MilkDistributionController;
 use App\Http\Controllers\MilkModuleController;
 use App\Http\Controllers\MilkRecordController;
 use App\Http\Controllers\MilkSessionController;
@@ -178,6 +179,8 @@ Route::middleware('auth')->group(function () {
             Route::delete('/records/{milkRecord}', [MilkRecordController::class, 'destroy'])->name('records.destroy');
             Route::get('/storage', [MilkStorageController::class, 'index'])->name('storage');
             Route::resource('storage', MilkStorageController::class)->except(['show', 'index'])->parameters(['storage' => 'milkStorage']);
+            Route::get('/distribution', [MilkDistributionController::class, 'index'])->name('distribution');
+            Route::resource('distribution', MilkDistributionController::class)->except(['show', 'index'])->parameters(['distribution' => 'milkDistribution']);
             Route::redirect('/sales', '/sales/transactions?type=milk_sale');
             Route::redirect('/sales/create', '/sales/transactions/create?type=milk_sale');
         });

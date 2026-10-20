@@ -40,20 +40,8 @@
             </div>
         @endif
 
-        @if ($listing->is_featured || $listing->is_verified)
-            <div class="shop-card__badges">
-                @if ($listing->is_featured)
-                    <span class="shop-card__badge shop-card__badge--featured">Featured</span>
-                @endif
-                @if ($listing->is_verified)
-                    <span class="shop-card__badge shop-card__badge--verified">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Verified
-                    </span>
-                @endif
-            </div>
+        @if ($listing->is_featured)
+            <span class="shop-card__badge shop-card__badge--featured">Featured</span>
         @endif
     </div>
 
@@ -71,6 +59,16 @@
 
         @if ($details)
             <p class="shop-card__details">{{ implode(' · ', $details) }}</p>
+        @endif
+
+        @if ($listing->is_verified)
+            <p class="shop-card__verified">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 2.5l2.4 1.8 3-.2.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.2L12 21.5l-2.4-1.8-3 .2-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .2z" fill="currentColor"/>
+                    <path d="M8.5 12.2l2.3 2.3 4.7-4.8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Verified seller
+            </p>
         @endif
 
         <div class="shop-card__footer">

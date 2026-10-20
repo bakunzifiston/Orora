@@ -37,7 +37,7 @@ class MilkStorageService
             throw new InvalidArgumentException('Invalid movement type.');
         }
 
-        $outbound = in_array($movementType, ['sale', 'adjustment_out', 'spoilage'], true);
+        $outbound = in_array($movementType, ['sale', 'adjustment_out', 'spoilage', 'distribution'], true);
         $delta = $outbound ? -$quantityLiters : $quantityLiters;
 
         return DB::transaction(function () use ($storage, $movementType, $quantityLiters, $delta, $notes, $reference, $movedAt) {

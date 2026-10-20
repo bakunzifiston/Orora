@@ -29,6 +29,7 @@ export default defineConfig({
                 'resources/js/marketplace-contact.js',
                 'resources/js/marketplace-trace.js',
                 'resources/js/select-other-form.js',
+                'resources/js/milk-distribution-form.js',
             ],
             refresh: true,
             fonts: [

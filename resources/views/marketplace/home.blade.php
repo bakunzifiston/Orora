@@ -15,7 +15,6 @@
             <div class="lp-hero__shade" aria-hidden="true"></div>
             <div class="mp-container lp-hero__frame">
                 <div class="lp-hero__copy" data-lp-reveal>
-                    <p class="lp-hero__brand">Orora Farm</p>
                     <h1 class="lp-hero__title">
                         Farm management,<br>
                         <span>made simple.</span>
@@ -56,7 +55,6 @@
         <section class="lp-section lp-section--home" data-lp-reveal>
             <div class="mp-container">
                 <div class="lp-section__header lp-section__header--center">
-                    <p class="lp-eyebrow">The shift</p>
                     <h2 class="lp-section__title">{{ $ps['title'] }}</h2>
                     <p class="lp-section__subtitle">{{ $ps['subtitle'] }}</p>
                 </div>
@@ -95,7 +93,6 @@
         <section class="lp-section lp-section--home lp-section--soft" id="features" data-lp-reveal>
             <div class="mp-container">
                 <div class="lp-section__header lp-section__header--center">
-                    <p class="lp-eyebrow">Platform</p>
                     <h2 class="lp-section__title">Everything your farm needs</h2>
                     <p class="lp-section__subtitle">Modules designed for day-to-day livestock operations.</p>
                 </div>
@@ -114,7 +111,6 @@
         <section class="lp-section lp-section--home" data-lp-reveal>
             <div class="mp-container">
                 <div class="lp-section__header lp-section__header--center">
-                    <p class="lp-eyebrow">Onboarding</p>
                     <h2 class="lp-section__title">Get started in minutes</h2>
                     <p class="lp-section__subtitle">Three clear steps from signup to daily farm records.</p>
                 </div>
@@ -136,7 +132,6 @@
         <section class="lp-section lp-section--home lp-section--soft" data-lp-reveal>
             <div class="mp-container">
                 <div class="lp-section__header lp-section__header--center">
-                    <p class="lp-eyebrow">Marketplace</p>
                     <h2 class="lp-section__title">Buy and sell farm products</h2>
                     <p class="lp-section__subtitle">Connect directly with verified farmers and buyers across Rwanda.</p>
                 </div>
@@ -170,7 +165,6 @@
         <section class="lp-testimonials lp-testimonials--home" data-lp-testimonials data-lp-reveal>
             <div class="mp-container">
                 <div class="lp-section__header lp-section__header--center">
-                    <p class="lp-eyebrow lp-eyebrow--on-dark">Voices</p>
                     <h2 class="lp-section__title lp-section__title--light">Trusted by farmers across Rwanda</h2>
                 </div>
 
@@ -213,7 +207,6 @@
         <section class="lp-section lp-section--home" id="pricing" data-lp-reveal>
             <div class="mp-container">
                 <div class="lp-section__header lp-section__header--center">
-                    <p class="lp-eyebrow">Plans</p>
                     <h2 class="lp-section__title">Simple, transparent pricing</h2>
                     <p class="lp-section__subtitle">Start free. Upgrade when your operation grows.</p>
                 </div>
@@ -224,7 +217,7 @@
                                 <span class="lp-pricing-card__badge">Most popular</span>
                             @endif
                             <h3 class="lp-pricing-card__name">{{ $plan['name'] }}</h3>
-                            <div class="lp-pricing-card__price">
+                            <div class="lp-pricing-card__price {{ is_numeric(str_replace(',', '', $plan['price'])) ? '' : 'lp-pricing-card__price--text' }}">
                                 {{ $plan['price'] }}
                                 @if ($plan['period'])
                                     <span>{{ $plan['period'] }}</span>

@@ -93,6 +93,40 @@ class Animal extends TenantModel
         });
     }
 
+    /**
+     * Young, active cattle that can be recorded as receiving milk: animals in a calves
+     * herd group, or born within the configured calf age, and not lactating.
+     */
+    public function scopeCalfFeedingEligible(Builder $query): void
+    {
+        $calfHerdGroups = config('modules.milk_calf_herd_groups', []);
+        $bornAfter = now()->subMonths((int) config('modules.milk_calf_max_age_months', 12))->toDateString();
+
+        $query
+            ->where(function (Builder $q) {
+                $q->whereNull('lifecycle_status')->orWhere('lifecycle_status', '')->orWhere('lifecycle_status', 'Active');
+            })
+            ->where(function (Builder $q) {
+                $q->whereNull('species')->orWhere('species', '')->orWhereRaw('LOWER(species) = ?', ['cattle']);
+            })
+            ->where(function (Builder $q) {
+                $q->whereNull('production_status')->orWhere('production_status', '!=', 'Lactating');
+            })
+            ->where(function (Builder $q) use ($calfHerdGroups, $bornAfter) {
+                $q->whereDate('date_of_birth', '>=', $bornAfter);
+
+                if ($calfHerdGroups !== []) {
+                    $q->orWhereHas('livestock', function (Builder $lq) use ($calfHerdGroups) {
+                        $lq->where(function (Builder $inner) use ($calfHerdGroups) {
+                            foreach ($calfHerdGroups as $group) {
+                                $inner->orWhereJsonContains('herd_groups', $group);
+                            }
+                        });
+                    });
+                }
+            });
+    }
+
     public function feedings(): HasMany
     {
         return $this->hasMany(Feeding::class);

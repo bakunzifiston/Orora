@@ -2098,13 +2098,16 @@
         display: grid;
         gap: 0.65rem;
     }
+    .farm-dash__kpis--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .farm-dash__kpis--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .farm-dash__kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     @media (max-width: 1100px) {
+        .farm-dash__kpis--5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .farm-dash__kpis--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .farm-dash__kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     @media (max-width: 720px) {
+        .farm-dash__kpis--5,
         .farm-dash__kpis--4,
         .farm-dash__kpis--3 { grid-template-columns: 1fr; }
     }
@@ -3540,6 +3543,7 @@
             border-radius: 0.5rem;
             background: #fff;
         }
+        .farm-dash__kpis--5,
         .farm-dash__kpis--4,
         .farm-dash__kpis--3 {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3583,6 +3587,7 @@
         .dash-search {
             min-width: 0;
         }
+        .farm-dash__kpis--5,
         .farm-dash__kpis--4,
         .farm-dash__kpis--3,
         .health-overview__kpis,

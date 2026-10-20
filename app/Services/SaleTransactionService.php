@@ -7,6 +7,7 @@ use App\Models\SaleItem;
 use App\Models\SaleLog;
 use App\Models\SalePayment;
 use App\Models\SaleTransaction;
+use App\Services\Milk\MilkDistributionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -17,6 +18,7 @@ class SaleTransactionService
         private readonly MilkStorageService $storageService,
         private readonly CustomerService $customerService,
         private readonly FlockService $flocks,
+        private readonly MilkDistributionService $milkDistributions,
     ) {}
 
     public function createDraft(array $attributes): SaleTransaction
@@ -108,6 +110,7 @@ class SaleTransactionService
         return DB::transaction(function () use ($transaction) {
             foreach ($transaction->items as $item) {
                 $this->storageService->deductForUnifiedSaleItem($item);
+                $this->milkDistributions->syncFromSaleItem($item);
             }
 
             $transaction->update(['sale_status' => 'confirmed']);
@@ -150,6 +153,7 @@ class SaleTransactionService
         }
 
         $transaction->update(['sale_status' => 'cancelled']);
+        $this->milkDistributions->removeForSaleTransaction($transaction);
         $this->log($transaction, 'cancelled', 'Sale cancelled.');
 
         return $transaction->fresh();

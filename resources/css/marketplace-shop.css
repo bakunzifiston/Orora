@@ -24,12 +24,12 @@
 
 /* ---- Hero + search ---- */
 .shop-hero {
-    padding: 2rem 0 1.25rem;
+    padding: 2rem 0 0.75rem;
 }
 
 .shop-hero__head {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.25rem;
@@ -132,7 +132,7 @@
 }
 
 .shop-tabs {
-    padding: 0.75rem 0;
+    padding: 0.6rem 0;
 }
 
 .shop-tabs__track {
@@ -200,9 +200,10 @@
 
 /* ---- Filters sidebar ---- */
 .shop-filters {
+    --shop-filters-bg: var(--shop-mist);
     position: sticky;
     top: 8rem;
-    background: #fff;
+    background: var(--shop-filters-bg);
     border: 1px solid var(--shop-line);
     border-radius: var(--shop-radius);
     padding: 1.25rem 1.25rem 1.35rem;
@@ -228,7 +229,7 @@
     height: 2.25rem;
     border: 0;
     border-radius: 50%;
-    background: var(--shop-mist);
+    background: #fff;
     color: var(--shop-ink);
     cursor: pointer;
 }
@@ -266,7 +267,7 @@ legend.shop-filters__label + * {
     font-size: 0.6875rem;
     font-weight: 700;
     color: var(--shop-soft);
-    background: var(--shop-mist);
+    background: #fff;
     padding: 0.1rem 0.4rem;
     border-radius: 999px;
 }
@@ -401,59 +402,61 @@ legend.shop-filters__label + * {
     margin: 0;
 }
 
-/* Seller type: checkboxes presented as selectable chips */
-.shop-filters__chips {
+/* Seller type: tidy checkbox list */
+.shop-filters__checks {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+    flex-direction: column;
+    gap: 0.15rem;
 }
 
-.shop-filters__chip {
+.shop-filters__group .shop-filters__check {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.25rem;
+    margin: 0;
+    padding: 0 0.4rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--shop-ink);
     cursor: pointer;
 }
 
-.shop-filters__chip input {
+.shop-filters__group .shop-filters__check:hover {
+    background: #fff;
+}
+
+.shop-filters__check input {
     position: absolute;
     opacity: 0;
     width: 1px;
     height: 1px;
 }
 
-.shop-filters__chip span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    min-height: 2.25rem;
-    padding: 0.4rem 0.8rem;
-    border: 1px solid var(--shop-line);
-    border-radius: 999px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--shop-soft);
-    background: #fff;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+.shop-filters__box {
+    flex-shrink: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 1.5px solid #c3cfc9;
+    border-radius: 0.3rem;
+    background: #fff center / 0.75rem no-repeat;
+    transition: background-color 0.15s, border-color 0.15s;
 }
 
-.shop-filters__chip:hover span {
-    border-color: #c9d6cf;
+.shop-filters__check input:checked + .shop-filters__box {
+    border-color: var(--shop-teal);
+    background-color: var(--shop-teal);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' stroke='%23a4d400' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.shop-filters__check input:checked ~ span:last-child {
+    font-weight: 700;
     color: var(--shop-teal);
 }
 
-.shop-filters__chip input:checked + span {
-    background: var(--shop-teal);
-    border-color: var(--shop-teal);
-    color: #fff;
-}
-
-.shop-filters__chip input:checked + span::before {
-    content: "";
-    width: 0.7rem;
-    height: 0.7rem;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' stroke='%23a4d400' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
-}
-
-.shop-filters__chip input:focus-visible + span {
+.shop-filters__check input:focus-visible + .shop-filters__box {
     outline: 2px solid var(--shop-teal);
     outline-offset: 2px;
 }
@@ -759,12 +762,10 @@ legend.shop-filters__label + * {
     color: #a3b3ab;
 }
 
-.shop-card__badges {
+.shop-card__media > .shop-card__badge {
     position: absolute;
     top: 0.65rem;
     left: 0.65rem;
-    display: flex;
-    gap: 0.3rem;
 }
 
 .shop-card__badge {
@@ -851,6 +852,20 @@ legend.shop-filters__label + * {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.shop-card__verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.45rem 0 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--shop-teal);
+}
+
+.shop-card__verified svg {
+    color: #5c9a00;
 }
 
 .shop-card__footer {
@@ -1889,7 +1904,7 @@ legend.shop-filters__label + * {
         padding: 1.25rem 1.25rem 2rem;
         border: 0;
         border-radius: 0;
-        background: #fff;
+        background: var(--shop-filters-bg);
         transform: translateX(-105%);
         visibility: hidden;
         transition: transform 0.28s ease, visibility 0.28s;

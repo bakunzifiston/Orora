@@ -385,6 +385,7 @@ return [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'milk.overview'],
         ['key' => 'sessions', 'label' => 'Milking sessions', 'route' => 'milk.sessions'],
         ['key' => 'storage', 'label' => 'Storage', 'route' => 'milk.storage'],
+        ['key' => 'distribution', 'label' => 'Distribution', 'route' => 'milk.distribution'],
     ],
 
     'egg_sections' => [
@@ -555,7 +556,7 @@ return [
 
     'milk_storage_statuses' => ['available', 'in_use', 'full', 'maintenance'],
 
-    'milk_storage_movement_types' => ['intake', 'sale', 'adjustment_in', 'adjustment_out', 'spoilage'],
+    'milk_storage_movement_types' => ['intake', 'sale', 'adjustment_in', 'adjustment_out', 'spoilage', 'distribution', 'distribution_return'],
 
     'milk_storage_movement_labels' => [
         'intake' => 'Intake (milking)',
@@ -563,7 +564,52 @@ return [
         'adjustment_in' => 'Adjustment in',
         'adjustment_out' => 'Adjustment out',
         'spoilage' => 'Spoilage / loss',
+        'distribution' => 'Distribution (non-sale use)',
+        'distribution_return' => 'Distribution reversed',
     ],
+
+    /** Where milk goes after milking. "sold" rows are created from confirmed milk sales in the Sales module. */
+    'milk_distribution_categories' => ['sold', 'fed_to_calf', 'household', 'neighbor', 'relative_visitor', 'other'],
+
+    'milk_distribution_category_labels' => [
+        'sold' => 'Sold',
+        'fed_to_calf' => 'Fed to calf',
+        'household' => 'Household consumption',
+        'neighbor' => 'Given to neighbor',
+        'relative_visitor' => 'Given to relative or visitor',
+        'other' => 'Other use',
+    ],
+
+    /** Categories recorded from the Milk distribution form (sales are recorded in the Sales module). */
+    'milk_distribution_manual_categories' => ['fed_to_calf', 'household', 'neighbor', 'relative_visitor', 'other'],
+
+    'milk_distribution_recipient_types' => ['calf', 'household', 'neighbor', 'relative', 'visitor', 'customer', 'worker', 'other'],
+
+    'milk_distribution_recipient_type_labels' => [
+        'calf' => 'Calf',
+        'household' => 'Household',
+        'neighbor' => 'Neighbor',
+        'relative' => 'Relative',
+        'visitor' => 'Visitor',
+        'customer' => 'Customer',
+        'worker' => 'Farm worker',
+        'other' => 'Other',
+    ],
+
+    /** Recipient types allowed for each category; the first entry is the default. */
+    'milk_distribution_category_recipients' => [
+        'sold' => ['customer'],
+        'fed_to_calf' => ['calf'],
+        'household' => ['household'],
+        'neighbor' => ['neighbor'],
+        'relative_visitor' => ['relative', 'visitor'],
+        'other' => ['other', 'worker', 'neighbor', 'relative', 'visitor', 'household'],
+    ],
+
+    /** Animals up to this age (or in the calves herd group) can be selected for calf feeding. */
+    'milk_calf_max_age_months' => 12,
+
+    'milk_calf_herd_groups' => ['Calves Group'],
 
     'milk_sale_statuses' => ['draft', 'confirmed', 'cancelled'],
 
