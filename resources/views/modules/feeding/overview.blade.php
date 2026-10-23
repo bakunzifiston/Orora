@@ -13,13 +13,13 @@
 
         <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
             <div class="farm-dash__kpis farm-dash__kpis--4">
-                <a href="{{ route('feeding.suppliers') }}" class="farm-kpi farm-kpi--farms">
+                <a href="{{ route('feeding.schedules') }}" class="farm-kpi {{ $stats['overdue_schedules'] > 0 ? 'farm-kpi--negative' : 'farm-kpi--farms' }}">
                     <div class="farm-kpi__icon" aria-hidden="true">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'certificate'])
                     </div>
                     <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Suppliers') }}</div>
-                        <div class="farm-kpi__value">{{ number_format($stats['suppliers']) }}</div>
+                        <div class="farm-kpi__label">{{ __('Overdue schedules') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($stats['overdue_schedules']) }}</div>
                     </div>
                 </a>
                 <a href="{{ route('feeding.feed-types') }}" class="farm-kpi farm-kpi--feeding">

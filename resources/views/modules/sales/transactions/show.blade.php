@@ -92,6 +92,9 @@
                                 {{ $item->description }}
                                 @if ($item->animal)
                                     <span style="color:#808080;">({{ $item->animal->tag_number }})</span>
+                                    @if ($item->animal->hasSaleHealthWarning())
+                                        <span class="sale-health-warning" title="{{ __('Tell the buyer about this animal\'s health before completing the sale.') }}">⚠ {{ __($item->animal->health_status) }}: {{ __('tell the buyer') }}</span>
+                                    @endif
                                 @elseif ($item->milkStorage)
                                     <span style="color:#808080;">({{ $item->milkStorage->container_name }})</span>
                                 @endif
@@ -150,9 +153,11 @@
                                     data-tag="{{ $animal->tag_number }}"
                                     data-name="{{ $animal->name }}"
                                     data-weight="{{ $animal->weight_kg }}"
-                                >{{ $animal->tag_number }}@if($animal->name) — {{ $animal->name }}@endif ({{ $animal->weight_kg ?? '?' }} kg)</option>
+                                    data-health-warning="{{ $animal->hasSaleHealthWarning() ? $animal->health_status : '' }}"
+                                >{{ $animal->tag_number }}@if($animal->name) — {{ $animal->name }}@endif ({{ $animal->weight_kg ?? '?' }} kg)@if ($animal->hasSaleHealthWarning()) — ⚠ {{ __($animal->health_status) }}@endif</option>
                             @endforeach
                         </select>
+                        <p class="sale-health-warning sale-health-warning--block" data-sale-health-warning hidden></p>
                     </div>
                     <div class="dash-form-field">
                         <label for="description">Description <span class="dash-required">*</span></label>
@@ -369,8 +374,16 @@
                 const desc = document.getElementById('description');
                 const weight = document.getElementById('live_weight_kg');
                 if (!select || !desc) return;
+                const warning = document.querySelector('[data-sale-health-warning]');
                 select.addEventListener('change', function () {
                     const opt = select.selectedOptions[0];
+                    if (warning) {
+                        const status = opt?.dataset.healthWarning || '';
+                        warning.hidden = status === '';
+                        warning.textContent = status
+                            ? `⚠ This animal is recorded as ${status.toLowerCase()}. You can still sell it, but tell the buyer before completing the sale.`
+                            : '';
+                    }
                     if (!opt?.value) return;
                     const tag = opt.dataset.tag || '';
                     const name = opt.dataset.name || '';
@@ -383,3 +396,10 @@
         </script>
     @endpush
 @endif
+
+@push('scripts')
+    <style>
+        .sale-health-warning { display: inline-block; margin-left: 0.35rem; padding: 0.1rem 0.5rem; border-radius: 9999px; background: #fef2f2; color: #b91c1c; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+        .sale-health-warning--block { display: block; margin: 0.4rem 0 0; padding: 0.55rem 0.75rem; border-radius: 0.5rem; white-space: normal; font-weight: 600; line-height: 1.4; }
+    </style>
+@endpush

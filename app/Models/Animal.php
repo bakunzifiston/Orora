@@ -127,6 +127,14 @@ class Animal extends TenantModel
             });
     }
 
+    /** Health statuses a buyer should be told about before a sale. */
+    public const SALE_WARNING_STATUSES = ['Sick', 'Quarantined', 'Under treatment'];
+
+    public function hasSaleHealthWarning(): bool
+    {
+        return in_array($this->health_status, self::SALE_WARNING_STATUSES, true);
+    }
+
     public function feedings(): HasMany
     {
         return $this->hasMany(Feeding::class);

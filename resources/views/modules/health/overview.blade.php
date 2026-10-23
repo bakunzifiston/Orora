@@ -68,15 +68,6 @@
                         <div class="farm-kpi__value">{{ number_format($stats['mortality']) }}</div>
                     </div>
                 </a>
-                <div class="farm-kpi farm-kpi--production">
-                    <div class="farm-kpi__icon" aria-hidden="true">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])
-                    </div>
-                    <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Healthy') }}</div>
-                        <div class="farm-kpi__value">{{ number_format($stats['healthy']) }}</div>
-                    </div>
-                </div>
                 <div class="farm-kpi farm-kpi--sales">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'shield'])
@@ -160,8 +151,11 @@
                     @if ($charts['meta']['animalsTotal'] === 0)
                         <p class="dash-empty">{{ __('No animals registered yet.') }}</p>
                     @else
-                        <div class="farm-panel__chart farm-panel__chart--sm health-page__chart--donut">
-                            <canvas id="health-status-chart" aria-label="{{ __('Animals by health status') }}"></canvas>
+                        <div class="health-donut">
+                            <div class="farm-panel__chart farm-panel__chart--sm health-page__chart--donut health-donut__chart">
+                                <canvas id="health-status-chart" aria-label="{{ __('Animals by health status') }}"></canvas>
+                            </div>
+                            <ul class="health-donut__legend" data-legend-for="health-status-chart"></ul>
                         </div>
                     @endif
                 </article>
@@ -182,8 +176,11 @@
                     @if ($charts['meta']['typesTotal'] === 0)
                         <p class="dash-empty">{{ __('No record types to show yet.') }}</p>
                     @else
-                        <div class="farm-panel__chart farm-panel__chart--sm">
-                            <canvas id="health-records-type-chart" aria-label="{{ __('Health records by type') }}"></canvas>
+                        <div class="health-donut">
+                            <div class="farm-panel__chart farm-panel__chart--sm health-page__chart--donut health-donut__chart">
+                                <canvas id="health-records-type-chart" aria-label="{{ __('Health records by type') }}"></canvas>
+                            </div>
+                            <ul class="health-donut__legend" data-legend-for="health-records-type-chart"></ul>
                         </div>
                     @endif
                 </article>

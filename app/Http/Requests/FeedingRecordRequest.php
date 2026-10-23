@@ -33,7 +33,8 @@ class FeedingRecordRequest extends FormRequest
 
                     $q->where('farm_id', $this->input('farm_id'))
                         ->where(function ($inner) use ($currentInventoryId) {
-                            $inner->whereHas('feedType', fn ($type) => $type->where('is_active', true));
+                            // Validation rules run on the plain query builder, so use a subquery rather than whereHas().
+                            $inner->whereIn('feed_type_id', fn ($types) => $types->select('id')->from('feed_types')->where('is_active', true));
 
                             if ($currentInventoryId) {
                                 $inner->orWhere('id', $currentInventoryId);

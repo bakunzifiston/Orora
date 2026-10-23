@@ -27,7 +27,8 @@ class FeedingScheduleController extends Controller
     {
         $schedules = FeedingSchedule::query()
             ->with(['farm', 'feedType', 'animal', 'livestock', 'flock'])
-            ->orderByDesc('start_date')
+            ->orderByRaw("status = 'active' desc")
+            ->orderBy('next_due_date')
             ->paginate(15);
 
         return view('modules.feeding.schedules.index', $this->feedingSectionData('schedules', compact('schedules')));

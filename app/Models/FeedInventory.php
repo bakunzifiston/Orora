@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class FeedInventory extends TenantModel
 {
@@ -39,6 +40,15 @@ class FeedInventory extends TenantModel
     public function movements(): HasMany
     {
         return $this->hasMany(FeedInventoryMovement::class)->orderByDesc('moved_at');
+    }
+
+    /** Most recent stock purchase that has a logged expense (used to show and pre-fill the vendor). */
+    public function latestPurchase(): HasOne
+    {
+        return $this->hasOne(FeedInventoryMovement::class)
+            ->ofMany(['moved_at' => 'max', 'id' => 'max'], function ($query) {
+                $query->where('movement_type', 'purchase')->whereHas('expense', fn ($q) => $q->whereNotNull('expense_vendor_id'));
+            });
     }
 
     public function isLowStock(): bool

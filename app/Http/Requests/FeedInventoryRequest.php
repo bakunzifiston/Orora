@@ -25,6 +25,17 @@ class FeedInventoryRequest extends FormRequest
             ],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
+            // Only when adding an inventory item; later changes go through stock movements.
+            'opening_quantity' => $inventoryId
+                ? ['exclude']
+                : ['nullable', 'numeric', 'min:0', 'max:100000000'],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'opening_quantity' => __('quantity in stock'),
         ];
     }
 }

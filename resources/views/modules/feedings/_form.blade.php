@@ -55,12 +55,18 @@
                 <option
                     value="{{ $schedule->id }}"
                     data-farm-id="{{ $schedule->farm_id }}"
-                    @selected(old('feeding_schedule_id', $feeding?->feeding_schedule_id) == $schedule->id)
+                    data-inventory-id="{{ $schedule->feed_inventory_id }}"
+                    data-quantity="{{ $schedule->quantity }}"
+                    data-livestock-id="{{ $schedule->livestock_id }}"
+                    data-animal-id="{{ $schedule->animal_id }}"
+                    data-flock-id="{{ $schedule->flock_id }}"
+                    @selected(old('feeding_schedule_id', $feeding?->feeding_schedule_id ?? request('schedule')) == $schedule->id)
                 >
                     {{ $schedule->select_label ?? $schedule->optionLabel() }}
                 </option>
             @endforeach
         </select>
+        <p class="dash-field-hint">{{ __('Picking a schedule fills in its feed, group and quantity, and moves the schedule to its next due date.') }}</p>
     </div>
     <div class="dash-form-field">
         <label for="fed_on">{{ __('Fed on') }} <span class="dash-required">*</span></label>

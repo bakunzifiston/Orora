@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\FeedingSchedule;
 use App\Models\Animal;
 use App\Models\BirthRecord;
 use App\Models\BreedingRecord;
@@ -41,6 +42,7 @@ class DashboardAnalyticsService
         'Deworming scheduled soon' => 'Make sure the products and staff are ready, then mark each deworming as done.',
         'Certificates expiring' => 'Renew these certificates before they expire so animals can still be moved and sold.',
         'Credit limit exceeded' => 'Collect payment, or raise the limit, before selling to these customers on credit again.',
+        'Scheduled feedings overdue' => 'Record the feeding from the schedule (or pause the schedule if it no longer applies).',
         'Calvings approaching' => 'Prepare the calving area and watch these cows closely.',
         'Pregnancy checks due' => 'Check whether these animals are pregnant and record the result.',
         'Outstanding payments' => 'Follow up with the buyers and record payments as they come in.',
@@ -773,6 +775,26 @@ class DashboardAnalyticsService
                 'Health',
                 null,
                 ['count' => $dewormingsScheduled],
+            ));
+        }
+
+        $feedingsOverdue = FeedingSchedule::query()
+            ->when($farmId, fn ($q) => $q->where('farm_id', $farmId))
+            ->where('status', 'active')
+            ->whereNotNull('next_due_date')
+            ->whereDate('next_due_date', '<', now()->toDateString())
+            ->count();
+
+        if ($feedingsOverdue > 0) {
+            $alerts->push($this->alert(
+                'warning',
+                'Scheduled feedings overdue',
+                ':count feeding schedule(s) past their due date.',
+                'feeding.schedules',
+                'feeding',
+                'Feeding',
+                null,
+                ['count' => $feedingsOverdue],
             ));
         }
 

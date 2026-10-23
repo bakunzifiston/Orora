@@ -37,7 +37,6 @@ use App\Http\Controllers\FeedingController;
 use App\Http\Controllers\FeedingModuleController;
 use App\Http\Controllers\FeedingScheduleController;
 use App\Http\Controllers\FeedInventoryController;
-use App\Http\Controllers\FeedSupplierController;
 use App\Http\Controllers\FeedTypeController;
 use App\Http\Controllers\FinanceModuleController;
 use App\Http\Controllers\FlockController;
@@ -46,6 +45,7 @@ use App\Http\Controllers\HealthRecordController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\MilkDistributionController;
+use App\Http\Controllers\RecordDetailsController;
 use App\Http\Controllers\MilkModuleController;
 use App\Http\Controllers\MilkRecordController;
 use App\Http\Controllers\MilkSessionController;
@@ -142,8 +142,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/inventory/{feedInventory}/movements', [FeedInventoryController::class, 'storeMovement'])->name('inventory.movements.store');
         Route::get('/records', [FeedingController::class, 'index'])->name('records');
         Route::resource('records', FeedingController::class)->except(['show', 'index'])->parameters(['records' => 'feeding']);
-        Route::get('/suppliers', [FeedSupplierController::class, 'index'])->name('suppliers');
-        Route::resource('suppliers', FeedSupplierController::class)->except(['show', 'index']);
         Route::get('/schedules', [FeedingScheduleController::class, 'index'])->name('schedules');
         Route::resource('schedules', FeedingScheduleController::class)->except(['show', 'index']);
         Route::prefix('calculator')->name('calculator.')->group(function () {
@@ -277,6 +275,16 @@ Route::middleware('auth')->group(function () {
         Route::put('/{employee}/payroll', [EmployeePayrollController::class, 'update'])->name('payroll.update');
         Route::post('/{employee}/documents', [EmployeeDocumentController::class, 'store'])->name('documents.store');
         Route::delete('/{employee}/documents/{document}', [EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
+    });
+
+    // Read-only "View" pages for records without a dedicated show page (config/record_views.php).
+    Route::middleware(EnsureSpeciesModule::class)->group(function () {
+        foreach (config('record_views', []) as $recordType => $recordView) {
+            Route::get($recordView['uri'].'/{record}', [RecordDetailsController::class, 'show'])
+                ->whereNumber('record')
+                ->defaults('recordType', $recordType)
+                ->name($recordView['route'].'.show');
+        }
     });
     }); // module.access
 });

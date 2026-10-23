@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\FeedingSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Requests\FeedTypeRequest;
-use App\Models\FeedSupplier;
 use App\Models\FeedType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -17,16 +16,14 @@ class FeedTypeController extends Controller
 
     public function index(): View
     {
-        $feedTypes = FeedType::query()->with('supplier')->withCount('inventories')->orderBy('name')->paginate(15);
+        $feedTypes = FeedType::query()->withCount('inventories')->withSum('inventories', 'quantity_on_hand')->orderBy('name')->paginate(15);
 
         return view('modules.feeding.feed-types.index', $this->feedingSectionData('feed-types', compact('feedTypes')));
     }
 
     public function create(): View
     {
-        return view('modules.feeding.feed-types.create', $this->feedingSectionData('feed-types', [
-            'suppliers' => FeedSupplier::query()->where('is_active', true)->orderBy('name')->get(),
-        ]));
+        return view('modules.feeding.feed-types.create', $this->feedingSectionData('feed-types'));
     }
 
     public function store(FeedTypeRequest $request): RedirectResponse
@@ -40,7 +37,6 @@ class FeedTypeController extends Controller
     {
         return view('modules.feeding.feed-types.edit', $this->feedingSectionData('feed-types', [
             'feedType' => $feedType,
-            'suppliers' => FeedSupplier::query()->orderBy('name')->get(),
         ]));
     }
 

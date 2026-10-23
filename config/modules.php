@@ -622,7 +622,6 @@ return [
         ['key' => 'feed-types', 'label' => 'Feed types', 'route' => 'feeding.feed-types'],
         ['key' => 'inventory', 'label' => 'Inventory', 'route' => 'feeding.inventory'],
         ['key' => 'records', 'label' => 'Feeding records', 'route' => 'feeding.records'],
-        ['key' => 'suppliers', 'label' => 'Suppliers', 'route' => 'feeding.suppliers'],
         ['key' => 'schedules', 'label' => 'Schedules', 'route' => 'feeding.schedules'],
         ['key' => 'calculator', 'label' => 'Feed calculator', 'route' => 'feeding.calculator.index'],
     ],

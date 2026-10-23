@@ -52,6 +52,10 @@
                                                     {{ $schedule->quantity }} {{ $schedule->unit }}
                                                     <span aria-hidden="true">·</span>
                                                     {{ ucfirst($schedule->frequency) }}
+                                                    @if ($schedule->animal || $schedule->livestock || $schedule->flock)
+                                                        <span aria-hidden="true">·</span>
+                                                        {{ $schedule->animal?->tag_number ?? $schedule->livestock?->name ?? $schedule->flock?->name }}
+                                                    @endif
                                                 </span>
                                             </div>
                                         </div>
@@ -60,12 +64,31 @@
                                         <span class="health-table__value">{{ $schedule->farm->name }}</span>
                                     </td>
                                     <td>
-                                        <span class="health-table__value">{{ $schedule->next_due_date?->format('M j, Y') ?? '—' }}</span>
+                                        @php $due = app(\App\Services\Feeding\FeedingScheduleService::class)->dueState($schedule); @endphp
+                                        <div class="health-table__stack">
+                                            <span class="health-table__value">{{ $schedule->next_due_date?->format('M j, Y') ?? '—' }}{{ $schedule->scheduled_time ? ' · '.substr((string) $schedule->scheduled_time, 0, 5) : '' }}</span>
+                                            @if ($due)
+                                                <span>
+                                                    @if ($due['state'] === 'overdue')
+                                                        <span class="health-table__pill health-table__pill--bad">{{ $due['days'] <= 7
+                                                            ? trans_choice('{1} Overdue by 1 day|[2,*] Overdue by :count days', $due['days'], ['count' => $due['days']])
+                                                            : __('Not recorded since :date', ['date' => $schedule->next_due_date->format($schedule->next_due_date->isCurrentYear() ? 'M j' : 'M j, Y')]) }}</span>
+                                                    @elseif ($due['state'] === 'today')
+                                                        <span class="health-table__pill health-table__pill--warn">{{ __('Due today') }}</span>
+                                                    @else
+                                                        <span class="health-table__meta">{{ trans_choice('{1} In 1 day|[2,*] In :count days', $due['days'], ['count' => $due['days']]) }}</span>
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="health-table__pill health-table__pill--{{ $statusTone }}">{{ ucfirst($schedule->status) }}</span>
                                     </td>
                                     <td class="health-table__actions">
+                                        @if ($schedule->status === 'active')
+                                            <a href="{{ route('feeding.records.create', ['schedule' => $schedule->id]) }}" class="dash-farm-card__btn" style="margin-bottom: 0.35rem; display: inline-block;">{{ __('Record feeding') }}</a>
+                                        @endif
                                         @include('modules.health.partials.table-actions', [
                                             'model' => $schedule,
                                             'editRoute' => 'feeding.schedules.edit',

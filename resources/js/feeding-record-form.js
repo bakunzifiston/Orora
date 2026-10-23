@@ -191,5 +191,46 @@
         filterAnimals();
     });
 
+    // Picking a schedule fills in what it describes: feed stock, who is fed and the quantity.
+    const applySchedule = () => {
+        const option = scheduleSelect?.selectedOptions[0];
+        if (!option || !option.value) return;
+
+        const data = option.dataset;
+        const quantity = root.querySelector('#quantity');
+
+        if (farmSelect && data.farmId && farmSelect.value !== data.farmId) {
+            farmSelect.value = data.farmId;
+            filterByFarm();
+        }
+        if (inventorySelect && data.inventoryId) {
+            inventorySelect.value = data.inventoryId;
+        }
+        if (quantity && data.quantity && !quantity.value) {
+            quantity.value = data.quantity;
+        }
+        if (flockSelect && data.flockId) {
+            flockSelect.value = data.flockId;
+        }
+        if (data.livestockId || data.animalId) {
+            const target = data.animalId ? 'animal' : 'group';
+            targetRadios.forEach((radio) => { radio.checked = radio.value === target; });
+            syncTargetFields();
+            if (livestockSelect && data.livestockId) {
+                livestockSelect.value = data.livestockId;
+            }
+            filterAnimals();
+            if (animalSelect && data.animalId) {
+                animalSelect.value = data.animalId;
+            }
+        }
+    };
+
+    scheduleSelect?.addEventListener('change', applySchedule);
+
     filterByFarm();
+
+    if (scheduleSelect?.value && !root.querySelector('#quantity')?.value) {
+        applySchedule();
+    }
 })();

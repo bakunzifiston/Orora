@@ -12,6 +12,7 @@ use App\Models\FeedingSchedule;
 use App\Models\FeedInventory;
 use App\Models\Livestock;
 use App\Services\FeedInventoryService;
+use App\Services\Feeding\FeedingScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -22,7 +23,10 @@ class FeedingController extends Controller
     use ProvidesModuleNavigation;
     use ProvidesStockOptions;
 
-    public function __construct(private FeedInventoryService $inventoryService) {}
+    public function __construct(
+        private FeedInventoryService $inventoryService,
+        private FeedingScheduleService $schedules,
+    ) {}
 
     public function index(): View
     {
@@ -63,6 +67,13 @@ class FeedingController extends Controller
                 ]);
 
                 $this->inventoryService->deductForFeeding($feeding);
+
+                if ($feeding->feeding_schedule_id) {
+                    $schedule = FeedingSchedule::query()->find($feeding->feeding_schedule_id);
+                    if ($schedule) {
+                        $this->schedules->recordFed($schedule, $feeding->fed_on);
+                    }
+                }
             });
         } catch (\InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['quantity' => $e->getMessage()]);

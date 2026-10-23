@@ -27,7 +27,7 @@
                             <tr>
                                 <th>{{ __('Feed type') }}</th>
                                 <th>{{ __('Farm') }}</th>
-                                <th>{{ __('Stock') }}</th>
+                                <th>{{ __('Quantity in stock') }}</th>
                                 <th>{{ __('Status') }}</th>
                                 <th class="health-table__actions">{{ __('Actions') }}</th>
                             </tr>
@@ -45,7 +45,9 @@
                                             <div class="health-table__stack">
                                                 <span class="health-table__title">{{ $inventory->feedType->name }}</span>
                                                 <span class="health-table__meta">
-                                                    {{ $inventory->feedType->supplier?->name ?? __('No supplier') }}
+                                                    {{ $inventory->latestPurchase?->expense?->vendor?->name
+                                                        ? __('Last bought from: :name', ['name' => $inventory->latestPurchase->expense->vendor->name])
+                                                        : ($inventory->feedType->category ?: $inventory->unit) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -57,7 +59,7 @@
                                         <div class="health-table__stack">
                                             <span class="health-table__value">{{ $inventory->quantity_on_hand }} {{ $inventory->unit }}</span>
                                             <span class="health-table__meta">
-                                                {{ __('Reorder') }}: {{ $inventory->reorder_level ?? '—' }}
+                                                {{ __('Reorder at') }}: {{ $inventory->reorder_level !== null ? $inventory->reorder_level.' '.$inventory->unit : '—' }}
                                             </span>
                                         </div>
                                     </td>
@@ -67,6 +69,7 @@
                                         </span>
                                     </td>
                                     <td class="health-table__actions">
+                                        <a href="{{ route('feeding.inventory.edit', $inventory) }}#record-stock" class="dash-farm-card__btn" style="margin-bottom: 0.35rem; display: inline-block;">+ {{ __('Add stock') }}</a>
                                         @include('modules.health.partials.table-actions', [
                                             'model' => $inventory,
                                             'editRoute' => 'feeding.inventory.edit',

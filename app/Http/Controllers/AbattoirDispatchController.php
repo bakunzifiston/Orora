@@ -79,7 +79,7 @@ class AbattoirDispatchController extends Controller
 
             foreach ($validated['animal_ids'] as $animalId) {
                 $animal = Animal::query()->findOrFail($animalId);
-                $this->saleService->assertAnimalSellable($animal);
+                $this->saleService->assertAnimalFitForSlaughter($animal);
 
                 $dispatch->animals()->create([
                     'animal_id' => $animalId,

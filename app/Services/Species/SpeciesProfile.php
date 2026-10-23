@@ -89,6 +89,30 @@ class SpeciesProfile
     }
 
     /**
+     * Sale types used anywhere in the workspace: every type allowed by the species
+     * of its farms, plus any type that already has sales (so recorded money is never hidden).
+     *
+     * @return list<string>
+     */
+    public function workspaceSaleTypes(): array
+    {
+        $types = $this->farms->tenantFarms()
+            ->flatMap(fn (Farm $farm) => $this->saleTypes($farm))
+            ->merge(\App\Models\SaleTransaction::query()->distinct()->pluck('sale_type'))
+            ->unique();
+
+        if ($types->isEmpty()) {
+            $types = collect($this->saleTypes());
+        }
+
+        // Keep the configured order.
+        return collect(config('modules.sale_types', []))
+            ->filter(fn (string $type) => $types->contains($type))
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return list<string>
      */
     public function herdGroups(?Farm $farm = null): array

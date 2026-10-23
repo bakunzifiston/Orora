@@ -15,7 +15,6 @@ class FeedTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'feed_supplier_id' => ['nullable', 'exists:feed_suppliers,id'],
             'name' => ['required', 'string', 'max:255'],
             'unit' => ['required', Rule::in(config('modules.feed_units'))],
             'category' => ['nullable', Rule::in(config('modules.feed_type_categories'))],
@@ -54,10 +53,6 @@ class FeedTypeRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $merge = ['is_active' => $this->boolean('is_active')];
-
-        if ($this->input('feed_supplier_id') === '') {
-            $merge['feed_supplier_id'] = null;
-        }
 
         if ($this->input('category') === '') {
             $merge['category'] = null;

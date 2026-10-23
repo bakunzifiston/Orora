@@ -271,14 +271,27 @@ class SaleTransactionService
         }
     }
 
+    /**
+     * Any active animal can be sold whatever its health status; sold, deceased,
+     * transferred or otherwise inactive animals cannot. Sick, quarantined and
+     * under-treatment animals are flagged in the UI so the buyer can be told.
+     */
     public function assertAnimalSellable(Animal $animal): void
     {
         if (strcasecmp((string) $animal->lifecycle_status, 'Active') !== 0) {
             throw new InvalidArgumentException("Animal {$animal->tag_number} is not active and cannot be sold.");
         }
+    }
+
+    /**
+     * Animals sent for slaughter must also be healthy (food safety).
+     */
+    public function assertAnimalFitForSlaughter(Animal $animal): void
+    {
+        $this->assertAnimalSellable($animal);
 
         if (strcasecmp((string) $animal->health_status, 'Healthy') !== 0) {
-            throw new InvalidArgumentException("Animal {$animal->tag_number} must be healthy to sell.");
+            throw new InvalidArgumentException("Animal {$animal->tag_number} must be healthy to send to the abattoir.");
         }
     }
 

@@ -2741,6 +2741,19 @@
         box-shadow: none;
         border-color: var(--farm-border);
     }
+    .health-donut { display: flex; align-items: center; gap: 0.85rem; }
+    .health-donut__chart.health-page__chart--donut { flex: 0 0 auto; width: clamp(130px, 45%, 170px); height: auto; aspect-ratio: 1; margin: 0; }
+    .health-donut__legend { flex: 1; min-width: 0; list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+    .health-donut__item {
+        display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.4rem;
+        width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer;
+    }
+    .health-donut__item.is-hidden { opacity: 0.4; }
+    .health-donut__swatch { width: 0.7rem; height: 0.7rem; border-radius: 0.2rem; }
+    .health-donut__name { font-size: 0.8rem; color: #374151; overflow-wrap: break-word; word-break: normal; hyphens: auto; }
+    .health-donut__count { font-size: 0.8rem; font-weight: 700; color: #111; white-space: nowrap; }
+    .health-donut__count span { display: block; font-size: 0.7rem; font-weight: 500; color: #9ca3af; text-align: right; }
+    @media (max-width: 380px) { .health-donut { flex-direction: column; } .health-donut__legend { width: 100%; } }
     .health-page__chart--donut {
         max-width: 16rem;
         margin-inline: auto;

@@ -13,6 +13,7 @@ use App\Models\FeedType;
 use App\Services\ExpenseService;
 use App\Services\FeedInventoryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FeedInventoryController extends Controller
@@ -28,7 +29,7 @@ class FeedInventoryController extends Controller
     public function index(): View
     {
         $inventories = FeedInventory::query()
-            ->with(['farm', 'feedType.supplier'])
+            ->with(['farm', 'feedType', 'latestPurchase.expense.vendor'])
             ->orderBy('farm_id')
             ->orderBy('feed_type_id')
             ->paginate(15);
@@ -48,18 +49,27 @@ class FeedInventoryController extends Controller
     {
         $feedType = FeedType::query()->findOrFail($request->input('feed_type_id'));
 
-        FeedInventory::create([
-            ...$request->validated(),
-            'unit' => $feedType->unit,
-            'quantity_on_hand' => 0,
-        ]);
+        $opening = (float) $request->validated('opening_quantity', 0);
+
+        DB::transaction(function () use ($request, $feedType, $opening) {
+            $inventory = FeedInventory::create([
+                ...$request->safe()->except('opening_quantity'),
+                'unit' => $feedType->unit,
+                'quantity_on_hand' => 0,
+            ]);
+
+            // Opening stock goes through the movement log so the history and balance agree.
+            if ($opening > 0) {
+                $this->inventoryService->recordMovement($inventory, 'adjustment_in', $opening, __('Opening stock'));
+            }
+        });
 
         return redirect()->route('feeding.inventory')->with('success', __('Inventory item created successfully.'));
     }
 
     public function edit(FeedInventory $feedInventory): View
     {
-        $feedInventory->load(['farm', 'feedType.supplier', 'movements' => fn ($q) => $q->limit(20)]);
+        $feedInventory->load(['farm', 'feedType', 'movements' => fn ($q) => $q->with('expense.vendor')->limit(20)]);
 
         return view('modules.feeding.inventory.edit', $this->feedingSectionData('inventory', [
             'feedInventory' => $feedInventory,
@@ -67,6 +77,7 @@ class FeedInventoryController extends Controller
             'feedTypes' => FeedType::query()->orderBy('name')->get(),
             'movementLabels' => config('modules.feed_movement_labels'),
             'vendors' => ExpenseVendor::query()->where('is_active', true)->orderBy('name')->get(),
+            'lastVendorName' => $feedInventory->latestPurchase()->first()?->expense?->vendor?->name,
         ]));
     }
 
@@ -104,13 +115,13 @@ class FeedInventoryController extends Controller
             return back()->withInput()->withErrors(['quantity' => $e->getMessage()]);
         }
 
-        $feedInventory->load(['farm', 'feedType.supplier']);
+        $feedInventory->load(['farm', 'feedType']);
 
         $this->expenseService->createForMovement($movement, $request, [
             'farm_id' => $feedInventory->farm_id,
             'expense_date' => $request->date('moved_at') ?? now(),
             'title' => 'Feed purchase: '.$feedInventory->feedType->name,
-            'default_vendor_name' => $feedInventory->feedType->supplier?->name,
+            'default_vendor_name' => $feedInventory->latestPurchase()->first()?->expense?->vendor?->name,
         ]);
 
         return redirect()

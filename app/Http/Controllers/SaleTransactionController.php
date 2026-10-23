@@ -32,7 +32,7 @@ class SaleTransactionController extends Controller
     public function index(Request $request): View
     {
         $transactions = SaleTransaction::query()
-            ->with(['farm', 'customer'])
+            ->with(['farm', 'customer', 'items:id,sale_transaction_id,quantity,unit'])
             ->when($request->filled('type'), fn ($q) => $q->where('sale_type', $request->input('type')))
             ->when($request->filled('farm_id'), fn ($q) => $q->where('farm_id', $request->integer('farm_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('sale_status', $request->input('status')))
@@ -46,6 +46,7 @@ class SaleTransactionController extends Controller
             'transactions' => $transactions,
             'farms' => Farm::query()->orderBy('name')->get(),
             'filterType' => $request->input('type'),
+            'saleTypes' => app(\App\Services\Species\SpeciesProfile::class)->workspaceSaleTypes(),
             'filterFarmId' => $request->input('farm_id'),
             'filterStatus' => $request->input('status'),
             'filterFrom' => $request->input('from'),

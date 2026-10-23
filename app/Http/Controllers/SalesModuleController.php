@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Controllers\Concerns\SalesSectionViews;
 use App\Models\SaleTransaction;
 use App\Services\DashboardAnalyticsService;
+use App\Services\Species\SpeciesProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -56,6 +57,8 @@ class SalesModuleController extends Controller
             ->limit(10)
             ->get();
 
-        return view('modules.sales.overview', $this->salesSectionData('overview', compact('stats', 'recent', 'filters')));
+        $saleTypes = app(SpeciesProfile::class)->workspaceSaleTypes();
+
+        return view('modules.sales.overview', $this->salesSectionData('overview', compact('stats', 'recent', 'filters', 'saleTypes')));
     }
 }

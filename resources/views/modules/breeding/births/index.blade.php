@@ -63,6 +63,7 @@
                                     </td>
                                     <td class="health-table__actions">
                                         <div class="health-table__action-btns">
+                                            <a href="{{ route('breeding.births.show', $birth) }}" class="dash-farm-card__btn">{{ __('View') }}</a>
                                             <a href="{{ route('breeding.births.edit', $birth) }}" class="dash-farm-card__btn">{{ __('Edit') }}</a>
                                         </div>
                                     </td>

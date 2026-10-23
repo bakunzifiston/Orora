@@ -6,7 +6,6 @@ use App\Http\Controllers\Concerns\FeedingSectionViews;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Models\Feeding;
 use App\Models\FeedInventory;
-use App\Models\FeedSupplier;
 use App\Models\FeedType;
 use App\Models\FeedingSchedule;
 use Illuminate\View\View;
@@ -19,7 +18,10 @@ class FeedingModuleController extends Controller
     public function overview(): View
     {
         $stats = [
-            'suppliers' => FeedSupplier::query()->where('is_active', true)->count(),
+            'overdue_schedules' => FeedingSchedule::query()->where('status', 'active')
+                ->whereNotNull('next_due_date')
+                ->whereDate('next_due_date', '<', now()->toDateString())
+                ->count(),
             'feed_types' => FeedType::query()->where('is_active', true)->count(),
             'inventory_items' => FeedInventory::query()->count(),
             'low_stock' => FeedInventory::query()->whereNotNull('reorder_level')

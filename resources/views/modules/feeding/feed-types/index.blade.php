@@ -26,8 +26,10 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Feed type') }}</th>
-                                <th>{{ __('Supplier') }}</th>
-                                <th>{{ __('Inventory') }}</th>
+                                <th>{{ __('Category') }}</th>
+                                <th>{{ __('Unit') }}</th>
+                                <th>{{ __('Stock (all farms)') }}</th>
+                                <th>{{ __('Status') }}</th>
                                 <th class="health-table__actions">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
@@ -39,20 +41,30 @@
                                             @include('modules.health.partials.table-icon', ['icon' => 'feeding', 'tone' => 'default'])
                                             <div class="health-table__stack">
                                                 <span class="health-table__title">{{ $feedType->name }}</span>
-                                                <span class="health-table__meta">
-                                                    {{ $feedType->unit }}
-                                                    @if ($feedType->category)
-                                                        <span aria-hidden="true">·</span> {{ $feedType->category }}
-                                                    @endif
-                                                </span>
+                                                @if ($feedType->description)
+                                                    <span class="health-table__meta">{{ \Illuminate\Support\Str::limit($feedType->description, 60) }}</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="health-table__value">{{ $feedType->supplier?->name ?? '—' }}</span>
+                                        <span class="health-table__value">{{ $feedType->category ? ucfirst($feedType->category) : '—' }}</span>
                                     </td>
                                     <td>
-                                        <span class="health-table__value">{{ number_format($feedType->inventories_count) }}</span>
+                                        <span class="health-table__value">{{ $feedType->unit }}</span>
+                                    </td>
+                                    <td>
+                                        @if ($feedType->inventories_count > 0)
+                                            <div class="health-table__stack">
+                                                <span class="health-table__value">{{ rtrim(rtrim(number_format((float) $feedType->inventories_sum_quantity_on_hand, 2), '0'), '.') }} {{ $feedType->unit }}</span>
+                                                <span class="health-table__meta">{{ trans_choice('{1} On 1 farm|[2,*] On :count farms', $feedType->inventories_count, ['count' => $feedType->inventories_count]) }}</span>
+                                            </div>
+                                        @else
+                                            <span class="health-table__meta">{{ __('Not stocked yet') }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="health-table__pill health-table__pill--{{ $feedType->is_active ? 'ok' : 'muted' }}">{{ $feedType->is_active ? __('Active') : __('Inactive') }}</span>
                                     </td>
                                     <td class="health-table__actions">
                                         @include('modules.health.partials.table-actions', [

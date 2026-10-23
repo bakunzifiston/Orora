@@ -1,26 +1,7 @@
 @php
     $feedType = $feedType ?? null;
-    $suppliers = $suppliers ?? collect();
 @endphp
 <div class="dash-form-grid">
-    <div class="dash-form-field">
-        <label for="feed_supplier_id">{{ __('Supplier') }} <span class="dash-field-optional">({{ __('optional') }})</span></label>
-        <select name="feed_supplier_id" id="feed_supplier_id">
-            <option value="">{{ __('No supplier') }}</option>
-            @foreach ($suppliers as $supplier)
-                <option value="{{ $supplier->id }}" @selected(old('feed_supplier_id', $feedType?->feed_supplier_id) == $supplier->id)>{{ $supplier->name }}</option>
-            @endforeach
-        </select>
-        @if ($suppliers->isEmpty())
-            <p class="dash-field-hint">
-                {{ __('No suppliers yet. You can save this feed type without one.') }}
-                <a href="{{ route('feeding.suppliers.create') }}">{{ __('Add a supplier') }}</a>
-            </p>
-        @else
-            <p class="dash-field-hint">{{ __('Leave as “No supplier” if this feed is mixed on-farm or the source is unknown.') }}</p>
-        @endif
-        @error('feed_supplier_id')<p class="dash-form-error">{{ $message }}</p>@enderror
-    </div>
     <div class="dash-form-field">
         <label for="name">{{ __('Feed type name') }} <span class="dash-required">*</span></label>
         <input type="text" name="name" id="name" value="{{ old('name', $feedType?->name) }}" required>
@@ -55,3 +36,4 @@
         </label>
     </div>
 </div>
+

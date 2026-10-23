@@ -70,6 +70,7 @@
                         </div>
                     </div>
                 </a>
+                @if (in_array('animal_sale', $saleTypes, true))
                 <a href="{{ route('sales.transactions', ['type' => 'animal_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="farm-kpi farm-kpi--production">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
@@ -82,6 +83,8 @@
                         </div>
                     </div>
                 </a>
+                @endif
+                @if (in_array('meat_sale', $saleTypes, true))
                 <a href="{{ route('sales.transactions', ['type' => 'meat_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="farm-kpi farm-kpi--health">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'livestock'])
@@ -94,6 +97,8 @@
                         </div>
                     </div>
                 </a>
+                @endif
+                @if (in_array('milk_sale', $saleTypes, true))
                 <a href="{{ route('sales.transactions', ['type' => 'milk_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="farm-kpi farm-kpi--stock">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
@@ -106,6 +111,8 @@
                         </div>
                     </div>
                 </a>
+                @endif
+                @if (in_array('egg_sale', $saleTypes, true))
                 <a href="{{ route('sales.transactions', ['type' => 'egg_sale', 'from' => $filters['from'], 'to' => $filters['to']]) }}" class="farm-kpi farm-kpi--expense">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
@@ -118,6 +125,7 @@
                         </div>
                     </div>
                 </a>
+                @endif
             </div>
         </section>
 
