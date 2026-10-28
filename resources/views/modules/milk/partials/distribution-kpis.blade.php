@@ -14,6 +14,7 @@
     <div class="farm-dash__kpis farm-dash__kpis--5">
         @include('modules.milk.partials.cost-kpi', ['costCurrent' => $costCurrent])
         @foreach ($cards as $card)
+            @continue((float) $card['value'] == 0)
             <a
                 href="{{ route('milk.distribution', $card['category'] ? $filters + ['category' => $card['category']] : $filters) }}"
                 class="farm-kpi farm-kpi--{{ $card['tone'] }}"

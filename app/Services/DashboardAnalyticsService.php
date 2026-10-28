@@ -102,7 +102,7 @@ class DashboardAnalyticsService
             'recentSales' => $this->recentSales($from, $to, $farmId, 5),
             'pendingAlerts' => $this->pendingAlertsByModule($alerts),
             'topAnimals' => $isPoultry ? [] : $this->topMilkProducers($from, $to, $farmId, 5),
-            'topCustomers' => $this->topCustomers($from, $to, $farmId, 5),
+            'feedStock' => $this->feedStock($farmId),
             'activity' => $this->recentActivity($farmId),
         ];
     }
@@ -146,7 +146,7 @@ class DashboardAnalyticsService
     public function resolveFilters(Request $request): array
     {
         $period = $request->input('period', 'this_year');
-        if (! in_array($period, ['all', 'this_month', 'last_month', 'this_quarter', 'this_year', 'custom'], true)) {
+        if (! in_array($period, ['all', 'today', 'this_month', 'last_month', 'this_quarter', 'this_year', 'custom'], true)) {
             $period = 'this_year';
         }
 
@@ -157,6 +157,11 @@ class DashboardAnalyticsService
         }
 
         [$from, $to, $label] = match ($period) {
+            'today' => [
+                now()->startOfDay(),
+                now()->endOfDay(),
+                __('Today').' · '.now()->format('M j, Y'),
+            ],
             'this_month' => [
                 now()->startOfMonth(),
                 now()->endOfMonth(),
@@ -259,6 +264,7 @@ class DashboardAnalyticsService
                 'active_farms' => $farmId
                     ? (Farm::query()->where('id', $farmId)->where('status', 'active')->exists() ? 1 : 0)
                     : Farm::query()->where('status', 'active')->count(),
+            'livestock_groups' => $this->farmScope(\App\Models\Livestock::query(), $farmId)->where('status', 'active')->count(),
                 'lactating' => 0,
                 'for_sale' => 0,
                 'birds_on_hand' => $current,
@@ -275,6 +281,7 @@ class DashboardAnalyticsService
             'active_farms' => $farmId
                 ? (Farm::query()->where('id', $farmId)->where('status', 'active')->exists() ? 1 : 0)
                 : Farm::query()->where('status', 'active')->count(),
+            'livestock_groups' => $this->farmScope(\App\Models\Livestock::query(), $farmId)->where('status', 'active')->count(),
             'lactating' => (clone $animalQuery)->milkingEligible()
                 ->where('lifecycle_status', 'Active')
                 ->count(),
@@ -320,6 +327,11 @@ class DashboardAnalyticsService
                 'metrics' => [
                     ['label' => 'Vaccinations due', 'value' => number_format($vaccDue)],
                     ['label' => 'Follow-ups (30d)', 'value' => number_format($this->healthFollowupsCount($farmId))],
+                    [
+                        'label' => 'Sick animals',
+                        'value' => number_format($this->diseasedAnimalsCount($farmId)),
+                        'hint' => trans_choice('{1} From 1 open disease case|[2,*] From :count open disease cases', $openCases = $this->openDiseaseCasesCount($farmId), ['count' => $openCases]),
+                    ],
                 ],
             ],
             [
@@ -357,6 +369,54 @@ class DashboardAnalyticsService
                 ],
             ];
         } else {
+            $litres = fn (float $value) => number_format($value, 0).' L';
+            $produced = (float) $this->farmScope(\App\Models\MilkSession::query(), $farmId)
+                ->where('status', 'completed')
+                ->whereBetween('session_date', [$from, $to])
+                ->sum('total_yield_liters');
+            $producedToday = (float) $this->farmScope(\App\Models\MilkSession::query(), $farmId)
+                ->whereDate('session_date', now()->toDateString())
+                ->sum('total_yield_liters');
+            $sold = (float) $this->farmScope(\App\Models\MilkDistribution::query(), $farmId)
+                ->where('category', 'sold')
+                ->whereBetween('distributed_at', [$from.' 00:00:00', $to.' 23:59:59'])
+                ->sum('quantity_liters');
+            $inStorage = (float) $this->farmScope(\App\Models\MilkStorage::query(), $farmId)
+                ->sum('current_quantity_liters');
+
+            $strips[] = [
+                'key' => 'production',
+                'label' => 'Milk',
+                'route' => 'milk.overview',
+                'icon' => 'milk',
+                'metrics' => [
+                    ['label' => 'Milk produced today', 'value' => $litres($producedToday), 'hint' => now()->format('M j, Y')],
+                    ['label' => 'Milk produced', 'value' => $litres($produced)],
+                    ['label' => 'Milk sold', 'value' => $litres($sold)],
+                    ['label' => 'Milk in storage', 'value' => $litres($inStorage)],
+                    [
+                        'label' => 'Litres per cow per day',
+                        'value' => number_format($this->litresPerCowPerDay($from, $to, $farmId), 1).' L',
+                        'hint' => __('Average yield in this period'),
+                    ],
+                ],
+            ];
+
+            $pregnancy = $this->pregnancyRate($from, $to, $farmId);
+            $strips[] = [
+                'key' => 'breeding',
+                'label' => 'Breeding',
+                'route' => 'breeding.overview',
+                'icon' => 'breeding',
+                'metrics' => [
+                    [
+                        'label' => 'Pregnancy rate',
+                        'value' => $pregnancy['checked'] > 0 ? $pregnancy['rate'].'%' : '0',
+                        'hint' => trans_choice('{1} 1 pregnant of 1 checked|[2,*] :pregnant pregnant of :count checked', max(1, $pregnancy['checked']), ['pregnant' => $pregnancy['pregnant'], 'count' => $pregnancy['checked']]),
+                    ],
+                ],
+            ];
+
             $strips[] = [
                 'key' => 'stock',
                 'label' => 'Herd groups',
@@ -369,7 +429,98 @@ class DashboardAnalyticsService
             ];
         }
 
+        $overdue = $this->overduePayments($farmId);
+        $strips[] = [
+            'key' => 'receivable',
+            'label' => 'Sales',
+            'route' => 'sales.transactions',
+            'icon' => 'customer',
+            'metrics' => [
+                [
+                    'label' => 'Overdue payments',
+                    'value' => number_format($overdue['amount'], 0).' RWF',
+                    'hint' => trans_choice('{1} 1 sale unpaid for over 30 days|[2,*] :count sales unpaid for over 30 days', max(1, $overdue['count']), ['count' => $overdue['count']]),
+                ],
+            ],
+        ];
+
         return $strips;
+    }
+
+    /** Average litres per cow per milking day: total yield ÷ (cow, day) pairs with a record. */
+    private function litresPerCowPerDay(string $from, string $to, ?int $farmId): float
+    {
+        $row = \App\Models\MilkRecord::query()
+            ->join('milk_sessions', 'milk_sessions.id', '=', 'milk_records.milk_session_id')
+            ->when($farmId, fn ($q) => $q->where('milk_sessions.farm_id', $farmId))
+            ->whereBetween('milk_sessions.session_date', [$from, $to])
+            ->selectRaw("SUM(milk_records.yield_liters) as litres, COUNT(DISTINCT CONCAT(milk_records.animal_id, '-', milk_sessions.session_date)) as cow_days")
+            ->first();
+
+        return ($row && (int) $row->cow_days > 0) ? round((float) $row->litres / (int) $row->cow_days, 1) : 0.0;
+    }
+
+    /**
+     * Pregnancy rate for services in the period: pregnant (or calved) ÷ services with a known result.
+     *
+     * @return array{rate: int, pregnant: int, checked: int}
+     */
+    private function pregnancyRate(string $from, string $to, ?int $farmId): array
+    {
+        $counts = $this->farmScope(\App\Models\BreedingRecord::query(), $farmId)
+            ->whereBetween('breeding_date', [$from, $to])
+            ->whereIn('breeding_status', ['confirmed_pregnant', 'calved', 'failed', 'aborted'])
+            ->selectRaw("SUM(breeding_status IN ('confirmed_pregnant', 'calved')) as pregnant, COUNT(*) as checked")
+            ->first();
+
+        $pregnant = (int) ($counts->pregnant ?? 0);
+        $checked = (int) ($counts->checked ?? 0);
+
+        return [
+            'rate' => $checked > 0 ? (int) round($pregnant / $checked * 100) : 0,
+            'pregnant' => $pregnant,
+            'checked' => $checked,
+        ];
+    }
+
+    /**
+     * Money still owed on sales made more than 30 days ago.
+     *
+     * @return array{amount: float, count: int}
+     */
+    private function overduePayments(?int $farmId): array
+    {
+        $sales = $this->farmScope(SaleTransaction::query(), $farmId)
+            ->whereIn('payment_status', ['unpaid', 'partial'])
+            ->whereNotIn('sale_status', ['cancelled', 'draft'])
+            ->whereDate('sale_date', '<', now()->subDays(30)->toDateString())
+            ->withSum('payments as paid_total', 'amount_paid')
+            ->get(['id', 'total_amount']);
+
+        $owed = $sales->map(fn ($sale) => max(0, (float) $sale->total_amount - (float) ($sale->paid_total ?? 0)))
+            ->filter(fn ($amount) => $amount > 0);
+
+        return ['amount' => round($owed->sum(), 2), 'count' => $owed->count()];
+    }
+
+    /** Open disease records (recovering or chronic) for active animals. */
+    private function openDiseaseCasesCount(?int $farmId): int
+    {
+        return $this->farmScope(\App\Models\DiseaseRecord::query(), $farmId)
+            ->whereIn('recovery_status', ['recovering', 'chronic'])
+            ->whereHas('animal', fn (Builder $q) => $q->where('lifecycle_status', 'Active'))
+            ->count();
+    }
+
+    /** Active animals with an open disease record (recovering or chronic). */
+    private function diseasedAnimalsCount(?int $farmId): int
+    {
+        return $this->farmScope(\App\Models\DiseaseRecord::query(), $farmId)
+            ->whereIn('recovery_status', ['recovering', 'chronic'])
+            ->whereNotNull('animal_id')
+            ->whereHas('animal', fn (Builder $q) => $q->where('lifecycle_status', 'Active'))
+            ->distinct('animal_id')
+            ->count('animal_id');
     }
 
     private function herdGroupAnimalCount(?int $farmId, string $herdGroup): int
@@ -455,6 +606,33 @@ class DashboardAnalyticsService
     /**
      * @return list<array<string, mixed>>
      */
+    /**
+     * Quantity in stock per feed type (summed over farms), lowest stock relative to its reorder level first.
+     *
+     * @return list<array{name: string, quantity: float, unit: string, low: bool, farms: int}>
+     */
+    private function feedStock(?int $farmId): array
+    {
+        return $this->farmScope(FeedInventory::query(), $farmId)
+            ->with('feedType:id,name,unit')
+            ->get()
+            ->groupBy('feed_type_id')
+            ->map(function ($items) {
+                $type = $items->first()->feedType;
+
+                return [
+                    'name' => $type?->name ?? __('Feed'),
+                    'quantity' => (float) $items->sum('quantity_on_hand'),
+                    'unit' => $items->first()->unit ?: ($type?->unit ?? 'kg'),
+                    'low' => $items->contains(fn ($inventory) => $inventory->isLowStock()),
+                    'farms' => $items->count(),
+                ];
+            })
+            ->sortBy([['low', 'desc'], ['name', 'asc']])
+            ->values()
+            ->all();
+    }
+
     private function topCustomers(string $from, string $to, ?int $farmId, int $limit): array
     {
         $rows = $this->farmScope(SaleTransaction::query(), $farmId)

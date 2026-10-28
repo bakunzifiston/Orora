@@ -11,7 +11,7 @@
     $sales = $dashboard['recentSales'] ?? [];
     $alertGroups = $dashboard['pendingAlerts'] ?? [];
     $topAnimals = $dashboard['topAnimals'] ?? [];
-    $topCustomers = $dashboard['topCustomers'] ?? [];
+    $feedStock = $dashboard['feedStock'] ?? [];
     $activity = $dashboard['activity'] ?? [];
     $moduleStrips = $dashboard['moduleStrips'] ?? [];
     $isPoultry = ($dashboard['species'] ?? 'cattle') === 'poultry';
@@ -59,7 +59,6 @@
     $revenueTrend = $trendFromSeries($charts['revenueExpenses']['revenue'] ?? []);
     $expenseTrend = $trendFromSeries($charts['revenueExpenses']['expenses'] ?? []);
 
-    $netProfit = (float) ($fin['net_profit'] ?? 0);
     $stockRoute = $isPoultry
         ? route('flocks.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : [])
         : route('animals.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : []);
@@ -199,6 +198,31 @@
         {{-- All KPIs --}}
         <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
             <div class="farm-dash__kpis farm-dash__kpis--4">
+                @if (($live['active_farms'] ?? 0) > 0)
+                <a href="{{ route('farms.index') }}" class="farm-kpi farm-kpi--farms">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Active farms') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($live['active_farms'] ?? 0) }}</div>
+                    </div>
+                </a>
+                @endif
+
+                @if (($live['livestock_groups'] ?? 0) > 0)
+                <a href="{{ route('livestock.index', $f['farm_id'] ? ['farm_id' => $f['farm_id']] : []) }}" class="farm-kpi farm-kpi--feeding">
+                    <div class="farm-kpi__icon" aria-hidden="true">
+                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'livestock'])
+                    </div>
+                    <div class="farm-kpi__body">
+                        <div class="farm-kpi__label">{{ __('Livestock groups') }}</div>
+                        <div class="farm-kpi__value">{{ number_format($live['livestock_groups'] ?? 0) }}</div>
+                    </div>
+                </a>
+                @endif
+
+                @if ((float) ($fin['revenue'] ?? 0) != 0)
                 <a href="{{ route('finance.overview', request()->only(['farm_id', 'from', 'to', 'period'])) }}" class="farm-kpi farm-kpi--revenue">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
@@ -217,7 +241,9 @@
                         @endif
                     </div>
                 </a>
+                @endif
 
+                @if ((float) ($fin['expenses'] ?? 0) != 0)
                 <a href="{{ route('expenses.overview') }}" class="farm-kpi farm-kpi--expense">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'expense'])
@@ -236,21 +262,9 @@
                         @endif
                     </div>
                 </a>
+                @endif
 
-                <a href="{{ route('finance.reports.profit_loss', request()->only(['farm_id', 'from', 'to'])) }}" class="farm-kpi farm-kpi--profit {{ $netProfit < 0 ? 'farm-kpi--negative' : '' }}">
-                    <div class="farm-kpi__icon" aria-hidden="true">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'finance'])
-                    </div>
-                    <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Net profit') }}</div>
-                        <div class="farm-kpi__value">
-                            {{ $money($netProfit) }}
-                            <span class="farm-kpi__unit">RWF</span>
-                        </div>
-                        <div class="farm-kpi__hint">{{ __('Revenue minus expenses') }}</div>
-                    </div>
-                </a>
-
+                @if ((float) ($fin['accounts_receivable'] ?? 0) != 0)
                 <a href="{{ route('customers.overview') }}" class="farm-kpi farm-kpi--receivable">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'customer'])
@@ -264,7 +278,9 @@
                         <div class="farm-kpi__hint">{{ __('Outstanding customer balances') }}</div>
                     </div>
                 </a>
+                @endif
 
+                @if (($live['total_animals'] ?? 0) > 0)
                 <a href="{{ $stockRoute }}" class="farm-kpi farm-kpi--stock">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
@@ -274,18 +290,10 @@
                         <div class="farm-kpi__value">{{ number_format($live['total_animals'] ?? 0) }}</div>
                     </div>
                 </a>
-
-                <a href="{{ route('farms.index') }}" class="farm-kpi farm-kpi--farms">
-                    <div class="farm-kpi__icon" aria-hidden="true">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'farm'])
-                    </div>
-                    <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Active farms') }}</div>
-                        <div class="farm-kpi__value">{{ number_format($live['active_farms'] ?? 0) }}</div>
-                    </div>
-                </a>
+                @endif
 
                 @if ($isPoultry)
+                    @if ((float) ($live['mortality_percent'] ?? 0) > 0)
                     <a href="{{ route('eggs.overview') }}" class="farm-kpi farm-kpi--health">
                         <div class="farm-kpi__icon" aria-hidden="true">
                             @include('layouts.partials.dashboard-nav-icon', ['icon' => 'health'])
@@ -295,6 +303,8 @@
                             <div class="farm-kpi__value">{{ number_format($live['mortality_percent'] ?? 0, 1) }}<span class="farm-kpi__unit">%</span></div>
                         </div>
                     </a>
+                    @endif
+                    @if (($live['eggs_period'] ?? 0) > 0)
                     <a href="{{ route('eggs.overview') }}" class="farm-kpi farm-kpi--production">
                         <div class="farm-kpi__icon" aria-hidden="true">
                             @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
@@ -307,7 +317,9 @@
                             @endif
                         </div>
                     </a>
+                    @endif
                 @else
+                    @if (($live['lactating'] ?? 0) > 0)
                     <a href="{{ route('milk.overview') }}" class="farm-kpi farm-kpi--production">
                         <div class="farm-kpi__icon" aria-hidden="true">
                             @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
@@ -317,6 +329,8 @@
                             <div class="farm-kpi__value">{{ number_format($live['lactating'] ?? 0) }}</div>
                         </div>
                     </a>
+                    @endif
+                    @if (($live['for_sale'] ?? 0) > 0)
                     <a href="{{ route('sales.overview') }}" class="farm-kpi farm-kpi--sales">
                         <div class="farm-kpi__icon" aria-hidden="true">
                             @include('layouts.partials.dashboard-nav-icon', ['icon' => 'sale'])
@@ -327,6 +341,7 @@
                             <div class="farm-kpi__hint">{{ __('Open sale listings') }}</div>
                         </div>
                     </a>
+                    @endif
                 @endif
 
                 @foreach ($moduleStrips as $group)
@@ -339,6 +354,7 @@
                         $groupIcon = $group['icon'] ?? 'grid';
                     @endphp
                     @foreach (($group['metrics'] ?? []) as $metric)
+                        @if ((float) str_replace(',', '', (string) ($metric['value'] ?? '0')) != 0)
                         <a href="{{ $groupRoute }}" class="farm-kpi farm-kpi--{{ $groupKey }}">
                             <div class="farm-kpi__icon" aria-hidden="true">
                                 @include('layouts.partials.dashboard-nav-icon', ['icon' => $groupIcon])
@@ -346,8 +362,12 @@
                             <div class="farm-kpi__body">
                                 <div class="farm-kpi__label">{{ __($metric['label'] ?? '') }}</div>
                                 <div class="farm-kpi__value">{{ $metric['value'] ?? '0' }}</div>
+                                @if (! empty($metric['hint']))
+                                    <div class="farm-kpi__hint">{{ $metric['hint'] }}</div>
+                                @endif
                             </div>
                         </a>
+                        @endif
                     @endforeach
                 @endforeach
             </div>
@@ -521,28 +541,27 @@
                 <article class="farm-panel">
                     <header class="farm-panel__head">
                         <div>
-                            <h2 class="farm-panel__title">{{ __('Top customers') }}</h2>
-                            <p class="farm-panel__desc">{{ __('Highest spend this period') }}</p>
+                            <h2 class="farm-panel__title">{{ __('Feed stock') }}</h2>
+                            <p class="farm-panel__desc">{{ __('Quantity in stock by feed type') }}</p>
                         </div>
+                        <a href="{{ route('feeding.inventory') }}" class="feed-stock-link">{{ __('Inventory') }} →</a>
                     </header>
-                    @if (empty($topCustomers))
-                        <p class="dash-empty">{{ __('No customer sales in this period.') }}</p>
+                    @if (empty($feedStock))
+                        <p class="dash-empty">{{ __('No feed in inventory yet.') }}</p>
                     @else
-                        <ol class="farm-rank">
-                            @foreach ($topCustomers as $i => $customer)
+                        <ul class="feed-stock-list">
+                            @foreach ($feedStock as $feed)
                                 <li>
-                                    <span class="farm-rank__n farm-rank__n--customer" aria-hidden="true">
-                                        {{ mb_strtoupper(mb_substr($customer['label'], 0, 1)) }}
+                                    <span class="feed-stock-list__name">
+                                        {{ $feed['name'] }}
+                                        @if ($feed['low'])
+                                            <span class="health-table__pill health-table__pill--warn">{{ __('Low') }}</span>
+                                        @endif
                                     </span>
-                                    @if ($customer['route'])
-                                        <a href="{{ route($customer['route'], $customer['params']) }}" class="farm-rank__label">{{ $customer['label'] }}</a>
-                                    @else
-                                        <span class="farm-rank__label">{{ $customer['label'] }}</span>
-                                    @endif
-                                    <span class="farm-rank__value">{{ $customer['display'] }}</span>
+                                    <span class="feed-stock-list__qty">{{ rtrim(rtrim(number_format($feed['quantity'], 2), '0'), '.') }} {{ $feed['unit'] }}</span>
                                 </li>
                             @endforeach
-                        </ol>
+                        </ul>
                     @endif
                 </article>
 

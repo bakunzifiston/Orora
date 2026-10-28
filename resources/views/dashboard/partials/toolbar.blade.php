@@ -33,6 +33,7 @@
             <label for="filter_period">{{ __('Period') }}</label>
             <select name="period" id="filter_period">
                 <option value="all" @selected(($filters['period'] ?? '') === 'all')>{{ __('All time') }}</option>
+                <option value="today" @selected(($filters['period'] ?? '') === 'today')>{{ __('Today') }}</option>
                 <option value="this_month" @selected(($filters['period'] ?? '') === 'this_month')>{{ __('This month') }}</option>
                 <option value="last_month" @selected(($filters['period'] ?? '') === 'last_month')>{{ __('Last month') }}</option>
                 <option value="this_quarter" @selected(($filters['period'] ?? '') === 'this_quarter')>{{ __('This quarter') }}</option>

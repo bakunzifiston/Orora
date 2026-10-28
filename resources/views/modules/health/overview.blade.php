@@ -46,7 +46,7 @@
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'certificate'])
                     </div>
                     <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Disease') }}</div>
+                        <div class="farm-kpi__label">{{ __('Disease records') }}</div>
                         <div class="farm-kpi__value">{{ number_format($stats['disease']) }}</div>
                     </div>
                 </a>

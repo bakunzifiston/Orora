@@ -1,3 +1,4 @@
+@if (($costCurrent['has_data'] ?? false) && (float) ($costCurrent['cost_per_litre'] ?? 0) != 0)
 <div class="farm-kpi farm-kpi--expense">
     <div class="farm-kpi__icon" aria-hidden="true">
         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'expense'])
@@ -14,3 +15,4 @@
         </div>
     </div>
 </div>
+@endif

@@ -34,6 +34,7 @@
 
         <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
             <div class="farm-dash__kpis farm-dash__kpis--4">
+                @if ((float) ($stats['period_total'] ?? 0) != 0)
                 <div class="farm-kpi farm-kpi--production">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'milk'])
@@ -46,6 +47,8 @@
                         </div>
                     </div>
                 </div>
+                @endif
+                @if (($stats['period_sessions'] ?? 0) > 0)
                 <a href="{{ route('milk.sessions') }}" class="farm-kpi farm-kpi--stock">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'chart'])
@@ -55,6 +58,8 @@
                         <div class="farm-kpi__value">{{ number_format($stats['period_sessions']) }}</div>
                     </div>
                 </a>
+                @endif
+                @if (($stats['animals_milked'] ?? 0) > 0)
                 <div class="farm-kpi farm-kpi--health">
                     <div class="farm-kpi__icon" aria-hidden="true">
                         @include('layouts.partials.dashboard-nav-icon', ['icon' => 'animal'])
@@ -64,18 +69,7 @@
                         <div class="farm-kpi__value">{{ number_format($stats['animals_milked']) }}</div>
                     </div>
                 </div>
-                <div class="farm-kpi farm-kpi--receivable">
-                    <div class="farm-kpi__icon" aria-hidden="true">
-                        @include('layouts.partials.dashboard-nav-icon', ['icon' => 'movement'])
-                    </div>
-                    <div class="farm-kpi__body">
-                        <div class="farm-kpi__label">{{ __('Avg / session') }}</div>
-                        <div class="farm-kpi__value">
-                            {{ number_format($stats['avg_per_session'], 0) }}
-                            <span class="farm-kpi__unit">L</span>
-                        </div>
-                    </div>
-                </div>
+                @endif
             </div>
         </section>
 

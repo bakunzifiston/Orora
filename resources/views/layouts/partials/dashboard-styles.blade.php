@@ -256,6 +256,16 @@
         position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 9999px;
         background: var(--orora-button); border: 1px solid #fff;
     }
+    /* Dashboard feed stock panel */
+    .feed-stock-link { font-size: 0.8rem; font-weight: 600; color: #6b7280; text-decoration: none; white-space: nowrap; }
+    .feed-stock-link:hover { color: #002b2b; text-decoration: underline; }
+    .feed-stock-list { list-style: none; margin: 0; padding: 0; max-height: 22rem; overflow-y: auto; }
+    .feed-stock-list li { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid #f1f3f4; }
+    .feed-stock-list li:last-child { border-bottom: 0; }
+    .feed-stock-list__name { min-width: 0; font-size: 0.85rem; font-weight: 600; color: #111; overflow-wrap: anywhere; }
+    .feed-stock-list__name .health-table__pill { margin-left: 0.3rem; }
+    .feed-stock-list__qty { flex-shrink: 0; font-size: 0.85rem; font-weight: 700; color: #3f5200; white-space: nowrap; }
+
     /* Notification bell */
     .dash-bell { position: relative; }
     .dash-bell.is-open .dash-bell__toggle { border-color: #002b2b; color: #002b2b; }

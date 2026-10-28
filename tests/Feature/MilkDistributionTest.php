@@ -35,9 +35,10 @@ class MilkDistributionTest extends TenantTestCase
 
         $this->get(route('milk.overview', ['period' => 'all']))
             ->assertOk()
-            ->assertSee('Fed to calves')
-            ->assertSee('Given away')
-            ->assertSee(route('milk.distribution', ['period' => 'all', 'category' => 'household']));
+            ->assertSee('Household')
+            ->assertSee(route('milk.distribution', ['period' => 'all', 'category' => 'household']))
+            ->assertDontSee('Fed to calves')
+            ->assertDontSee('Given away');
     }
 
     public function test_household_use_is_recorded_with_the_user(): void
