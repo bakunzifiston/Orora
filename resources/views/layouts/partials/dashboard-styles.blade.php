@@ -125,6 +125,10 @@
     .dash-nav a { color: var(--orora-gray-light); }
     .dash-nav a:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
     .dash-nav a.active { background: var(--orora-sidebar-active); color: #fff; border: 1px solid rgba(164, 212, 0, 0.2); }
+    .dash-nav__count {
+        margin-left: auto; min-width: 1.35rem; padding: 0.05rem 0.4rem; border-radius: 999px;
+        background: var(--orora-button); color: #002b2b; font-size: 0.6875rem; font-weight: 800; line-height: 1.35rem; text-align: center;
+    }
     .dash-nav span.disabled { color: var(--orora-gray); opacity: 0.7; cursor: not-allowed; }
     .dash-nav-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; opacity: 0.85; }
     .dash-nav a.active .dash-nav-icon { color: var(--orora-button); opacity: 1; }

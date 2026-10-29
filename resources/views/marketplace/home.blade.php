@@ -10,21 +10,50 @@
     @endphp
 
     <div class="lp-home">
-        <section class="lp-hero lp-hero--home" style="--lp-hero-image: url('{{ $heroImage }}')">
-            <div class="lp-hero__media" aria-hidden="true"></div>
-            <div class="lp-hero__shade" aria-hidden="true"></div>
-            <div class="mp-container lp-hero__frame">
-                <div class="lp-hero__copy" data-lp-reveal>
-                    <h1 class="lp-hero__title">
-                        Farm management,<br>
-                        <span>made simple.</span>
-                    </h1>
-                    <p class="lp-hero__lead">
-                        Track animals, milk, health, and sales in one place.
+        <section class="lp-hero lp-hero--split" aria-label="{{ __('Orora Farm') }}">
+            <div class="mp-container lp-split">
+                <div class="lp-split__copy" data-lp-reveal>
+                    <p class="lp-split__badge">
+                        <span class="lp-split__badge-dot" aria-hidden="true"></span>
+                        {{ __('Built for farms in Rwanda') }}
                     </p>
-                    <div class="lp-hero__actions">
-                        <a href="{{ route('register') }}" class="lp-btn lp-btn--accent lp-btn--lg">Get started</a>
-                        <a href="{{ route('marketplace.shop') }}" class="lp-btn lp-btn--ghost-light lp-btn--lg">Marketplace</a>
+                    <h1 class="lp-split__title">
+                        {{ __('Farm management,') }}<br>
+                        <span>{{ __('made simple.') }}</span>
+                    </h1>
+                    <p class="lp-split__lead">
+                        {{ __('Track animals, milk, health, feeding and sales in one place, on your phone or computer.') }}
+                    </p>
+                    <div class="lp-split__actions">
+                        <a href="{{ route('register') }}" class="lp-btn lp-btn--accent lp-btn--lg">{{ __('Get started free') }}</a>
+                        <a href="{{ route('marketplace.shop') }}" class="lp-btn lp-btn--ghost-light lp-btn--lg">{{ __('Visit the marketplace') }}</a>
+                    </div>
+                    <ul class="lp-split__points">
+                        <li>{{ __('Free plan to start') }}</li>
+                        <li>{{ __('English and Kinyarwanda') }}</li>
+                        <li>{{ __('Cattle and poultry') }}</li>
+                    </ul>
+                </div>
+
+                <div class="lp-split__visual" data-lp-reveal>
+                    <img src="{{ $heroImage }}" alt="{{ __('Dairy cows on a Rwandan farm') }}" class="lp-split__image" width="2560" height="1707" fetchpriority="high">
+                    <div class="lp-split__chip lp-split__chip--top">
+                        <span class="lp-split__chip-icon" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3s6 7 6 11a6 6 0 01-12 0c0-4 6-11 6-11z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                        </span>
+                        <span>
+                            <strong>{{ __('Milk records') }}</strong>
+                            <small>{{ __('Every session, every cow') }}</small>
+                        </span>
+                    </div>
+                    <div class="lp-split__chip lp-split__chip--bottom">
+                        <span class="lp-split__chip-icon lp-split__chip-icon--lime" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                        </span>
+                        <span>
+                            <strong>{{ __('Health alerts') }}</strong>
+                            <small>{{ __('Vaccinations never missed') }}</small>
+                        </span>
                     </div>
                 </div>
             </div>

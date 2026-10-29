@@ -29,11 +29,11 @@ class AdminPlatformUsersTest extends TenantTestCase
         $this->get(route('central.ecommerce.index'))
             ->assertOk()
             ->assertSee(route('central.ecommerce.index'))
-            ->assertSee('Animal marketplace')
+            ->assertSee('Marketplace')
             ->assertSee('Pending review')
-            ->assertSee('Buyer inquiries')
-            ->assertSee('Create listing')
-            ->assertSee('No animal listings match these filters.');
+            ->assertSee('New buyer inquiries')
+            ->assertSee('Create animal listing')
+            ->assertSee('No listings match these filters.');
     }
 
     public function test_non_super_admin_cannot_access_animal_marketplace_management(): void

@@ -24,19 +24,20 @@
             ->filter();
     @endphp
 
-    <div class="shop-page" data-shop-page>
-        <section class="shop-hero">
+    <div class="shop-page shop-page--v2" data-shop-page>
+        <section class="shop-hero shop-hero--banner">
             <div class="mp-container">
                 <div class="shop-hero__head">
                     <div>
-                        <h1 class="shop-hero__title">Find farm products</h1>
-                        <p class="shop-hero__subtitle">Livestock, milk, feed, and supplies from sellers across Rwanda.</p>
+                        <p class="shop-hero__eyebrow">Orora Marketplace</p>
+                        <h1 class="shop-hero__title">Buy and sell farm products</h1>
+                        <p class="shop-hero__subtitle">Livestock, milk, meat, feed and supplies from farmers across Rwanda.</p>
                     </div>
                     <a href="{{ auth()->check() ? route('marketplace.shop.create') : route('register') }}" class="lp-btn lp-btn--gold shop-hero__sell">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"/>
                         </svg>
-                        Sell
+                        Sell a product
                     </a>
                 </div>
 
@@ -71,15 +72,6 @@
             </div>
         </section>
 
-        <section class="shop-categories" aria-label="Categories">
-            <div class="mp-container">
-                @include('marketplace.shop.partials.category-tabs', [
-                    'categories' => $categories,
-                    'activeCategory' => $filters['category'] ?? null,
-                ])
-            </div>
-        </section>
-
         <section class="shop-layout">
             <div class="mp-container shop-layout__inner">
                 <div class="shop-filters-backdrop" data-shop-filters-backdrop hidden></div>
@@ -90,6 +82,14 @@
                     'sellerTypes' => $sellerTypes,
                     'sortOptions' => $sortOptions,
                 ])
+
+                <aside class="shop-sidebar" aria-label="Categories">
+                    <h2 class="shop-sidebar__title">Categories</h2>
+                    @include('marketplace.shop.partials.category-tiles', [
+                        'categories' => $categories,
+                        'activeCategory' => $filters['category'] ?? null,
+                    ])
+                </aside>
 
                 <div class="shop-results" data-shop-results>
                     <div class="shop-results__header">

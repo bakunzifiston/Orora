@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-    <section class="shop-detail">
+    <section class="shop-detail shop-detail--clean">
         <div class="mp-container">
             <nav class="shop-breadcrumb" aria-label="Breadcrumb">
                 <a href="{{ route('marketplace.home') }}">Home</a>
@@ -59,6 +59,10 @@
                             <div class="shop-detail__prose">{!! nl2br(e($listing->description)) !!}</div>
                         </section>
                     @endif
+
+                    <section class="shop-detail__inquiry">
+                        @include('marketplace.shop.partials.inquiry-form', ['listing' => $listing])
+                    </section>
                 </div>
 
                 <aside class="shop-detail__info">
@@ -146,10 +150,6 @@
                     </p>
                 </aside>
             </div>
-
-            <section class="shop-detail__inquiry">
-                @include('marketplace.shop.partials.inquiry-form', ['listing' => $listing])
-            </section>
 
             @include('marketplace.shop.partials.related-listings', [
                 'listings' => $relatedListings,

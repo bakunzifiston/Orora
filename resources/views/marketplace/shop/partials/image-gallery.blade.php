@@ -12,6 +12,7 @@
                     <circle cx="8.5" cy="10" r="1.5" fill="currentColor"/>
                     <path d="M21 16l-5.5-5.5L7 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
+                <span>No photos yet</span>
             </div>
         @endif
     </div>

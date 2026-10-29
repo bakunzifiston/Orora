@@ -1,30 +1,38 @@
 @extends('layouts.admin')
 
-@section('title', __('Animal listing details'))
+@section('title', __('Listing details'))
 
 @section('content')
     <div class="farm-dash farms-page health-page admin-dash admin-ecommerce">
         <div class="dash-ops-toolbar farms-page__toolbar admin-dash__toolbar">
             <div class="admin-dash__header-text dash-ops-toolbar__brand">
                 <h1 class="admin-dash__title">{{ $listing->title }}</h1>
-                <p class="admin-dash__period">{{ $listing->listing_code }} · {{ __($statuses[$listing->status] ?? ucfirst($listing->status)) }}</p>
+                <p class="admin-dash__period">{{ $listing->listing_code }} · {{ __($types[$listing->listing_type] ?? ucfirst(str_replace('_', ' ', (string) $listing->listing_type))) }} · {{ __($statuses[$listing->status] ?? ucfirst($listing->status)) }}</p>
             </div>
             <div class="admin-ecommerce__row-actions">
-                <a href="{{ route('central.ecommerce.listings.edit', $listing) }}" class="dash-btn-save">{{ __('Edit listing') }}</a>
+                @if ($listing->status === 'active')
+                    <a href="{{ route('marketplace.shop.show', $listing) }}" class="dash-btn-cancel" target="_blank" rel="noopener">{{ __('View in shop') }}</a>
+                @endif
+                @if ($listing->listing_type === 'animal')
+                    <a href="{{ route('central.ecommerce.listings.edit', $listing) }}" class="dash-btn-save">{{ __('Edit listing') }}</a>
+                @endif
                 <a href="{{ route('central.ecommerce.index') }}" class="dash-btn-cancel">{{ __('Back to listings') }}</a>
             </div>
         </div>
 
         <div class="admin-ecommerce__detail-grid">
             <article class="farm-panel">
-                <h2 class="farm-panel__title">{{ __('Animal details') }}</h2>
+                <h2 class="farm-panel__title">{{ $listing->listing_type === 'animal' ? __('Animal details') : __('Product details') }}</h2>
                 <dl class="admin-ecommerce__details">
+                    <dt>{{ __('Category') }}</dt><dd>{{ $listing->category?->name ?? __($types[$listing->listing_type] ?? '—') }}</dd>
+                    @if ($listing->listing_type === 'animal')
                     <dt>{{ __('Species') }}</dt><dd>{{ $listing->animal_species ? __(ucfirst($listing->animal_species)) : '—' }}</dd>
                     <dt>{{ __('Breed') }}</dt><dd>{{ $listing->breed ?: '—' }}</dd>
                     <dt>{{ __('Age') }}</dt><dd>{{ $listing->age ?: '—' }}</dd>
                     <dt>{{ __('Sex') }}</dt><dd>{{ $listing->animal_sex ? __(ucfirst($listing->animal_sex)) : '—' }}</dd>
                     <dt>{{ __('Weight (kg)') }}</dt><dd>{{ $listing->weight_kg ?: '—' }}</dd>
                     <dt>{{ __('Animal record') }}</dt><dd>{{ $listing->animal?->tag_number ?? __('Manual listing') }}</dd>
+                    @endif
                     <dt>{{ __('Quantity available') }}</dt><dd>{{ $listing->quantityLabel() ?: '—' }}</dd>
                     <dt>{{ __('Asking price (RWF)') }}</dt><dd>{{ number_format((float) $listing->price) }} RWF</dd>
                     <dt>{{ __('Description') }}</dt><dd>{{ $listing->description }}</dd>

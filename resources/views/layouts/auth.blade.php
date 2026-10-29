@@ -39,6 +39,10 @@
         <main class="auth-main">
             <div class="auth-main__shell">
                 <div class="auth-main__content">
+                    <a href="{{ route('marketplace.home') }}" class="auth-back-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        {{ __('Back to website') }}
+                    </a>
                     @include('auth.partials.form-brand')
                     @yield('content')
                 </div>

@@ -3,6 +3,12 @@
     $navigation = $navigation ?? config('admin.navigation', []);
     $admin = auth('admin')->user();
     $initials = collect(explode(' ', $admin->name))->map(fn ($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
+    $navCounts = [
+        'ecommerce' => \App\Services\Marketplace\MarketplaceDatabase::safe(
+            fn () => \App\Models\Central\MarketplaceListing::query()->where('status', 'pending_review')->count(),
+            0,
+        ),
+    ];
 @endphp
 
 <aside class="dash-sidebar" id="dash-sidebar" data-dash-sidebar>
@@ -28,6 +34,9 @@
                         <a href="{{ route($item['route']) }}" class="{{ $activeNav === $item['key'] ? 'active' : '' }}">
                             @include('layouts.partials.dashboard-nav-icon', ['icon' => $item['icon'] ?? 'grid'])
                             {{ __($item['label']) }}
+                            @if (($navCounts[$item['key']] ?? 0) > 0)
+                                <span class="dash-nav__count" title="{{ trans_choice('{1} 1 listing waiting for review|[2,*] :count listings waiting for review', $navCounts[$item['key']], ['count' => $navCounts[$item['key']]]) }}">{{ $navCounts[$item['key']] > 99 ? '99+' : $navCounts[$item['key']] }}</span>
+                            @endif
                         </a>
                     @endif
                 @endforeach

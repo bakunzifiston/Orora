@@ -7,8 +7,8 @@
         <div class="mp-container shop-form-page__inner shop-form-page__inner--wide">
             <header class="shop-form-page__header">
                 <div>
-                    <h1>My animal listings</h1>
-                    <p>Track review status and update your listings.</p>
+                    <h1>My listings</h1>
+                    <p>Track review status, update your listings and reply to buyers.</p>
                 </div>
                 <a href="{{ route('marketplace.shop.create') }}" class="lp-btn lp-btn--primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -40,10 +40,11 @@
                         <table class="shop-mine__table">
                             <thead>
                                 <tr>
-                                    <th scope="col">Animal</th>
+                                    <th scope="col">Listing</th>
                                     <th scope="col">Farm</th>
                                     <th scope="col">Price</th>
                                     <th scope="col">Submitted</th>
+                                    <th scope="col">Inquiries</th>
                                     <th scope="col">Status</th>
                                     <th scope="col"><span class="sr-only">Actions</span></th>
                                 </tr>
@@ -58,6 +59,18 @@
                                         <td>{{ $listing->farm?->name ?? '—' }}</td>
                                         <td class="shop-mine__price">{{ number_format((float) $listing->price) }} RWF</td>
                                         <td>{{ $listing->created_at->format('M j, Y') }}</td>
+                                        <td>
+                                            @if ($listing->inquiries_count > 0)
+                                                <a href="#inquiries" class="shop-mine__inquiry-count">
+                                                    {{ $listing->inquiries_count }}
+                                                    @if ($listing->new_inquiries_count > 0)
+                                                        <span>{{ $listing->new_inquiries_count }} new</span>
+                                                    @endif
+                                                </a>
+                                            @else
+                                                <span class="shop-mine__muted">0</span>
+                                            @endif
+                                        </td>
                                         <td>
                                             <span class="shop-status shop-status--{{ $listing->status }}">
                                                 {{ __(config('marketplace.shop.listing_statuses.'.$listing->status, ucfirst(str_replace('_', ' ', $listing->status)))) }}
@@ -83,6 +96,54 @@
                     @endif
                 @endif
             </div>
+
+            <section class="shop-inquiries" id="inquiries" aria-labelledby="inquiries-title">
+                <header class="shop-inquiries__head">
+                    <h2 id="inquiries-title">Buyer inquiries</h2>
+                    <p>Messages buyers sent from your listings. Call or email them back, then mark the inquiry as contacted.</p>
+                </header>
+
+                @if ($inquiries->isEmpty())
+                    <p class="shop-inquiries__empty">No buyer inquiries yet. They will appear here, and in your notifications, when a buyer asks about a listing.</p>
+                @else
+                    <ul class="shop-inquiries__list">
+                        @foreach ($inquiries as $inquiry)
+                            @php($phone = preg_replace('/\s+/', '', (string) $inquiry->buyer_phone))
+                            <li @class(['shop-inquiries__item', 'is-new' => $inquiry->status === 'new'])>
+                                <div class="shop-inquiries__main">
+                                    <p class="shop-inquiries__meta">
+                                        <span class="shop-status shop-status--inquiry-{{ $inquiry->status }}">{{ ucfirst($inquiry->status) }}</span>
+                                        <span>{{ $inquiry->listing?->title }}</span>
+                                        <time datetime="{{ $inquiry->created_at->toIso8601String() }}">{{ $inquiry->created_at->diffForHumans() }}</time>
+                                    </p>
+                                    <p class="shop-inquiries__buyer">
+                                        <strong>{{ $inquiry->buyer_name }}</strong>
+                                        @if ($inquiry->buyer_location) · {{ $inquiry->buyer_location }}@endif
+                                    </p>
+                                    <p class="shop-inquiries__message">{{ $inquiry->message }}</p>
+                                    <p class="shop-inquiries__contact">
+                                        <a href="tel:{{ $phone }}">{{ $inquiry->buyer_phone }}</a>
+                                        @if ($inquiry->buyer_email)
+                                            <a href="mailto:{{ $inquiry->buyer_email }}">{{ $inquiry->buyer_email }}</a>
+                                        @endif
+                                    </p>
+                                </div>
+                                <form method="POST" action="{{ route('marketplace.shop.inquiries.update', $inquiry) }}" class="shop-inquiries__action">
+                                    @csrf
+                                    @method('PATCH')
+                                    <label class="sr-only" for="inquiry-status-{{ $inquiry->id }}">Inquiry status</label>
+                                    <select id="inquiry-status-{{ $inquiry->id }}" name="status">
+                                        @foreach (['new' => 'New', 'contacted' => 'Contacted', 'closed' => 'Closed'] as $value => $label)
+                                            <option value="{{ $value }}" @selected($inquiry->status === $value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" class="lp-btn lp-btn--outline">Save</button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </section>
         </div>
     </section>
 @endsection

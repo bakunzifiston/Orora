@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/shop/{listing}/edit', [ShopController::class, 'edit'])->name('marketplace.shop.edit');
     Route::put('/shop/{listing}', [ShopController::class, 'update'])->name('marketplace.shop.update');
     Route::delete('/shop/{listing}', [ShopController::class, 'destroy'])->name('marketplace.shop.destroy');
+    Route::patch('/shop/inquiries/{inquiry}', [ShopController::class, 'updateInquiry'])->name('marketplace.shop.inquiries.update');
 });
 Route::get('/shop/{listing}', [ShopController::class, 'show'])->name('marketplace.shop.show');
 Route::post('/shop/{listing}/inquiry', [ShopController::class, 'inquiry'])->name('marketplace.shop.inquiry');

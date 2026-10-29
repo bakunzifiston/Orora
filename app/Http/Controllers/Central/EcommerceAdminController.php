@@ -29,9 +29,10 @@ class EcommerceAdminController extends Controller
             'status' => ['nullable', 'string', Rule::in([...array_keys(config('marketplace.shop.listing_statuses', [])), 'expired'])],
             'species' => ['nullable', 'string', 'max:80'],
             'district' => ['nullable', 'string', 'max:120'],
+            'type' => ['nullable', 'string', Rule::in(array_keys(config('marketplace.shop.listing_types', [])))],
         ]);
 
-        $base = MarketplaceListing::query()->where('listing_type', 'animal');
+        $base = MarketplaceListing::query();
         $listings = (clone $base)
             ->with(['farm', 'animal', 'tenant', 'category'])
             ->when($filters['q'] ?? null, function ($query, string $search): void {
@@ -44,6 +45,7 @@ class EcommerceAdminController extends Controller
                         ->orWhere('location_district', 'like', "%{$search}%");
                 });
             })
+            ->when($filters['type'] ?? null, fn ($query, string $type) => $query->where('listing_type', $type))
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
             ->when($filters['species'] ?? null, function ($query, string $species): void {
                 $query->where(function ($speciesQuery) use ($species): void {
@@ -57,7 +59,6 @@ class EcommerceAdminController extends Controller
             ->withQueryString();
 
         $inquiries = MarketplaceInquiry::query()
-            ->whereHas('listing', fn ($query) => $query->where('listing_type', 'animal'))
             ->with('listing')
             ->orderByDesc('created_at')
             ->limit(8)
@@ -70,6 +71,8 @@ class EcommerceAdminController extends Controller
             'inquiries' => $inquiries,
             'statuses' => config('marketplace.shop.listing_statuses', []),
             'districts' => config('marketplace.shop.districts', []),
+            'types' => config('marketplace.shop.listing_types', []),
+            'typeCounts' => (clone $base)->selectRaw('listing_type, count(*) as total')->groupBy('listing_type')->pluck('total', 'listing_type'),
             'species' => collect([
                 ...MarketplaceListing::query()
                     ->where('listing_type', 'animal')
@@ -91,9 +94,8 @@ class EcommerceAdminController extends Controller
                 'pending' => (clone $base)->whereIn('status', ['pending', 'pending_review'])->count(),
                 'published' => (clone $base)->whereIn('status', ['active', 'published'])->count(),
                 'inactive' => (clone $base)->whereIn('status', ['sold', 'inactive', 'expired'])->count(),
-                'inquiries' => MarketplaceInquiry::query()
-                    ->whereHas('listing', fn ($query) => $query->where('listing_type', 'animal'))
-                    ->count(),
+                'inquiries' => MarketplaceInquiry::query()->count(),
+                'new_inquiries' => MarketplaceInquiry::query()->where('status', 'new')->count(),
             ],
         ]);
     }
@@ -126,7 +128,6 @@ class EcommerceAdminController extends Controller
     public function show(MarketplaceListing $listing): View
     {
         $this->authorizeSuperAdmin();
-        abort_unless($listing->listing_type === 'animal', 404);
 
         $listing->load(['farm', 'animal', 'tenant', 'category', 'inquiries', 'statusChanges.admin', 'statusChanges.user']);
 
@@ -134,6 +135,7 @@ class EcommerceAdminController extends Controller
             'activeNav' => 'ecommerce',
             'listing' => $listing,
             'statuses' => config('marketplace.shop.listing_statuses', []),
+            'types' => config('marketplace.shop.listing_types', []),
         ]);
     }
 
@@ -169,7 +171,6 @@ class EcommerceAdminController extends Controller
     public function updateStatus(Request $request, MarketplaceListing $listing, MarketplaceListingStatusService $statuses): RedirectResponse
     {
         $this->authorizeSuperAdmin();
-        abort_unless($listing->listing_type === 'animal', 404);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(config('marketplace.shop.listing_statuses', [])))],
@@ -184,7 +185,6 @@ class EcommerceAdminController extends Controller
     public function updateInquiry(Request $request, MarketplaceInquiry $inquiry): RedirectResponse
     {
         $this->authorizeSuperAdmin();
-        abort_unless($inquiry->listing()->where('listing_type', 'animal')->exists(), 404);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['new', 'contacted', 'closed'])],

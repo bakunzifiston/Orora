@@ -11,12 +11,16 @@ use App\Models\Central\MarketplaceCategory;
 use App\Models\Central\MarketplaceInquiry;
 use App\Models\Central\MarketplaceListing;
 use App\Models\Farm;
+use App\Models\User;
+use App\Notifications\MarketplaceInquiryReceived;
 use App\Services\Marketplace\MarketplaceDatabase;
 use App\Services\Marketplace\MarketplaceListingService;
 use App\Services\Marketplace\MarketplaceListingStatusService;
 use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ShopController extends Controller
@@ -76,9 +80,36 @@ class ShopController extends Controller
             'listings' => MarketplaceListing::query()
                 ->where('tenant_id', $tenantId)
                 ->with('farm')
+                ->withCount(['inquiries', 'inquiries as new_inquiries_count' => fn ($query) => $query->where('status', 'new')])
                 ->orderByDesc('created_at')
                 ->paginate(15),
+            'inquiries' => MarketplaceInquiry::query()
+                ->whereHas('listing', fn ($query) => $query->where('tenant_id', $tenantId))
+                ->with('listing')
+                ->orderByRaw("status = 'new' desc")
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get(),
         ]);
+    }
+
+    /**
+     * Let the seller track a buyer inquiry on one of their own listings.
+     */
+    public function updateInquiry(Request $request, MarketplaceInquiry $inquiry): RedirectResponse
+    {
+        $tenantId = TenantContext::id() ?? auth()->user()?->tenant_id;
+        abort_unless($tenantId && $inquiry->listing?->tenant_id === $tenantId, 403);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['new', 'contacted', 'closed'])],
+        ]);
+
+        $inquiry->update($data);
+
+        return redirect()
+            ->to(route('marketplace.shop.mine').'#inquiries')
+            ->with('success', __('Inquiry updated.'));
     }
 
     public function store(StoreMarketplaceListingRequest $request): RedirectResponse
@@ -137,15 +168,43 @@ class ShopController extends Controller
     {
         abort_unless($listing->status === 'active', 404);
 
-        MarketplaceInquiry::query()->create([
+        $inquiry = MarketplaceInquiry::query()->create([
             'listing_id' => $listing->id,
             ...$request->validated(),
             'status' => 'new',
         ]);
 
+        try {
+            $this->notifySeller($inquiry->setRelation('listing', $listing));
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
         return redirect()
             ->route('marketplace.shop.show', $listing)
             ->with('success', __('Your inquiry has been sent to the seller.'));
+    }
+
+    /**
+     * Notify the seller's workspace admins (or every active user when none is an admin).
+     */
+    private function notifySeller(MarketplaceInquiry $inquiry): void
+    {
+        $tenantId = $inquiry->listing?->tenant_id;
+
+        if (! $tenantId) {
+            return;
+        }
+
+        $users = User::query()
+            ->withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(fn ($query) => $query->whereNull('is_active')->orWhere('is_active', true))
+            ->get();
+
+        $admins = $users->filter(fn (User $user) => $user->isWorkspaceAdmin());
+
+        Notification::send($admins->isNotEmpty() ? $admins : $users, new MarketplaceInquiryReceived($inquiry));
     }
 
     private function authorizeOwner(MarketplaceListing $listing): void

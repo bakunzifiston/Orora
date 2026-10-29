@@ -143,6 +143,23 @@
         }
     }
 
+    .auth-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-decoration: none;
+    }
+
+    .auth-back-link:hover,
+    .auth-back-link:focus-visible {
+        color: #002b2b;
+        text-decoration: underline;
+    }
+
     .auth-form-brand {
         display: flex;
         justify-content: center;

@@ -1,25 +1,28 @@
 @extends('layouts.admin')
 
-@section('title', __('Animal marketplace'))
+@section('title', __('Marketplace'))
 
 @section('content')
     <div class="farm-dash farms-page health-page admin-dash admin-ecommerce">
-        <div class="dash-ops-toolbar farms-page__toolbar admin-dash__toolbar">
+        <div class="dash-ops-toolbar farms-page__toolbar admin-dash__toolbar admin-ecommerce__head">
             <div class="admin-dash__header-text dash-ops-toolbar__brand">
-                <h1 class="admin-dash__title">{{ __('Animal marketplace') }}</h1>
-                <p class="admin-dash__period">{{ __('Review animal listings and connect buyers with farmers.') }}</p>
+                <h1 class="admin-dash__title">{{ __('Marketplace') }}</h1>
+                <p class="admin-dash__period">{{ __('Review every shop listing and connect buyers with farmers.') }}</p>
             </div>
-            <a href="{{ route('central.ecommerce.listings.create') }}" class="dash-btn-save">{{ __('Create listing') }}</a>
+            <a href="{{ route('central.ecommerce.listings.create') }}" class="dash-btn-save admin-ecommerce__create">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"/></svg>
+                {{ __('Create animal listing') }}
+            </a>
         </div>
 
         <section class="farm-dash__section" aria-label="{{ __('Marketplace summary') }}">
-            <div class="farm-dash__kpis farm-dash__kpis--4">
+            <div class="farm-dash__kpis farm-dash__kpis--5">
                 @foreach ([
-                    ['label' => 'Total animal listings', 'value' => $stats['total'], 'icon' => 'box', 'tone' => 'stock'],
+                    ['label' => 'Total listings', 'value' => $stats['total'], 'icon' => 'box', 'tone' => 'stock'],
                     ['label' => 'Pending review', 'value' => $stats['pending'], 'icon' => 'health', 'tone' => 'receivable'],
                     ['label' => 'Published', 'value' => $stats['published'], 'icon' => 'sale', 'tone' => 'production'],
                     ['label' => 'Sold or inactive', 'value' => $stats['inactive'], 'icon' => 'animal', 'tone' => 'expense'],
-                    ['label' => 'Buyer inquiries', 'value' => $stats['inquiries'], 'icon' => 'mail', 'tone' => 'sales'],
+                    ['label' => 'New buyer inquiries', 'value' => $stats['new_inquiries'], 'icon' => 'mail', 'tone' => 'sales'],
                 ] as $kpi)
                     <div class="farm-kpi farm-kpi--{{ $kpi['tone'] }}">
                         <div class="farm-kpi__icon" aria-hidden="true">
@@ -34,19 +37,33 @@
             </div>
         </section>
 
-        <section class="farm-dash__section" aria-label="{{ __('Animal listings') }}">
+        <section class="farm-dash__section" aria-label="{{ __('Shop listings') }}">
             <article class="farm-panel">
                 <header class="farm-panel__head">
                     <div>
-                        <h2 class="farm-panel__title">{{ __('Animal listings') }}</h2>
+                        <h2 class="farm-panel__title">{{ __('Shop listings') }}</h2>
                         <p class="farm-panel__desc">{{ number_format($listings->total()) }} {{ __('total') }}</p>
                     </div>
                 </header>
 
+                <nav class="admin-ecommerce__types" aria-label="{{ __('Listing categories') }}">
+                    <a href="{{ route('central.ecommerce.index', array_filter([...$filters, 'type' => null])) }}" @class(['is-active' => empty($filters['type'])])>
+                        {{ __('All') }} <span>{{ number_format($typeCounts->sum()) }}</span>
+                    </a>
+                    @foreach ($types as $typeKey => $typeLabel)
+                        <a href="{{ route('central.ecommerce.index', array_filter([...$filters, 'type' => $typeKey])) }}" @class(['is-active' => ($filters['type'] ?? '') === $typeKey])>
+                            {{ __($typeLabel) }} <span>{{ number_format($typeCounts[$typeKey] ?? 0) }}</span>
+                        </a>
+                    @endforeach
+                </nav>
+
                 <form method="GET" action="{{ route('central.ecommerce.index') }}" class="admin-ecommerce__filters">
+                    @if (! empty($filters['type']))
+                        <input type="hidden" name="type" value="{{ $filters['type'] }}">
+                    @endif
                     <label>
                         <span>{{ __('Search') }}</span>
-                        <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="{{ __('Animal, farmer, phone, location') }}">
+                        <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="{{ __('Title, farmer, phone, location') }}">
                     </label>
                     <label>
                         <span>{{ __('Status') }}</span>
@@ -57,7 +74,7 @@
                             @endforeach
                         </select>
                     </label>
-                    <label>
+                    <label @class(['is-hidden' => filled($filters['type'] ?? null) && $filters['type'] !== 'animal'])>
                         <span>{{ __('Species') }}</span>
                         <select name="species">
                             <option value="">{{ __('All species') }}</option>
@@ -76,25 +93,25 @@
                         </select>
                     </label>
                     <div class="admin-ecommerce__filter-actions">
-                        <button type="submit" class="dash-btn-save dash-btn-save--sm">{{ __('Filter') }}</button>
+                        <button type="submit" class="dash-btn-save">{{ __('Filter') }}</button>
                         <a href="{{ route('central.ecommerce.index') }}" class="dash-btn-cancel">{{ __('Clear') }}</a>
                     </div>
                 </form>
 
                 @if ($listings->isEmpty())
-                    <p class="dash-empty">{{ __('No animal listings match these filters.') }}</p>
+                    <p class="dash-empty">{{ __('No listings match these filters.') }}</p>
                 @else
                     <div class="dash-table-wrap">
                         <table class="health-table admin-ecommerce__table">
                             <thead>
                                 <tr>
-                                    <th>{{ __('Animal') }}</th>
+                                    <th>{{ __('Listing') }}</th>
                                     <th>{{ __('Farmer / farm') }}</th>
                                     <th>{{ __('Location') }}</th>
                                     <th>{{ __('Price') }}</th>
                                     <th>{{ __('Submitted') }}</th>
                                     <th>{{ __('Status') }}</th>
-                                    <th>{{ __('Actions') }}</th>
+                                    <th class="health-table__actions">{{ __('Actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -113,12 +130,17 @@
                                             <div class="health-table__stack">
                                                 <a href="{{ route('central.ecommerce.listings.show', $listing) }}" class="health-table__title health-table__title--link">{{ $listing->title }}</a>
                                                 <span class="health-table__meta">
+                                                    <span class="health-table__pill health-table__pill--muted">{{ __($types[$listing->listing_type] ?? ucfirst(str_replace('_', ' ', (string) $listing->listing_type))) }}</span>
+                                                </span>
+                                                @if ($listing->listing_type === 'animal')
+                                                <span class="health-table__meta">
                                                     {{ $speciesLabel ? __(ucfirst($speciesLabel)) : __('Animal') }}
                                                     @if ($listing->breed) · {{ $listing->breed }}@endif
                                                     @if ($listing->animal_sex || $listing->animal?->gender) · {{ __(ucfirst($listing->animal_sex ?: $listing->animal->gender)) }}@endif
                                                     @if ($listing->age) · {{ $listing->age }}@endif
                                                     @if ($listing->animal) · {{ $listing->animal->tag_number }}@endif
                                                 </span>
+                                                @endif
                                                 <span class="health-table__meta">{{ $listing->listing_code }}</span>
                                             </div>
                                         </td>
@@ -136,21 +158,52 @@
                                         </td>
                                         <td><time datetime="{{ $listing->created_at->toIso8601String() }}">{{ $listing->created_at->format('M j, Y') }}</time></td>
                                         <td><span class="health-table__pill health-table__pill--{{ $tone }}">{{ __($statuses[$listing->status] ?? ucfirst(str_replace('_', ' ', $listing->status))) }}</span></td>
-                                        <td>
-                                            <div class="admin-ecommerce__row-actions">
-                                                <a href="{{ route('central.ecommerce.listings.show', $listing) }}" class="dash-btn-save dash-btn-save--sm">{{ __('View') }}</a>
-                                                <a href="{{ route('central.ecommerce.listings.edit', $listing) }}" class="dash-btn-cancel">{{ __('Edit') }}</a>
-                                                <form method="POST" action="{{ route('central.ecommerce.listings.status', $listing) }}">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <label class="sr-only" for="status-{{ $listing->id }}">{{ __('Set listing status') }}</label>
-                                                    <select id="status-{{ $listing->id }}" name="status">
-                                                        @foreach ($statuses as $key => $label)
-                                                            <option value="{{ $key }}" @selected($listing->status === $key)>{{ __($label) }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <button type="submit" class="dash-btn-cancel">{{ __('Update') }}</button>
-                                                </form>
+                                        <td class="health-table__actions">
+                                            @php
+                                                // One-click status steps; reasons and notes are added on the Manage page.
+                                                $quickActions = match ($listing->status) {
+                                                    'pending_review', 'pending' => [
+                                                        ['status' => 'approved', 'label' => __('Approve'), 'tone' => 'primary'],
+                                                        ['status' => 'rejected', 'label' => __('Reject'), 'tone' => 'danger', 'confirm' => __('Reject this listing? The seller will see it as rejected.')],
+                                                    ],
+                                                    'approved' => [
+                                                        ['status' => 'active', 'label' => __('Publish'), 'tone' => 'primary'],
+                                                        ['status' => 'rejected', 'label' => __('Reject'), 'tone' => 'danger', 'confirm' => __('Reject this listing? The seller will see it as rejected.')],
+                                                    ],
+                                                    'active' => [
+                                                        ['status' => 'sold', 'label' => __('Mark sold'), 'tone' => 'default', 'confirm' => __('Mark this listing as sold? It will be removed from the shop.')],
+                                                        ['status' => 'inactive', 'label' => __('Unpublish'), 'tone' => 'danger', 'confirm' => __('Unpublish this listing? It will be removed from the shop.')],
+                                                    ],
+                                                    'draft', 'rejected', 'inactive', 'sold' => [
+                                                        ['status' => 'approved', 'label' => __('Approve'), 'tone' => 'primary'],
+                                                    ],
+                                                    default => [],
+                                                };
+                                            @endphp
+                                            <div class="health-table__action-btns admin-ecommerce__actions">
+                                                @foreach ($quickActions as $action)
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ route('central.ecommerce.listings.status', $listing) }}"
+                                                        @if (! empty($action['confirm'])) onsubmit="return confirm(@js($action['confirm']));" @endif
+                                                    >
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="{{ $action['status'] }}">
+                                                        <button type="submit" @class([
+                                                            'dash-farm-card__btn',
+                                                            'admin-ecommerce__btn--primary' => $action['tone'] === 'primary',
+                                                            'dash-farm-card__btn--danger' => $action['tone'] === 'danger',
+                                                        ])>{{ $action['label'] }}</button>
+                                                    </form>
+                                                @endforeach
+                                                @if ($listing->status === 'active')
+                                                    <a href="{{ route('marketplace.shop.show', $listing) }}" class="dash-farm-card__btn" target="_blank" rel="noopener" title="{{ __('Open in the public shop') }}">{{ __('View in shop') }}</a>
+                                                @endif
+                                                @if ($listing->listing_type === 'animal')
+                                                    <a href="{{ route('central.ecommerce.listings.edit', $listing) }}" class="dash-farm-card__btn">{{ __('Edit') }}</a>
+                                                @endif
+                                                <a href="{{ route('central.ecommerce.listings.show', $listing) }}" class="dash-farm-card__btn">{{ __('Manage') }}</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -232,6 +285,13 @@
 @push('styles')
     @include('central.dashboard.partials.styles')
     <style>
+        .admin-ecommerce__head { flex-direction: row !important; align-items: center !important; justify-content: space-between; flex-wrap: wrap; }
+        .admin-ecommerce__head .admin-dash__header-text { flex: 1 1 18rem !important; }
+        .admin-ecommerce__head .admin-dash__period { white-space: normal; overflow: visible; text-overflow: clip; }
+        .admin-ecommerce__create { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+        .admin-ecommerce__filters .is-hidden { display: none; }
+        .admin-ecommerce__link { color: #0f3d3d; font-size: 0.8125rem; font-weight: 700; text-decoration: none; }
+        .admin-ecommerce__link:hover { text-decoration: underline; }
         .admin-ecommerce__filters {
             display: grid;
             grid-template-columns: minmax(12rem, 2fr) repeat(3, minmax(9rem, 1fr)) auto;
@@ -243,7 +303,8 @@
         .admin-ecommerce__filters input, .admin-ecommerce__filters select,
         .admin-ecommerce__row-actions select, .admin-ecommerce__inquiry-action select {
             min-width: 0;
-            padding: 0.5rem 0.65rem;
+            height: 2.6rem;
+            padding: 0 0.7rem;
             border: 1px solid #cbd5e1;
             border-radius: 0.5rem;
             background: #fff;
@@ -256,9 +317,25 @@
             flex-wrap: wrap;
             gap: 0.4rem;
         }
-        .admin-ecommerce__table { min-width: 68rem; }
-        .admin-ecommerce__row-actions { min-width: 14rem; }
-        .admin-ecommerce__row-actions form { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+        .admin-ecommerce__row-actions { gap: 0.85rem; }
+        .admin-ecommerce__filter-actions .dash-btn-save, .admin-ecommerce__filter-actions .dash-btn-cancel {
+            display: inline-flex; align-items: center; height: 2.6rem; padding: 0 1rem;
+        }
+        .admin-ecommerce__table { min-width: 64rem; }
+        .admin-ecommerce__types { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
+        .admin-ecommerce__types a {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.4rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 999px;
+            color: #334155; font-size: 0.8125rem; font-weight: 600; text-decoration: none;
+        }
+        .admin-ecommerce__types a span { padding: 0 0.4rem; border-radius: 999px; background: #f1f5f9; font-size: 0.75rem; }
+        .admin-ecommerce__types a.is-active { background: #002b2b; border-color: #002b2b; color: #fff; }
+        .admin-ecommerce__types a.is-active span { background: #a4d400; color: #002b2b; }
+        .admin-ecommerce__table .health-table__actions { width: 17rem; min-width: 17rem; white-space: normal; }
+        .admin-ecommerce__actions { display: flex !important; flex-wrap: wrap; justify-content: flex-end; width: 100%; }
+        .admin-ecommerce__btn--primary { background: #a4d400 !important; border-color: #a4d400 !important; color: #002b2b !important; }
+        .admin-ecommerce__btn--primary:hover { background: #8fb300 !important; border-color: #8fb300 !important; }
+        .admin-ecommerce__row-actions form { margin: 0; }
         .admin-ecommerce__message { min-width: 14rem; max-width: 22rem; white-space: normal; }
         @media (max-width: 1050px) {
             .admin-ecommerce__filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
