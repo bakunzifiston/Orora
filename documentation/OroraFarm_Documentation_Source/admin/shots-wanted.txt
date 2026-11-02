@@ -1,0 +1,9 @@
+ad-login|/login|Sign-in page showing e-mail, password and the disabled "Forgot password?" link (same page serves platform admins and workspace users)
+ad-platform-dashboard|/admin|Signed in as platform super admin: sidebar (Dashboard, Users, Farms, Ecommerce, Releases, Contact inbox), period/farm filters, summary tiles, charts and farm map
+ad-farms-list|/farms|Farms list with Total farms / Active / Total area / Livestock groups tiles, search and filters, and the Register farm button
+ad-users-list|/workspace/users|Users & access list as workspace admin: four tiles (Total users, Active, Admins, Members) and table with Edit / Deactivate buttons
+ad-permissions-matrix|/workspace/users/create|Click "+ Add user" then set Role to Member so the Module access matrix (View/Create/Edit/Delete columns) is visible; tick a few boxes
+ad-dashboard|/dashboard|Workspace dashboard with Period and Farm filters, alert strip, financial tiles and charts (demo workspace Orora Demo Farm)
+ad-notifications|/notifications|Notifications page with All / Unread filter and Mark all as read; open the bell dropdown if possible in a second capture
+ad-platform-releases|/admin/releases|Releases list showing Draft and Published rows with Notified column and Publish / Edit / Delete actions
+ad-release-form|/admin/releases/create|New release form with Version, Title, Description, Category, Affected module, Link to dashboard page and Target audience; buttons Save as draft / Save & publish

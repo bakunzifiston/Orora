@@ -1,0 +1,27 @@
+{
+ "eu-dashboard": [
+  {"sel":"aside a, nav a","text":"Dashboard","n":1,"side":"right"},
+  {"sel":"select","text":"All farms","n":2},
+  {"sel":"button, a","text":"Apply","n":3},
+  {"sel":"button.dash-bell__toggle, .dash-bell__toggle","n":4},
+  {"sel":"a, button","text":"Needs attention","n":5}
+ ],
+ "eu-animals": [
+  {"sel":"a","text":"Register animal","n":1},
+  {"sel":"a","text":"Import","n":2},
+  {"sel":"a","text":"Export CSV","n":3},
+  {"sel":"input[name=q]","n":4},
+  {"sel":"button","text":"Apply","n":5}
+ ],
+ "eu-animal-form": [
+  {"sel":"select[name=farm_id]","n":1},
+  {"sel":"select[name=livestock_id]","n":2},
+  {"sel":"input[name=name]","n":3},
+  {"sel":"input[name=tag_number]","n":4}
+ ],
+ "eu-login": [],
+ "eu-farms-list": [
+  {"sel":"a","text":"Register farm","n":1},
+  {"sel":"a","text":"Add farm","n":1}
+ ]
+}

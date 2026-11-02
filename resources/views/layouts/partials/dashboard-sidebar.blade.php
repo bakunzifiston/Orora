@@ -45,6 +45,13 @@
         </nav>
 
         <div class="dash-sidebar-footer">
+            <a href="{{ route('help.index') }}" class="dash-user {{ $activeNav === 'help' ? 'is-active' : '' }}" title="{{ __('Help center') }}">
+                <div class="dash-user-info">
+                    <div class="dash-user-name">{{ __('Help center') }}</div>
+                    <div class="dash-user-role">{{ __('User guides & manuals') }}</div>
+                </div>
+            </a>
+
             <a href="{{ route('profile.edit') }}" class="dash-user {{ $activeNav === 'settings' ? 'is-active' : '' }}" title="{{ __('Edit profile') }}">
                 <div class="dash-user-avatar">{{ $initials }}</div>
                 <div class="dash-user-info">

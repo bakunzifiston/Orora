@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Central\PlatformReleaseController;
+use App\Http\Controllers\HelpCenterController;
+use App\Http\Controllers\Central\HelpCenterController as CentralHelpCenterController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WhatsNewController;
 use App\Http\Controllers\Api\RwandaLocationController;
@@ -62,6 +64,9 @@ $registerAppRoutes = function (): void {
             Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open')->whereUuid('notification');
             Route::get('/whats-new', [WhatsNewController::class, 'index'])->name('whats-new.index');
 
+            Route::get('/help', [HelpCenterController::class, 'index'])->name('help.index');
+            Route::get('/help/{document}/download', [HelpCenterController::class, 'download'])->whereIn('document', ['end-user', 'admin'])->name('help.download');
+
             require __DIR__.'/modules.php';
         });
     });
@@ -109,6 +114,9 @@ $registerAppRoutes = function (): void {
                 ->except(['show'])
                 ->names('releases');
             Route::post('/releases/{release}/publish', [PlatformReleaseController::class, 'publish'])->name('releases.publish');
+
+            Route::get('/help', [CentralHelpCenterController::class, 'index'])->name('help.index');
+            Route::get('/help/{document}/download', [CentralHelpCenterController::class, 'download'])->whereIn('document', ['end-user', 'admin', 'technical', 'complete'])->name('help.download');
 
             Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
             Route::patch('/contact-messages/{contactMessage}', [ContactMessageController::class, 'update'])->name('contact-messages.update');

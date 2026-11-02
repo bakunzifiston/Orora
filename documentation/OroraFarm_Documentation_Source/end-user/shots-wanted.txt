@@ -1,0 +1,61 @@
+eu-login|/login|Login page (guest)
+eu-register|/register|Register page (guest)
+eu-dashboard|/dashboard|Dashboard
+eu-animals|/animals|Animals list
+eu-animal-details|/animals/122|Animal details
+eu-animal-form|/animals/create|Register animal form
+eu-animal-import|/animals/import|Import page
+eu-animal-import-preview|/animals/import|Import preview (upload needed; falls back to import page)
+eu-certificates|/certificates|Certificates
+eu-customer-create|/customers/create|New customer
+eu-egg-form|/eggs/collections/create|Egg collection form
+eu-eggs-overview|/eggs|Eggs overview
+eu-employee-create|/employees/create|New employee
+eu-employees-directory|/employees|Employees directory
+eu-expense-create|/expenses/records/create|New expense
+eu-expenses-overview|/expenses|Expenses overview
+eu-farm-details|/farms/6|Farm details
+eu-farm-form|/farms/create|Register farm
+eu-farms-list|/farms|Farms list
+eu-finance-overview|/finance|Finance overview
+eu-flock-form|/flocks/create|Place flock form
+eu-form-example|/animals/create|Form with required stars
+eu-livestock-form|/livestock/create|Livestock group form
+eu-marketplace-listing-create|/animals/122|placeholder
+eu-milk-distribution-create|/milk/distribution/create|Milk use form
+eu-milk-overview|/milk|Milk overview
+eu-milk-session-create|/milk/sessions/create|Milking session
+eu-milk-storage|/milk/storage|Storage list
+eu-mortality-form|/health/mortalities/create|Mortality form
+eu-movements|/movements|Movements
+eu-notification-bell|/dashboard|Bell
+eu-notifications|/notifications|Notifications
+eu-profile|/profile|Profile
+eu-record-view|/farms/6|Read-only record view
+eu-sale-create|/sales/transactions/create|New sale
+eu-sales-overview|/sales|Sales overview
+eu-users-access|/workspace/users|Users list
+eu-users-create|/workspace/users/create|Add user
+eu-whats-new|/whats-new|What's new
+ad-dashboard|/dashboard|Workspace dashboard
+ad-farms-list|/farms|Farms list
+ad-notifications|/notifications|Notifications
+ad-permissions-matrix|/workspace/users/create|Module matrix
+ad-users-list|/workspace/users|Users list
+ad-login|/login|Login (guest)
+eu-feeding-overview|/feeding|Feeding overview with summary cards, tabs and recent records
+eu-feed-type-form|/feeding/feed-types/create|Add feed type form (name, unit, category, Active feed type)
+eu-feed-inventory-form|/feeding/inventory/create|Add inventory form showing Farm, Feed type, Quantity in stock now, Reorder level
+eu-feeding-form|/feeding/records/create|Log feeding form (Farm, Feed inventory, Fed on, Quantity, Feed for)
+eu-feeding-schedule-form|/feeding/schedules/create|Add schedule form (Frequency, Time, Start date, Status)
+eu-feed-calculator|/feeding/calculator|Feed calculator form with Individual animal / Herd choice, farm, group, animal
+eu-health-overview|/health|Health overview with tabs, summary cards and medicine alerts
+eu-vaccination-form|/health/vaccinations/create|Add vaccination form incl. target choice and Next due date
+eu-deworming-form|/health/dewormings/create|Add deworming form incl. Medicine inventory item and Quantity used
+eu-treatment-form|/health/treatments/create|Add treatment form with Use existing medicine / Register new medicine
+eu-disease-form|/health/disease/create|Add disease record form (Severity, Recovery status, Contagious, quarantine)
+eu-medicines-list|/health/medicines|Medicines list with Low stock and Expired alerts
+eu-breeding-overview|/breeding|Breeding overview with Pregnancy checks due and Upcoming calvings
+eu-breeding-form|/breeding/records/create|Record breeding form (Female, Breeding date, sire, gestation)
+eu-pregnancy-check-form|/breeding/checks/create|Pregnancy check form (Method, Result, Next check date)
+eu-birth-form|/breeding/births/create|Record birth form (Total, Alive, Stillborn, Difficulty, Mother after birth)

@@ -1,0 +1,1 @@
+{"name":"ororafarm-docs-build","private":true,"type":"module","scripts":{"build":"node build.mjs","shots":"node shots.mjs"},"dependencies":{"marked":"^12.0.2","mermaid":"^10.9.1","pagedjs":"^0.4.3","puppeteer-core":"^25.16.0"}}
