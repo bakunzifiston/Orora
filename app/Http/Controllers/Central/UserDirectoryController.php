@@ -7,6 +7,7 @@ use App\Models\Farm;
 use App\Models\Tenant;
 use App\Models\TenantAccount;
 use App\Models\User;
+use App\Services\AdminFarmOverviewService;
 use App\Services\AdminPlatformStatsService;
 use App\Services\AdminUserDirectoryFilterService;
 use Carbon\Carbon;
@@ -19,6 +20,7 @@ class UserDirectoryController extends Controller
     public function __construct(
         private readonly AdminUserDirectoryFilterService $filters,
         private readonly AdminPlatformStatsService $stats,
+        private readonly AdminFarmOverviewService $overview,
     ) {}
 
     public function index(Request $request): View
@@ -43,6 +45,8 @@ class UserDirectoryController extends Controller
                 'stats' => $this->emptyPlatformStats(),
                 'accountEmails' => collect(),
                 'tenantNames' => collect(),
+                'workspaceUsers' => collect(),
+                'accountNames' => collect(),
                 'farmOptions' => collect(),
                 'provinces' => [],
                 'districts' => [],
@@ -72,6 +76,36 @@ class UserDirectoryController extends Controller
             ->whereIn('id', $tenantIds)
             ->pluck('name', 'id');
 
+        $accountNames = collect();
+        if ($tenantIds->isNotEmpty() && Schema::hasTable('users')) {
+            $usersByTenant = User::query()
+                ->withoutGlobalScopes()
+                ->whereIn('tenant_id', $tenantIds)
+                ->orderBy('id')
+                ->get(['tenant_id', 'name', 'email'])
+                ->groupBy('tenant_id');
+
+            // Name of the user behind the account e-mail shown in the table (falls back to the first user).
+            $accountNames = $usersByTenant->map(fn ($users, $tenantId) => (
+                $users->first(fn ($u) => strcasecmp($u->email, (string) ($accountEmails[$tenantId] ?? '')) === 0) ?? $users->first()
+            )->name);
+        }
+
+        $workspaceUsers = collect();
+        if ($tenantIds->isNotEmpty() && Schema::hasTable('users')) {
+            $lastLoginSelect = Schema::hasColumn('users', 'last_login_at')
+                ? 'MAX(last_login_at) as last_login_at'
+                : 'NULL as last_login_at';
+
+            $workspaceUsers = User::query()
+                ->withoutGlobalScopes()
+                ->whereIn('tenant_id', $tenantIds)
+                ->selectRaw("tenant_id, COUNT(*) as users_count, {$lastLoginSelect}")
+                ->groupBy('tenant_id')
+                ->get()
+                ->keyBy('tenant_id');
+        }
+
         $statsFilters = [
             'from' => $rangeStart->toDateString(),
             'to' => $rangeEnd->toDateString(),
@@ -89,6 +123,8 @@ class UserDirectoryController extends Controller
             'stats' => $this->stats->platformStats($statsFilters, $rangeStart, $rangeEnd, $farmIds),
             'accountEmails' => $accountEmails,
             'tenantNames' => $tenantNames,
+            'workspaceUsers' => $workspaceUsers,
+            'accountNames' => $accountNames,
             'farmOptions' => Farm::query()->withoutGlobalScope('tenant')->orderBy('name')->get(['id', 'name', 'district', 'province']),
             'provinces' => $this->filters->provinces(),
             'districts' => $filtersActive
@@ -147,6 +183,7 @@ class UserDirectoryController extends Controller
             'workspaceAccount' => $workspaceAccount,
             'workspaceUser' => $workspaceUser,
             'tenant' => $tenant,
+            'overview' => $this->overview->overview($farm, $rangeStart, $rangeEnd),
         ]);
     }
 

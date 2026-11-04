@@ -2952,6 +2952,16 @@
         gap: 0.7rem;
         min-width: 12rem;
     }
+    .admin-farms__section-title { margin: 0 0 0.6rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #94a3b8; }
+    .admin-farms__activity-line { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; margin: 0.35rem 0 0; font-size: 0.8125rem; color: #808080; }
+    .admin-farms__activity-line strong { color: #0f172a; font-weight: 600; }
+    .health-table--compact thead th { padding: 0.6rem 0.5rem; }
+    .health-table--compact tbody td { padding: 0.65rem 0.5rem; }
+    .health-table--compact .health-table__primary { min-width: 0; gap: 0.5rem; }
+    .health-table--compact .health-table__icon { width: 1.75rem; height: 1.75rem; border-radius: 0.45rem; }
+    .health-table--compact .health-table__icon .dash-nav-icon { width: 0.85rem; height: 0.85rem; }
+    .health-table--compact tbody td:nth-child(n+6):nth-child(-n+7) { white-space: nowrap; }
+    .health-table--compact .health-table__stack > .health-table__meta { max-width: 7.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .health-table__icon {
         width: 2.25rem;
         height: 2.25rem;

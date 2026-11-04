@@ -32,14 +32,16 @@
                         </p>
                     @else
                         <div class="dash-table-wrap">
-                            <table class="health-table">
+                            <table class="health-table health-table--compact">
                                 <thead>
                                     <tr>
+                                        <th>{{ __('Account') }}</th>
                                         <th>{{ __('Farm') }}</th>
                                         <th>{{ __('Type') }}</th>
                                         <th>{{ __('Owner') }}</th>
                                         <th>{{ __('Location') }}</th>
-                                        <th>{{ __('Account') }}</th>
+                                        <th>{{ __('Users') }}</th>
+                                        <th>{{ __('Last sign in') }}</th>
                                         <th>{{ __('Stock') }}</th>
                                         <th>{{ __('Registered') }}</th>
                                         <th class="health-table__actions">{{ __('Actions') }}</th>
@@ -59,6 +61,8 @@
                                                 ? ($farm->organization_name ?: '—')
                                                 : ($farm->owner_full_name ?: '—');
                                             $accountEmail = $accountEmails[$farm->tenant_id] ?? null;
+                                            $workspaceUser = $workspaceUsers[$farm->tenant_id] ?? null;
+                                            $lastLogin = $workspaceUser?->last_login_at ? \Illuminate\Support\Carbon::parse($workspaceUser->last_login_at) : null;
                                             $farmQuery = http_build_query(request()->only(['period', 'from', 'to', 'farm_id', 'province_code', 'district_code']));
                                             $showUrl = route('central.farms.show', $farm).($farmQuery ? '?'.$farmQuery : '');
                                             $stockLabel = $isPoultry
@@ -68,7 +72,15 @@
                                         <tr>
                                             <td>
                                                 <div class="health-table__primary">
-                                                    @include('modules.health.partials.table-icon', ['icon' => 'farm', 'tone' => $statusTone])
+                                                    @include('modules.health.partials.table-icon', ['icon' => 'customer', 'tone' => 'ok'])
+                                                    <div class="health-table__stack">
+                                                        <span class="health-table__value">{{ $accountNames[$farm->tenant_id] ?? '—' }}</span>
+                                                        <span class="health-table__meta" title="{{ $accountEmail }}">{{ $accountEmail ?: '—' }}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="health-table__primary">
                                                     <div class="health-table__stack">
                                                         <a href="{{ $showUrl }}" class="health-table__title health-table__title--link">{{ $farm->name }}</a>
                                                         @if ($farm->status)
@@ -86,13 +98,26 @@
                                                 <span class="health-table__value">{{ $owner }}</span>
                                             </td>
                                             <td>
-                                                <span class="health-table__value">{{ Str::limit($farm->location_label ?: '—', 42) }}</span>
+                                                <span class="health-table__value">{{ Str::limit($farm->location_label ?: '—', 22) }}</span>
                                             </td>
                                             <td>
-                                                <span class="health-table__meta">{{ $accountEmail ?: '—' }}</span>
+                                                <span class="health-table__value">{{ number_format($workspaceUser->users_count ?? 0) }}</span>
                                             </td>
                                             <td>
-                                                <span class="health-table__value">{{ $stockLabel }}</span>
+                                                <div class="health-table__primary">
+                                                    @include('modules.health.partials.table-icon', ['icon' => 'shield', 'tone' => $lastLogin ? ($lastLogin->gt(now()->subDays(30)) ? 'ok' : 'warn') : 'muted'])
+                                                    @if ($lastLogin)
+                                                        <span class="health-table__value" title="{{ $lastLogin->format('M j, Y H:i') }}">{{ $lastLogin->diffForHumans(['short' => true]) }}</span>
+                                                    @else
+                                                        <span class="health-table__meta">{{ __('Never') }}</span>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="health-table__primary">
+                                                    @include('modules.health.partials.table-icon', ['icon' => $isPoultry ? 'feeding' : 'animal', 'tone' => 'default'])
+                                                    <span class="health-table__value">{{ $stockLabel }}</span>
+                                                </div>
                                             </td>
                                             <td>
                                                 <span class="health-table__meta">{{ $farm->created_at?->format('M j, Y') ?? '—' }}</span>
