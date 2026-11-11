@@ -22,7 +22,7 @@ Words used on OroraFarm screens and in this guide, in alphabetical order.
 | Category (expense) | The type of an expense, such as Feed purchase or Labor |
 | Collection (Finance) | The Finance entry made when a customer payment is received |
 | Completed | Final status of a milk session or a sale. It can no longer be edited |
-| Confirm & deduct stock | The button on a milk sale. It takes litres from the tank and completes the sale |
+| Complete sale (milk) | The button on a milk sale. It completes the sale and takes litres from the tank when one is chosen and has enough milk |
 | Contact | A person you can call at a customer (customer contacts) |
 | Credit limit | The amount a customer is allowed to owe. A warning only: it does not block sales |
 | CSV | A simple spreadsheet file (comma separated values) used to import or export lists |

@@ -62,7 +62,7 @@ OroraFarm uses the field's technical name in these messages, so you see words li
 | This session is no longer open for changes. | Milk record | The session is closed. Ask your supervisor |
 | Only open sessions can be deleted. | Delete session | Closed sessions cannot be deleted |
 | Storage tank must belong to the same farm as the session. | Complete session | Choose a tank of the same farm |
-| Insufficient milk in storage. | Sale, distribution | The tank has less milk than you asked. Check the tank quantity |
+| Insufficient milk in storage. | Distribution (milk sales skip the deduction and still complete) | The tank has less milk than you asked. Check the tank quantity |
 | Only 40.00 L is available in this storage tank. | Distribution | Lower the litres or choose another tank |
 | Empty the container before removing it. | Delete tank | A tank with milk cannot be deleted |
 | Select the calf that was fed. | Distribution | Choose a calf |
@@ -83,7 +83,7 @@ OroraFarm uses the field's technical name in these messages, so you see words li
 | Animal must belong to the sale farm. / Flock must belong to the sale farm. | Sale item | Choose from the sale's farm |
 | Cannot sell more birds than the flock currently holds. | Sale item | Lower the number of birds |
 | Select a flock for live-bird sales. / Enter how many birds are being sold. | Sale item | Fill the flock or the number |
-| Sale item must specify a storage tank. | Milk sale confirm | Add a milk line with "From tank" |
+| Sale item must specify a storage tank. | No longer blocks milk sales | The tank is optional; add "From tank" only if you want stock deducted |
 | Add at least one line item before confirming. / Cannot complete a sale without items. | Confirm, Complete | Add items |
 | Only draft sales can be edited. | Save header | A completed sale cannot be changed |
 | This sale cannot be cancelled. | Cancel | A completed or cancelled sale cannot be cancelled |

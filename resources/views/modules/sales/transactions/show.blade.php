@@ -261,7 +261,7 @@
             @if ($transaction->sale_type === 'milk_sale')
                 <form method="POST" action="{{ route('sales.transactions.confirm', $transaction) }}">
                     @csrf
-                    <button type="submit" class="dash-btn-save" onclick="return confirm('Confirm sale and deduct milk from storage?');">Confirm &amp; deduct stock</button>
+                    <button type="submit" class="dash-btn-save" onclick="return confirm('Complete this sale? Milk is deducted from the selected tank when one is set and has enough stock.');">Complete sale</button>
                 </form>
             @else
                 <form method="POST" action="{{ route('sales.transactions.complete', $transaction) }}">

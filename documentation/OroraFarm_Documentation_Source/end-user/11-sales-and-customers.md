@@ -154,7 +154,7 @@ A sale has a **sale status** and a **payment status**.
 | Completed | Finished. Stock and animals are updated and money is posted to Finance |
 | Cancelled | Stopped. Nothing was sold |
 
-A milk sale uses the same statuses. The button for milk says **Confirm & deduct stock** but it also marks the sale **Completed** in one step.
+A milk sale uses the same statuses. The button for milk says **Complete sale** and marks the sale **Completed** in one step.
 
 | Payment status | Meaning |
 |---|---|
@@ -169,7 +169,7 @@ flowchart TD
     A[Step 1: sale header] --> B[Draft sale]
     B --> C[Add items]
     C --> D{Sale type}
-    D -- Milk --> E[Confirm and deduct stock]
+    D -- Milk --> E[Complete sale, deduct tank if set]
     D -- Other --> F[Complete sale]
     E --> G[Completed]
     F --> G
@@ -221,7 +221,7 @@ Items can be added **only while the sale is a Draft**. The form shows fields for
 | Unit price / Price / liter / Price / kg | Price in RWF | Yes for milk, meat, eggs and birds | Must be more than 0 |
 | Animal (animal sale) | The animal sold | Yes for animal items | Same farm, **Active** status, not already on this or another draft animal sale |
 | Flock and Birds (live birds) | Flock and number of birds | Yes for bird items | Number must be 1 or more and not more than the flock holds |
-| From tank (milk) | The tank the milk comes from | Needed to complete a milk sale | A tank of the same farm |
+| From tank (milk) | The tank the milk comes from | Optional. If set, the litres are deducted from this tank | A tank of the same farm |
 | Live weight (kg), Price / kg | For per-kg pricing | Live weight needed when pricing is per kg | Number, 0 or more |
 
 How the line total is worked out:
@@ -239,7 +239,7 @@ Item type must match the sale type, otherwise you see: *Item type does not match
 
 Check the items and the total. Then:
 
-- For milk, click **Confirm & deduct stock**.
+- For milk, click **Complete sale**.
 - For all other sales, click **Complete sale**.
 
 You are asked to confirm.
@@ -248,7 +248,7 @@ You are asked to confirm.
 
 | Sale type | Effect |
 |---|---|
-| Milk sale | Litres of every line are taken out of the chosen tank (movement "Sale"). A "Sold" line appears under Milk > Distribution. A line without a tank stops the sale: *Sale item must specify a storage tank.* Not enough milk stops it: *Insufficient milk in storage.* |
+| Milk sale | Litres of every line are taken out of the chosen tank (movement "Sale"). A "Sold" line appears under Milk > Distribution. The tank is optional: a line without a tank, or a tank with not enough milk, does **not** stop the sale. The sale completes and no litres are deducted for that line, so adjust the tank quantity manually if needed. |
 | Animal sale | Each sold animal's status becomes **Sold**. Each animal must still be Active: *Animal COW-014 is not active and cannot be sold.* |
 | Animal sale with birds | The number of birds is taken off the flock |
 | Meat sale | The meat cuts are marked sold; linked animals become **Sold** |

@@ -72,7 +72,7 @@ What each action does:
 
 - **Cancel sale** is allowed for sales that are **not Completed** (in practice Draft). A completed sale **cannot be cancelled**: *This sale cannot be cancelled.*
 - **Delete draft** is allowed only for Draft and Cancelled sales. The items **and any payments** recorded on that draft are deleted with it.
-- For a **milk sale**, the milk leaves the tank only when you press **Confirm & deduct stock**, and the sale becomes Completed at once. So a milk sale that is still Draft has not touched the tank.
+- For a **milk sale**, the milk leaves the tank (if a tank is chosen and has enough milk) only when you press **Complete sale**, and the sale becomes Completed at once. So a milk sale that is still Draft has not touched the tank.
 
 **If a completed sale is wrong** (wrong price, wrong customer, wrong animal):
 OroraFarm has no screen to reverse it. Do this:

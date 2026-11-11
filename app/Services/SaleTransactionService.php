@@ -109,7 +109,15 @@ class SaleTransactionService
 
         return DB::transaction(function () use ($transaction) {
             foreach ($transaction->items as $item) {
-                $this->storageService->deductForUnifiedSaleItem($item);
+                // Stock deduction is optional: never block the sale when no tank is
+                // selected or the tank does not hold enough milk.
+                if ($item->milk_storage_id) {
+                    try {
+                        $this->storageService->deductForUnifiedSaleItem($item);
+                    } catch (InvalidArgumentException) {
+                        // Skip deduction; the sale still completes.
+                    }
+                }
                 $this->milkDistributions->syncFromSaleItem($item);
             }
 

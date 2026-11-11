@@ -26,7 +26,7 @@ There is no "spoilage" screen. Record a **Distribution** with "Other use", descr
 It is the litres produced in the period minus all litres that have a recorded use (sold, calves, household, given away, other). A positive number may be milk still in a tank, or a missing record. See *Reports and analytics*.
 
 ### 8. Do I record milk sold in the Milk module?
-No. Sell milk in **Sales > Transactions** with sale type **Milk sale**. When you confirm it, the litres leave the tank and a "Sold" line appears under Milk > Distribution.
+No. Sell milk in **Sales > Transactions** with sale type **Milk sale**. When you complete it, the litres leave the tank (if a tank is chosen and has enough milk) and a "Sold" line appears under Milk > Distribution.
 
 ## Sales and customers
 
@@ -34,7 +34,7 @@ No. Sell milk in **Sales > Transactions** with sale type **Milk sale**. When you
 No. In the sale form you can choose an **Existing customer**, a **New customer** (created for you) or **Walk-in / not assigned**. A customer record is needed if you want to track who owes you money.
 
 ### 10. What is the difference between Draft and Completed?
-A **Draft** is still being prepared. It does not move stock and does not count in revenue or Finance. **Completed** means the sale is final: stock and animals are updated and Finance is posted. For milk, the button **Confirm & deduct stock** completes the sale in one step.
+A **Draft** is still being prepared. It does not move stock and does not count in revenue or Finance. **Completed** means the sale is final: stock and animals are updated and Finance is posted. For milk, the **Complete sale** button completes the sale in one step.
 
 ### 11. The customer paid only part. What do I do?
 Open the sale and use **Record payment** with the amount received. The payment status becomes **Partial** and the balance stays as money owed. Record the next payment later on the same sale.
