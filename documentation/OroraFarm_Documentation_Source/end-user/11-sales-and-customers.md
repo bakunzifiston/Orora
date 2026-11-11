@@ -231,7 +231,7 @@ How the line total is worked out:
 
 The sale **total** is: sum of line totals, minus Discount, plus Tax (never below 0). It is recalculated each time you add an item.
 
-> **Warning:** There is **no button to remove or edit a line item**. If an item is wrong while the sale is still Draft, use **Delete draft** and make the sale again.
+**Editing a line:** while the sale is **In progress**, each line has an **Edit** and a **Remove** button in the **Actions** column. **Edit** lets you change the description, quantity, unit price (and the tank for milk, or weight and price per kg for an animal). The animal on an animal line cannot be changed: remove the line and add a new one. The sale total and balance update when you save. Once the sale is Completed, lines can no longer be edited or removed.
 
 Item type must match the sale type, otherwise you see: *Item type does not match this sale.*
 

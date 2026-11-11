@@ -63,7 +63,7 @@ The session cannot be re-opened and the litres cannot be taken back out of the t
 | Record | Edit? | Delete? | Effects |
 |---|---|---|---|
 | Sale header (Draft) | Yes (**Save header**) | **Delete draft** | None yet: no stock moved, no Finance entry |
-| Sale line item (Draft) | **No** edit, **no** remove | | Delete the draft and start again |
+| Sale line item (Draft) | Yes (**Edit** on the line) | Yes (**Remove** on the line) | Total and balance update; nothing else moved yet |
 | Sale (Completed) | **No** | **No** | Stock, animals and Finance are already updated |
 | Sale (Cancelled) | No | Yes (**Delete**) | Nothing sold |
 | Payment | **No** | **No** | Stays on the sale |

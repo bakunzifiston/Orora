@@ -80,7 +80,7 @@ Statuses are Draft ("In progress"), Confirmed, Completed, Cancelled (the configu
 
 Key rules (from `SaleTransactionService` and the controller):
 
-- **Header editing** is allowed only while the sale is a draft ("Only draft sales can be edited."). **Line items** can be added only to draft sales.
+- **Header editing** is allowed only while the sale is a draft ("Only draft sales can be edited."). **Line items** can be added, edited (**Edit**) or removed (**Remove**) only on draft sales; the sale total is recalculated and the change is written to the sale's activity log.
 - **Delete** is allowed only for **draft or cancelled** sales ("Only draft or cancelled sales can be deleted."). A completed sale can never be deleted.
 - **Complete** needs at least one line item. Completing an animal sale sets each animal's lifecycle status to **Sold** (only Active animals can be sold); a poultry sale reduces the flock's count; a meat sale marks the abattoir returns as sold. Completing a milk sale that is still a draft confirms it first.
 - **Confirm** exists only for milk sales and **deducts the litres from the tank when one is set and has enough milk** (otherwise the deduction is skipped and the sale still completes) and writes a "Sold" milk distribution.

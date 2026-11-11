@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Http\Controllers\Concerns\SalesSectionViews;
 use App\Http\Requests\SaleItemRequest;
+use App\Http\Requests\SaleItemUpdateRequest;
 use App\Http\Requests\SalePaymentRequest;
 use App\Http\Requests\SaleTransactionRequest;
 use App\Models\Animal;
@@ -118,6 +119,28 @@ class SaleTransactionController extends Controller
         }
 
         return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Line item added.'));
+    }
+
+    public function updateItem(SaleItemUpdateRequest $request, SaleTransaction $transaction, SaleItem $item): RedirectResponse
+    {
+        try {
+            $this->saleService->updateItem($transaction, $item, $request->validated());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['item' => $e->getMessage()]);
+        }
+
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Line item updated.'));
+    }
+
+    public function destroyItem(SaleTransaction $transaction, SaleItem $item): RedirectResponse
+    {
+        try {
+            $this->saleService->removeItem($transaction, $item);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['item' => $e->getMessage()]);
+        }
+
+        return redirect()->route('sales.transactions.show', $transaction)->with('success', __('Line item removed.'));
     }
 
     public function storePayment(SalePaymentRequest $request, SaleTransaction $transaction): RedirectResponse

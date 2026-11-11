@@ -211,6 +211,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/transactions/{transaction}', [SaleTransactionController::class, 'update'])->name('transactions.update');
         Route::delete('/transactions/{transaction}', [SaleTransactionController::class, 'destroy'])->name('transactions.destroy');
         Route::post('/transactions/{transaction}/items', [SaleTransactionController::class, 'storeItem'])->name('transactions.items.store');
+        Route::put('/transactions/{transaction}/items/{item}', [SaleTransactionController::class, 'updateItem'])->name('transactions.items.update');
+        Route::delete('/transactions/{transaction}/items/{item}', [SaleTransactionController::class, 'destroyItem'])->name('transactions.items.destroy');
         Route::post('/transactions/{transaction}/payments', [SaleTransactionController::class, 'storePayment'])->name('transactions.payments.store');
         Route::post('/transactions/{transaction}/confirm', [SaleTransactionController::class, 'confirm'])->name('transactions.confirm');
         Route::post('/transactions/{transaction}/complete', [SaleTransactionController::class, 'complete'])->name('transactions.complete');

@@ -83,6 +83,9 @@
                         <th>Qty</th>
                         <th>Unit price</th>
                         <th>Total</th>
+                        @if ($transaction->sale_status === 'draft')
+                            <th>Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -102,6 +105,55 @@
                             <td>{{ number_format($item->quantity, 2) }} {{ $item->unit }}</td>
                             <td>{{ $item->unit_price ? number_format($item->unit_price, 0) : '—' }}</td>
                             <td>{{ number_format($item->total_price, 0) }}</td>
+                            @if ($transaction->sale_status === 'draft')
+                                <td style="min-width: 14rem;">
+                                    <details>
+                                        <summary style="cursor: pointer; color: #15803d; font-weight: 600;">Edit</summary>
+                                        <form method="POST" action="{{ route('sales.transactions.items.update', [$transaction, $item]) }}" style="display: grid; gap: 0.5rem; margin-top: 0.5rem;">
+                                            @csrf
+                                            @method('PUT')
+                                            <label>Description
+                                                <input type="text" name="description" value="{{ $item->description }}" required>
+                                            </label>
+                                            @if ($item->item_type === 'animal')
+                                                <input type="hidden" name="quantity" value="{{ $item->quantity }}">
+                                                <label>Live weight (kg)
+                                                    <input type="number" step="0.01" min="0" name="live_weight_kg" value="{{ $item->live_weight_kg }}">
+                                                </label>
+                                                <label>Price
+                                                    <input type="number" step="0.01" min="0" name="unit_price" value="{{ $item->unit_price }}">
+                                                </label>
+                                                <label>Price / kg
+                                                    <input type="number" step="0.01" min="0" name="price_per_kg" value="{{ $item->price_per_kg }}">
+                                                </label>
+                                            @else
+                                                @if ($item->item_type === 'milk')
+                                                    <label>From tank
+                                                        <select name="milk_storage_id">
+                                                            <option value="">Not specified</option>
+                                                            @foreach ($storageTanks ?? [] as $tank)
+                                                                <option value="{{ $tank->id }}" @selected($item->milk_storage_id == $tank->id)>{{ $tank->container_name }} ({{ number_format($tank->current_quantity_liters, 1) }} L)</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </label>
+                                                @endif
+                                                <label>Quantity ({{ $item->unit }})
+                                                    <input type="number" step="0.001" min="0.001" name="quantity" value="{{ rtrim(rtrim((string) $item->quantity, '0'), '.') }}" required>
+                                                </label>
+                                                <label>Unit price
+                                                    <input type="number" step="0.01" min="0" name="unit_price" value="{{ $item->unit_price }}">
+                                                </label>
+                                            @endif
+                                            <button type="submit" class="dash-btn-save">Save item</button>
+                                        </form>
+                                    </details>
+                                    <form method="POST" action="{{ route('sales.transactions.items.destroy', [$transaction, $item]) }}" onsubmit="return confirm('Remove this line item?');" style="margin-top: 0.35rem;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="dash-btn-cancel" style="color: #b91c1c;">Remove</button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

@@ -61,6 +61,61 @@ class SaleTransactionService
         return $item;
     }
 
+    public function updateItem(SaleTransaction $transaction, SaleItem $item, array $attributes): SaleItem
+    {
+        $this->assertDraftItem($transaction, $item);
+
+        if ($item->item_type === 'flock_birds') {
+            $qty = (int) ($attributes['quantity'] ?? $item->quantity);
+            $flock = \App\Models\Flock::query()->find($item->flock_id);
+            if ($qty < 1) {
+                throw new InvalidArgumentException('Enter how many birds are being sold.');
+            }
+            if ($flock && $qty > $flock->current_count) {
+                throw new InvalidArgumentException('Cannot sell more birds than the flock currently holds.');
+            }
+        }
+
+        $merged = [...$item->only([
+            'quantity', 'unit_price', 'live_weight_kg', 'carcass_weight_kg', 'price_per_kg',
+        ]), ...array_filter($attributes, fn ($v) => $v !== null)];
+        $merged = $this->normalizeItemPricingAttributes($transaction, $merged);
+        $totalPrice = $this->computeLineTotal($transaction, $merged);
+
+        $item->update([
+            ...$attributes,
+            'unit_price' => $merged['unit_price'],
+            'total_price' => $totalPrice,
+        ]);
+
+        $this->recalculateTotals($transaction);
+        $this->log($transaction, 'item_updated', "Line item \"{$item->description}\" updated.");
+
+        return $item->fresh();
+    }
+
+    public function removeItem(SaleTransaction $transaction, SaleItem $item): void
+    {
+        $this->assertDraftItem($transaction, $item);
+
+        $description = $item->description;
+        $item->delete();
+
+        $this->recalculateTotals($transaction);
+        $this->log($transaction, 'item_removed', "Line item \"{$description}\" removed.");
+    }
+
+    private function assertDraftItem(SaleTransaction $transaction, SaleItem $item): void
+    {
+        if ($transaction->sale_status !== 'draft') {
+            throw new InvalidArgumentException('Items can only be changed on draft sales.');
+        }
+
+        if ((int) $item->sale_transaction_id !== (int) $transaction->id) {
+            throw new InvalidArgumentException('This item does not belong to this sale.');
+        }
+    }
+
     public function recalculateTotals(SaleTransaction $transaction): void
     {
         $subtotal = (float) $transaction->items()->sum('total_price');
