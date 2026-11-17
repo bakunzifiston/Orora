@@ -133,6 +133,32 @@ Filters: period (from / to), farm and livestock group.
 
 > **Note:** There is no report export (PDF or spreadsheet) for finance or the dashboard. The only exports in the application are animal, customer and employee CSV files. Print or copy the page if you need a hard copy.
 
+## Activity report (PDF export)
+
+Workspace administrators see **Workspace > Activity report** in the sidebar. It lists **everything that happened in a period**, not only sales, as one summary plus a date-ordered timeline.
+
+| Filter | Options |
+|---|---|
+| From / To | Period (default: this month) |
+| Farm | One farm or all farms |
+| Include | Sales & payments, Expenses, Milk, Eggs, Health, Breeding, Feeding, Animals & movements |
+
+The summary counts each activity type (sales, payments received, expenses, milking sessions, egg collections, treatments, vaccinations, births, animals registered, movements and so on) with totals where they make sense (money, litres, eggs). **Export PDF** downloads the same report in landscape A4 with the filters printed at the top. When **Sales & payments** is included, the PDF also has a **Sales details** section: every sale in the period with its date, number, customer, farm, type, status, payment status, total, paid and balance, followed by its line items (description, quantity, price) and totals per currency. Cancelled sales and voided expenses are left out. Each activity type reads at most 1,500 records and the PDF shows at most 3,000 rows; narrow the period if you see the "capped" note.
+
+## Sales report (PDF export)
+
+**Sales > Reports** lists sales for the filters you choose and exports them as a PDF.
+
+| Filter | Options |
+|---|---|
+| From / To | Sale date range (leave empty for all dates) |
+| Farm, Customer | One farm or customer, or all |
+| Type | Animal, meat, milk or egg sale |
+| Sale status | In progress, Confirmed, Completed, Cancelled |
+| Payment status | Unpaid, Partially paid, Paid, Overdue |
+
+Click **Apply filters** to see the totals (sales count, total, paid, balance) and a preview of the first 50 sales. Click **Export PDF** to download the report with the same filters; the PDF lists every matching sale (up to 2,000) in landscape A4 and states the filters used. Totals are shown per currency. Anyone with access to the Sales module can use it.
+
 ## Reading the numbers: a short guide
 
 1. Always check the **period** and **farm** filter first; most "wrong number" reports are a filter issue.

@@ -187,6 +187,7 @@ return [
     'sale_sections' => [
         ['key' => 'overview', 'label' => 'Overview', 'route' => 'sales.overview'],
         ['key' => 'transactions', 'label' => 'Transactions', 'route' => 'sales.transactions'],
+        ['key' => 'reports', 'label' => 'Reports', 'route' => 'sales.reports'],
         ['key' => 'abattoir', 'label' => 'Abattoir', 'route' => 'sales.abattoir'],
     ],
 

@@ -76,7 +76,7 @@ class WorkspaceAccessService
             return true;
         }
 
-        if ($moduleKey === 'workspace-users') {
+        if (in_array($moduleKey, ['workspace-users', 'workspace-reports'], true)) {
             return $this->isWorkspaceAdmin($user);
         }
 
@@ -216,6 +216,12 @@ class WorkspaceAccessService
                     'label' => 'Users & access',
                     'route' => 'workspace.users.index',
                     'icon' => 'employee',
+                ],
+                [
+                    'key' => 'workspace-reports',
+                    'label' => 'Activity report',
+                    'route' => 'workspace.reports.index',
+                    'icon' => 'finance',
                 ],
             ],
         ];

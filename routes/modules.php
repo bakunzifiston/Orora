@@ -81,6 +81,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/{user}/activate', [WorkspaceUserController::class, 'activate'])->name('activate')->whereNumber('user');
     });
 
+    Route::middleware('workspace.admin')->prefix('workspace/reports')->name('workspace.reports.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\WorkspaceReportController::class, 'index'])->name('index');
+        Route::get('/pdf', [\App\Http\Controllers\WorkspaceReportController::class, 'pdf'])->name('pdf');
+    });
+
     Route::middleware('module.access')->group(function () {
     Route::resource('farms', FarmController::class);
     Route::resource('livestock', LivestockController::class);
@@ -204,6 +209,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [SalesModuleController::class, 'overview'])->name('overview');
         Route::redirect('/index', '/sales');
         Route::redirect('/buyers', '/customers/directory');
+        Route::get('/reports', [\App\Http\Controllers\SalesReportController::class, 'index'])->name('reports');
+        Route::get('/reports/pdf', [\App\Http\Controllers\SalesReportController::class, 'pdf'])->name('reports.pdf');
         Route::get('/transactions', [SaleTransactionController::class, 'index'])->name('transactions');
         Route::get('/transactions/create', [SaleTransactionController::class, 'create'])->name('transactions.create');
         Route::post('/transactions', [SaleTransactionController::class, 'store'])->name('transactions.store');
