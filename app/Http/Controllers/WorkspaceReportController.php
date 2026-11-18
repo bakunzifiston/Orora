@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesModuleNavigation;
 use App\Models\Farm;
 use App\Services\ActivityReportService;
+use App\Services\TenantContext;
+use App\Support\AccountType;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,6 +54,7 @@ class WorkspaceReportController extends Controller
             'truncated' => $report['truncated'] || $cut,
             'generatedAt' => now(),
             'generatedBy' => $request->user()?->name,
+            'isTesting' => AccountType::isTestingTenant(TenantContext::id()),
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('activity-report-'.$filters['from'].'_to_'.$filters['to'].'.pdf');

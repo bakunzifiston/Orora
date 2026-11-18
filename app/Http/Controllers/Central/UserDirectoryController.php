@@ -115,6 +115,7 @@ class UserDirectoryController extends Controller
 
         return view('central.users.index', [
             'activeNav' => 'farms',
+            'accountView' => \App\Support\AccountType::view() ?? 'all',
             'filters' => $filters,
             'filtersActive' => $filtersActive,
             'farmsReady' => true,

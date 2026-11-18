@@ -74,13 +74,14 @@ $registerAppRoutes = function (): void {
     Route::prefix('admin')->name('central.')->group(function () {
         Route::redirect('/login', '/login')->name('login');
 
-        Route::middleware(['auth:admin', ForgetTenantForCentralAdmin::class])->group(function () {
+        Route::middleware(['auth:admin', ForgetTenantForCentralAdmin::class, 'account.view'])->group(function () {
             Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
             Route::post('/logout', [AdminLoginController::class, 'destroy'])->name('logout');
 
             Route::get('/users', [PlatformUserController::class, 'index'])->name('accounts.index');
             Route::get('/users/{user}', [PlatformUserController::class, 'show'])->name('accounts.show')->whereNumber('user');
             Route::delete('/users/{user}', [PlatformUserController::class, 'destroy'])->name('accounts.destroy')->whereNumber('user');
+            Route::patch('/users/{user}/account-type', [PlatformUserController::class, 'updateAccountType'])->name('accounts.account-type')->whereNumber('user');
 
             Route::get('/farms', [UserDirectoryController::class, 'index'])->name('farms.index');
             Route::get('/farms/{farm}', [UserDirectoryController::class, 'show'])->name('farms.show')->whereNumber('farm');
@@ -91,6 +92,8 @@ $registerAppRoutes = function (): void {
             Route::prefix('api/rwanda')->name('api.rwanda.')->group(function () {
                 Route::get('districts', [RwandaLocationController::class, 'districts'])->name('districts');
             });
+
+            Route::patch('/tenants/{tenant}/account-type', [TenantController::class, 'updateAccountType'])->name('tenants.account-type');
 
             Route::resource('tenants', TenantController::class)
                 ->only(['index', 'create', 'store', 'destroy'])

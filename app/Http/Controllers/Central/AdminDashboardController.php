@@ -14,6 +14,7 @@ use App\Models\TenantAccount;
 use App\Services\AdminDashboardFilterService;
 use App\Services\AdminFarmMapService;
 use App\Services\AdminPlatformStatsService;
+use App\Support\AccountType;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -96,6 +97,7 @@ class AdminDashboardController extends Controller
             'recentContacts' => $recentContacts,
             'livestockGroups' => $livestockGroups,
             'farmMapMarkers' => $this->farmMap->markers($farmIds),
+            'accountView' => AccountType::view() ?? 'all',
         ]);
     }
 

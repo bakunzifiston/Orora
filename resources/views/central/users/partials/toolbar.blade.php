@@ -8,6 +8,9 @@
 @endphp
 
 <form method="GET" action="{{ route('central.farms.index') }}" class="dash-ops-toolbar farms-page__toolbar admin-dash__toolbar" id="admin-users-filters-form">
+    @if (request()->filled('account_type'))
+        <input type="hidden" name="account_type" value="{{ request('account_type') }}">
+    @endif
     <div class="admin-dash__header-text dash-ops-toolbar__brand">
         <h1 class="admin-dash__title">{{ __('Farms') }}</h1>
         <p class="admin-dash__period">

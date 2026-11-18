@@ -15,6 +15,9 @@
                     <p class="admin-dash__period">{{ __('Everyone with a login on the platform.') }}</p>
                 </div>
                 <div class="dash-ops-toolbar__controls farms-page__filters">
+                    @if (($accountType ?? 'all') !== 'all')
+                        <input type="hidden" name="account_type" value="{{ $accountType }}">
+                    @endif
                     <div class="dash-ops-field farms-page__search">
                         <label for="admin_accounts_search">{{ __('Search') }}</label>
                         <input type="search" name="q" id="admin_accounts_search" value="{{ $search }}" placeholder="{{ __('Name, email, or workspace') }}" autocomplete="off">
@@ -33,6 +36,15 @@
                     @endif
                 </div>
             </form>
+
+            @include('central.partials.account-type-switch', [
+                'current' => $accountType ?? 'all',
+                'counts' => [
+                    'real' => $typeStats['real']['users'] ?? 0,
+                    'testing' => $typeStats['testing']['users'] ?? 0,
+                    'all' => ($typeStats['real']['users'] ?? 0) + ($typeStats['testing']['users'] ?? 0),
+                ],
+            ])
 
             <section class="farm-dash__section" aria-label="{{ __('Summary') }}">
                 <div class="farm-dash__kpis farm-dash__kpis--4">
@@ -114,6 +126,7 @@
                                             </td>
                                             <td>
                                                 <span class="health-table__value">{{ $account->tenant?->name ?: ($account->tenant_id ?: '—') }}</span>
+                                                @include('central.partials.account-type-badge', ['type' => $account->tenant?->accountType() ?? 'real'])
                                             </td>
                                             <td>
                                                 <span class="health-table__value">{{ number_format($account->farms_count) }}</span>
@@ -134,6 +147,13 @@
                                             <td class="health-table__actions">
                                                 <div class="health-table__action-btns">
                                                     <a href="{{ route('central.accounts.show', $account) }}" class="dash-btn-save dash-btn-save--sm">{{ __('View') }}</a>
+                                                    @if ($account->tenant)
+                                                        @include('central.partials.account-type-form', [
+                                                            'action' => route('central.accounts.account-type', $account),
+                                                            'currentType' => $account->tenant->accountType(),
+                                                            'buttonClass' => 'dash-farm-card__btn',
+                                                        ])
+                                                    @endif
                                                     @include('central.accounts.partials.delete-form', [
                                                         'user' => $account,
                                                         'buttonClass' => 'dash-farm-card__btn dash-farm-card__btn--danger',
@@ -156,6 +176,7 @@
 
 @push('styles')
     @include('central.dashboard.partials.styles')
+    @include('central.partials.account-type-styles')
     <style>
         .admin-users .farm-kpi:not(a) {
             cursor: default;

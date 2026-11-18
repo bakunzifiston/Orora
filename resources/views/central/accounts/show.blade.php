@@ -16,12 +16,19 @@
                 <a href="{{ route('central.accounts.index') }}" class="dash-back-link">← {{ __('Users') }}</a>
                 <div class="admin-users__title-row">
                     <h1 class="admin-dash__title">{{ $user->name }}</h1>
+                    @include('central.partials.account-type-badge', ['type' => $user->tenant?->accountType() ?? 'real'])
                     <span class="health-table__pill health-table__pill--{{ $hasFarm ? 'ok' : 'warn' }}">
                         {{ $hasFarm ? __('Has farm') : __('No farm') }}
                     </span>
                 </div>
                 <p class="admin-dash__period">{{ $user->email }}</p>
             </div>
+            @if ($user->tenant)
+                @include('central.partials.account-type-form', [
+                    'action' => route('central.accounts.account-type', $user),
+                    'currentType' => $user->tenant->accountType(),
+                ])
+            @endif
             @include('central.accounts.partials.delete-form', [
                 'user' => $user,
                 'buttonClass' => 'dash-farm-card__btn dash-farm-card__btn--danger',
@@ -215,6 +222,7 @@
 @endsection
 
 @push('styles')
+    @include('central.partials.account-type-styles')
     @include('central.dashboard.partials.styles')
     <style>
         .admin-users__top {

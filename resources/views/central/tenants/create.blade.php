@@ -25,6 +25,15 @@
                     <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="Acme Corp" required>
                 </div>
 
+                <div class="dash-form-field">
+                    <label for="account_type">Account type</label>
+                    <select name="account_type" id="account_type">
+                        <option value="real" @selected(old('account_type', 'real') === 'real')>Active (production)</option>
+                        <option value="testing" @selected(old('account_type') === 'testing')>Testing (demo / internal)</option>
+                    </select>
+                    <p class="dash-field-hint">Testing accounts are excluded from production statistics.</p>
+                </div>
+
                 @if (config('tenancy.enable_domain_routes', false))
                     <div class="dash-form-field dash-form-field--full">
                         <label for="domain">Domain</label>

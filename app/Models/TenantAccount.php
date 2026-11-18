@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\AccountType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,6 +14,15 @@ class TenantAccount extends Model
         'tenant_id',
         'email',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('account_type', function ($builder): void {
+            if (AccountType::view() !== null) {
+                AccountType::constrainToView($builder, 'tenant_accounts.tenant_id');
+            }
+        });
+    }
 
     public function tenant(): BelongsTo
     {

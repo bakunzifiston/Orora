@@ -67,6 +67,7 @@
         <b>{{ __('Farm') }}:</b> {{ $farmName }} &nbsp;|&nbsp;
         <b>{{ __('Included') }}:</b> {{ $moduleLabels }} &nbsp;|&nbsp;
         <b>{{ __('Activities') }}:</b> {{ number_format($summary->sum('count')) }}
+        @if (! empty($isTesting)) &nbsp;|&nbsp; <b style="color:#b45309;">{{ __('TESTING ACCOUNT') }}</b> @endif
     </div>
 
     <h2>{{ __('Summary') }}</h2>

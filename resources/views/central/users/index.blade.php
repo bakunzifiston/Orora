@@ -11,6 +11,8 @@
         @else
             @include('central.users.partials.toolbar')
 
+            @include('central.partials.account-type-switch', ['current' => $accountView ?? 'real'])
+
             @include('central.partials.platform-kpis', ['filters' => $filters, 'hideAccountKpis' => true])
 
             <section class="farm-dash__section" aria-label="{{ __('All farms') }}">
@@ -83,6 +85,7 @@
                                                 <div class="health-table__primary">
                                                     <div class="health-table__stack">
                                                         <a href="{{ $showUrl }}" class="health-table__title health-table__title--link">{{ $farm->name }}</a>
+                                                        @include('central.partials.account-type-badge', ['type' => \App\Support\AccountType::isTestingTenant($farm->tenant_id) ? 'testing' : 'real'])
                                                         @if ($farm->status)
                                                             <span class="health-table__meta">{{ ucfirst($farm->status) }}</span>
                                                         @endif
@@ -141,6 +144,7 @@
 @endsection
 
 @push('styles')
+    @include('central.partials.account-type-styles')
     @include('central.dashboard.partials.styles')
     <style>
         .admin-farms .farm-kpi:not(a) {

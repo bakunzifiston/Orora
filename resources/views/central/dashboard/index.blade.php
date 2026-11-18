@@ -6,6 +6,8 @@
     <div class="farm-dash farms-page health-page admin-dash">
         @include('central.dashboard.partials.toolbar')
 
+        @include('central.partials.account-type-switch', ['current' => $accountView ?? 'real'])
+
         @include('central.partials.platform-kpis')
 
         <section class="farm-dash__section" aria-label="{{ __('Charts') }}">
@@ -107,6 +109,7 @@
                                                 <div class="health-table__primary">
                                                     @include('modules.health.partials.table-icon', ['icon' => 'farm', 'tone' => 'default'])
                                                     <a href="{{ route('central.farms.show', $farm) }}" class="health-table__title health-table__title--link">{{ $farm->name }}</a>
+                                                    @include('central.partials.account-type-badge', ['type' => \App\Support\AccountType::isTestingTenant($farm->tenant_id) ? 'testing' : 'real'])
                                                 </div>
                                             </td>
                                             <td>
@@ -208,6 +211,7 @@
 @endsection
 
 @push('styles')
+    @include('central.partials.account-type-styles')
     @include('central.dashboard.partials.styles')
 @endpush
 

@@ -66,6 +66,13 @@
                 </div>
             </header>
 
+            @if (\App\Support\AccountType::isTestingTenant(\App\Services\TenantContext::id()))
+                <div role="status" style="background:#fff4cc;border-bottom:3px solid #f2b705;color:#6b4a00;padding:8px 18px;font-size:13px;font-weight:700;">
+                    {{ __('TESTING ACCOUNT') }} —
+                    <span style="font-weight:500;">{{ __('This workspace is used for testing or demonstration. Its data is excluded from production reports and statistics.') }}</span>
+                </div>
+            @endif
+
             <div class="dash-content">
                 @yield('content')
             </div>

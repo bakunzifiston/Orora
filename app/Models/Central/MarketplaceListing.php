@@ -2,6 +2,7 @@
 
 namespace App\Models\Central;
 
+use App\Support\AccountType;
 use App\Models\Animal;
 use App\Models\Tenant;
 use App\Models\Farm;
@@ -97,6 +98,9 @@ class MarketplaceListing extends CentralModel
 
     public function scopeActive(Builder $query): Builder
     {
+        // Listings from testing accounts are never shown as live marketplace stock.
+        AccountType::apply($query, 'tenant_id', AccountType::REAL);
+
         return $query
             ->where('status', 'active')
             ->where(function (Builder $q) {

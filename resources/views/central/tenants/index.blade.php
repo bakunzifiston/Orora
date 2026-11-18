@@ -2,6 +2,10 @@
 
 @section('title', 'Tenants')
 
+@push('styles')
+    @include('central.partials.account-type-styles')
+@endpush
+
 @section('content')
     @include('modules.partials.header', [
         'title' => 'Tenants',
@@ -20,6 +24,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
+                            <th>Type</th>
                             <th>Domains</th>
                             <th>Created</th>
                             <th></th>
@@ -30,6 +35,7 @@
                             <tr>
                                 <td><code>{{ $tenant->id }}</code></td>
                                 <td>{{ $tenant->name ?? '—' }}</td>
+                                <td>@include('central.partials.account-type-badge', ['type' => $tenant->accountType()])</td>
                                 <td>
                                     @if ($tenant->domains->isEmpty())
                                         <span style="color: var(--orora-gray);">—</span>
@@ -42,6 +48,11 @@
                                 <td>{{ $tenant->created_at?->format('M j, Y') }}</td>
                                 <td>
                                     <div class="dash-table-actions">
+                                        @include('central.partials.account-type-form', [
+                                            'action' => route('central.tenants.account-type', $tenant),
+                                            'currentType' => $tenant->accountType(),
+                                            'buttonClass' => '',
+                                        ])
                                         <form action="{{ route('central.tenants.destroy', $tenant) }}" method="post" onsubmit="return confirm('Delete this tenant? This cannot be undone.');">
                                             @csrf
                                             @method('DELETE')

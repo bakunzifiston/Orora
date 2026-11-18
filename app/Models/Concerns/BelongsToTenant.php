@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Services\TenantContext;
+use App\Support\AccountType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
@@ -23,6 +24,18 @@ trait BelongsToTenant
             }
 
             $builder->where($model->getTable().'.tenant_id', $tenantId);
+        });
+
+        // Super Admin analytics can exclude testing accounts. No-op inside a workspace, and
+        // no-op unless a view ("real" / "testing") has been selected (see AccountType).
+        static::addGlobalScope('account_type', function (Builder $builder): void {
+            $model = $builder->getModel();
+
+            if (AccountType::view() === null || ! Schema::hasColumn($model->getTable(), 'tenant_id')) {
+                return;
+            }
+
+            AccountType::constrainToView($builder, $model->getTable().'.tenant_id');
         });
 
         static::creating(function (Model $model): void {

@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Central;
 use App\Http\Controllers\Controller;
 use App\Models\Farm;
 use App\Models\User;
+use App\Models\Tenant;
+use App\Services\AccountTypeStatsService;
 use App\Services\PlatformUserWorkspaceService;
+use App\Support\AccountType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,12 +20,16 @@ class PlatformUserController extends Controller
 {
     public function __construct(
         private readonly PlatformUserWorkspaceService $workspace,
+        private readonly AccountTypeStatsService $typeStats,
     ) {}
 
     public function index(Request $request): View
     {
         $search = trim((string) $request->input('q', ''));
         $status = $request->input('status', 'all');
+        $accountType = in_array($request->input('account_type'), AccountType::TYPES, true)
+            ? $request->input('account_type')
+            : 'all';
 
         if (! in_array($status, ['all', 'with_farm', 'pending'], true)) {
             $status = 'all';
@@ -37,18 +44,19 @@ class PlatformUserController extends Controller
                 'status' => $status,
                 'filtersActive' => false,
                 'stats' => $this->emptyStats(),
+                'accountType' => $accountType,
+                'typeStats' => null,
             ]);
         }
 
-        $base = User::query()->withoutGlobalScope('tenant');
+        $base = AccountType::apply(User::query()->withoutGlobalScope('tenant'), 'users.tenant_id', $accountType);
         $stats = [
             'total' => (clone $base)->count(),
             'with_farm' => (clone $base)->where($this->hasFarm(...))->count(),
             'pending' => (clone $base)->where($this->missingFarm(...))->count(),
         ];
 
-        $query = User::query()
-            ->withoutGlobalScope('tenant')
+        $query = AccountType::apply(User::query()->withoutGlobalScope('tenant'), 'users.tenant_id', $accountType)
             ->with('tenant')
             ->withCount([
                 'farms as farms_count' => fn ($farmQuery) => $farmQuery->withoutGlobalScope('tenant'),
@@ -81,8 +89,10 @@ class PlatformUserController extends Controller
             'users' => $users,
             'search' => $search,
             'status' => $status,
-            'filtersActive' => $search !== '' || $status !== 'all',
+            'filtersActive' => $search !== '' || $status !== 'all' || $accountType !== 'all',
             'stats' => $stats,
+            'accountType' => $accountType,
+            'typeStats' => $this->typeStats->compare(),
         ]);
     }
 
@@ -112,6 +122,28 @@ class PlatformUserController extends Controller
             'related' => $related,
             'relatedTotal' => $relatedTotal,
         ]);
+    }
+
+    public function updateAccountType(Request $request, int $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'account_type' => ['required', 'in:'.implode(',', AccountType::TYPES)],
+        ]);
+
+        $user = User::query()->withoutGlobalScope('tenant')->findOrFail($user);
+        $tenant = $user->tenant_id ? Tenant::query()->find($user->tenant_id) : null;
+
+        if (! $tenant || ! AccountType::ready()) {
+            return back()->with('error', __('This account has no workspace to classify.'));
+        }
+
+        $tenant->forceFill(['account_type' => $data['account_type']])->save();
+        AccountType::flush();
+
+        return back()->with('success', __(':workspace is now classified as :type.', [
+            'workspace' => $tenant->name ?: $tenant->id,
+            'type' => strtolower(AccountType::label($data['account_type'])),
+        ]));
     }
 
     public function destroy(int $user): RedirectResponse

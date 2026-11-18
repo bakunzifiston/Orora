@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'module.access' => \App\Http\Middleware\EnsureModuleAccess::class,
+            'account.view' => \App\Http\Middleware\ApplyAccountTypeView::class,
             'workspace.admin' => \App\Http\Middleware\EnsureWorkspaceAdmin::class,
         ]);
 

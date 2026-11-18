@@ -93,6 +93,18 @@ The form itself says: "Farmers normally sign up via /register - use this form on
 
 Deleting a tenant (red button, confirmation "Delete this tenant? This cannot be undone.") removes the tenant record. In the default single-database mode the success message still says "and its database were removed", but no separate database exists; the workspace's rows are removed only through the database's `ON DELETE CASCADE` foreign keys on `tenant_id`. Prefer the **Delete user** route described above, which explicitly purges the workspace, and verify on a backup copy before relying on tenant deletion.
 
+## Active and testing accounts
+
+Every workspace (tenant) is either a **Active** account (actual farmers using the live system) or a **Testing** account (demos, training, internal evaluation). The type belongs to the workspace, so all of its users, farms and records inherit it.
+
+- **Existing accounts stay Active.** Nothing is ever classified as Testing automatically; only a Super Admin can do it.
+- **Classify:** on **Users**, **Users > (a user)** or **Tenants**, use **Mark as testing** / **Mark as active** (with a confirmation). New tenants created in **Tenants > New tenant** have an **Account type** field.
+- **See it:** a green **Active** or amber **Testing** badge appears next to every account on Users, the user page, Tenants, Farms and the dashboard's recent farms. People signed in to a testing workspace see a **TESTING ACCOUNT** banner at the top of every page, and the workspace Activity report PDF is marked too.
+- **Filter:** Users, Farms and the Dashboard have a **Active | Testing | All** switch (Users also keeps your search and status filters). **Users** and **Tenants** show everything by default; the **Dashboard** and **Farms** default to **Active** so production figures are never inflated.
+- **Counts:** the **Active | Testing | All** switch on Users shows how many users are in each type.
+- **Excluded from production:** with the Active view selected, testing accounts do not count in dashboard KPIs, charts, the farm map, the farm directory or the marketplace statistics, and listings from testing accounts are never shown as live marketplace stock. A workspace's own reports and KPIs are unaffected: it always sees its own data.
+- Switching an account's type is instant and reversible, and deletes nothing. Run `php artisan migrate --force` once after deploying: it adds the type column with every existing account set to Active.
+
 ## Ecommerce / marketplace (`/admin/ecommerce`)
 
 The public shop (`/shop`) is the marketplace where workspace users list animals for sale and buyers send inquiries. Moderation is restricted to super admins (every action calls `authorizeSuperAdmin`).
